@@ -71,11 +71,26 @@ class DeviceIdentityServiceImpl implements DeviceIdentityService {
     try {
       if (Platform.isAndroid) {
         final androidInfo = await _deviceInfoPlugin.androidInfo;
-        model = androidInfo.model;
+        final rawModel = androidInfo.model;
+        final manufacturer = androidInfo.manufacturer;
+        final product = androidInfo.product;
         osVersion = androidInfo.version.release;
-        suggestedName = androidInfo.model.isNotEmpty
-            ? androidInfo.model
-            : 'Android Device';
+
+        // Si es un emulador de Google, sugerir un nombre amigable
+        if (rawModel.contains('sdk_gphone') || product.contains('sdk_gphone') || !androidInfo.isPhysicalDevice) {
+          model = 'Pixel 8 (Emulador)';
+          suggestedName = 'Google Pixel 8';
+        } else {
+          model = rawModel;
+          // Capitalizar fabricante si no está incluido en el modelo
+          if (manufacturer.isNotEmpty &&
+              !rawModel.toLowerCase().contains(manufacturer.toLowerCase())) {
+            final capManufacturer = manufacturer[0].toUpperCase() + manufacturer.substring(1);
+            suggestedName = '$capManufacturer $rawModel';
+          } else {
+            suggestedName = rawModel.isNotEmpty ? rawModel : 'Mi Android';
+          }
+        }
       } else if (Platform.isIOS) {
         final iosInfo = await _deviceInfoPlugin.iosInfo;
         model = iosInfo.utsname.machine;
