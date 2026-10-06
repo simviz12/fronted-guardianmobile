@@ -61,10 +61,11 @@ void main() {
 
     expect(find.text('Pixel 8 Protegido'), findsWidgets);
     expect(find.text('Hacer sonar'), findsOneWidget);
+    expect(find.text('Vibrar'), findsOneWidget);
+    expect(find.text('Mensaje'), findsOneWidget);
     expect(find.text('Bloquear'), findsOneWidget);
     expect(find.text('Localizar'), findsOneWidget);
-    expect(find.text('Mensaje'), findsOneWidget);
-    expect(find.text('Próximamente'), findsNWidgets(3));
+    expect(find.text('Próximamente'), findsNWidgets(2));
   });
 
   testWidgets('DeviceDetailPage shows confirmation dialog and sends ring command', (tester) async {
@@ -123,7 +124,7 @@ void main() {
     await tester.pumpWidget(buildWidget(controllerDevice));
 
     expect(find.text('Tablet Controlador'), findsWidgets);
-    expect(find.text('Solo disponible para dispositivos en modo Protegido'), findsOneWidget);
+    expect(find.text('Solo disponible para dispositivos en modo Protegido'), findsWidgets);
 
     await tester.tap(find.text('Hacer sonar'));
     await tester.pump();

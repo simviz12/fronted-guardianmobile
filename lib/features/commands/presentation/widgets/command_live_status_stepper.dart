@@ -92,7 +92,13 @@ class CommandLiveStatusStepper extends StatelessWidget {
                 index: 2,
                 label: isFailed
                     ? 'Falló'
-                    : (isExpired ? 'Expiró' : 'Sonando'),
+                    : (isExpired
+                        ? 'Expiró'
+                        : (command.type == CommandType.vibrate
+                            ? 'Vibrando'
+                            : (command.type == CommandType.message
+                                ? 'Mostrado'
+                                : 'Sonando'))),
                 isCompleted: currentStep >= 3,
                 isActive: currentStep == 3,
                 isError: isFailed || isExpired,
@@ -122,6 +128,11 @@ class CommandLiveStatusStepper extends StatelessWidget {
       case CommandStatus.delivered:
         return 'Orden recibida en el celular';
       case CommandStatus.executed:
+        if (command.type == CommandType.vibrate) {
+          return '¡Vibrando por el tiempo elegido!';
+        } else if (command.type == CommandType.message) {
+          return '¡Mensaje mostrado en pantalla!';
+        }
         return '¡Sonando a máximo volumen!';
       case CommandStatus.failed:
         return 'La orden no pudo ejecutarse';

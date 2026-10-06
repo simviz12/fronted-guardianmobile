@@ -1,4 +1,5 @@
 import '../entities/command.dart';
+import '../entities/command_page.dart';
 
 abstract class CommandRepository {
   Future<Command> sendCommand({
@@ -11,4 +12,12 @@ abstract class CommandRepository {
   Future<Command> getCommand(String commandId);
 
   Future<List<Command>> listDeviceCommands(String deviceId);
+
+  Future<CommandPage> getDeviceCommandsHistory({
+    required String deviceId,
+    int? limit,
+    String? cursor,
+    CommandStatus? status,
+    CommandType? type,
+  });
 }

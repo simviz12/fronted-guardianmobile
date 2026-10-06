@@ -1,4 +1,5 @@
 import '../entities/command.dart';
+import '../entities/command_page.dart';
 import '../repositories/command_repository.dart';
 
 class SendCommandUseCase {
@@ -38,5 +39,27 @@ class ListDeviceCommandsUseCase {
 
   Future<List<Command>> call(String deviceId) {
     return _repository.listDeviceCommands(deviceId);
+  }
+}
+
+class GetDeviceCommandsHistoryUseCase {
+  final CommandRepository _repository;
+
+  GetDeviceCommandsHistoryUseCase(this._repository);
+
+  Future<CommandPage> call({
+    required String deviceId,
+    int? limit,
+    String? cursor,
+    CommandStatus? status,
+    CommandType? type,
+  }) {
+    return _repository.getDeviceCommandsHistory(
+      deviceId: deviceId,
+      limit: limit,
+      cursor: cursor,
+      status: status,
+      type: type,
+    );
   }
 }

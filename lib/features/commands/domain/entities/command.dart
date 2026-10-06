@@ -1,5 +1,6 @@
 enum CommandType {
   ring,
+  vibrate,
   locate,
   lock,
   message;
@@ -8,6 +9,8 @@ enum CommandType {
     switch (this) {
       case CommandType.ring:
         return 'RING';
+      case CommandType.vibrate:
+        return 'VIBRATE';
       case CommandType.locate:
         return 'LOCATE';
       case CommandType.lock:
@@ -21,6 +24,8 @@ enum CommandType {
     switch (val.toUpperCase()) {
       case 'RING':
         return CommandType.ring;
+      case 'VIBRATE':
+        return CommandType.vibrate;
       case 'LOCATE':
         return CommandType.locate;
       case 'LOCK':

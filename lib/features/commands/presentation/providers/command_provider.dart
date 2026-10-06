@@ -106,22 +106,98 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
       _startPolling(command.id);
       return true;
     } catch (e) {
-      String msg = 'Error al enviar la orden.';
-      final str = e.toString();
-      if (str.contains('DEVICE_NOT_REACHABLE')) {
-        msg = 'Este dispositivo aún no puede recibir órdenes.';
-      } else if (str.contains('NetworkFailure')) {
-        msg = 'No hay conexión con el servidor.';
-      } else if (str.contains('DEVICE_NOT_FOUND')) {
-        msg = 'Dispositivo no encontrado.';
-      }
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: msg,
-        isPolling: false,
-      );
+      _handleSendError(e);
       return false;
     }
+  }
+
+  Future<bool> sendVibrateCommand({
+    required String deviceId,
+    int durationSeconds = 5,
+  }) async {
+    _pollingTimer?.cancel();
+    state = state.copyWith(isSubmitting: true, clearError: true, clearActiveCommand: true);
+
+    try {
+      final sendUseCase = _ref.read(sendCommandUseCaseProvider);
+      final command = await sendUseCase(
+        deviceId: deviceId,
+        type: CommandType.vibrate,
+        payload: {
+          'durationSeconds': durationSeconds,
+        },
+        ttl: 60,
+      );
+
+      state = state.copyWith(
+        activeCommand: command,
+        isSubmitting: false,
+        isPolling: true,
+      );
+
+      _startPolling(command.id);
+      return true;
+    } catch (e) {
+      _handleSendError(e);
+      return false;
+    }
+  }
+
+  Future<bool> sendMessageCommand({
+    required String deviceId,
+    required String text,
+    String? contactPhone,
+  }) async {
+    _pollingTimer?.cancel();
+    state = state.copyWith(isSubmitting: true, clearError: true, clearActiveCommand: true);
+
+    try {
+      final sendUseCase = _ref.read(sendCommandUseCaseProvider);
+      final payload = <String, dynamic>{
+        'text': text,
+      };
+      if (contactPhone != null && contactPhone.trim().isNotEmpty) {
+        payload['contactPhone'] = contactPhone.trim();
+      }
+
+      final command = await sendUseCase(
+        deviceId: deviceId,
+        type: CommandType.message,
+        payload: payload,
+        ttl: 300,
+      );
+
+      state = state.copyWith(
+        activeCommand: command,
+        isSubmitting: false,
+        isPolling: true,
+      );
+
+      _startPolling(command.id);
+      return true;
+    } catch (e) {
+      _handleSendError(e);
+      return false;
+    }
+  }
+
+  void _handleSendError(Object e) {
+    String msg = 'Error al enviar la orden.';
+    final str = e.toString();
+    if (str.contains('DEVICE_NOT_REACHABLE')) {
+      msg = 'Este dispositivo aún no puede recibir órdenes.';
+    } else if (str.contains('NetworkFailure')) {
+      msg = 'No hay conexión con el servidor.';
+    } else if (str.contains('DEVICE_NOT_FOUND')) {
+      msg = 'Dispositivo no encontrado.';
+    } else if (str.contains('VALIDATION_ERROR')) {
+      msg = 'Error de validación en los datos del comando.';
+    }
+    state = state.copyWith(
+      isSubmitting: false,
+      errorMessage: msg,
+      isPolling: false,
+    );
   }
 
   void _startPolling(String commandId) {

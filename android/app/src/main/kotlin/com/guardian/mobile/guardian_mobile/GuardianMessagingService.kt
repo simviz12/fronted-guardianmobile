@@ -71,20 +71,124 @@ class GuardianMessagingService : FirebaseMessagingService() {
             return
         }
 
-        // 3. Process RING command
-        if (type == "RING") {
-            val durationSeconds = data["durationSeconds"]?.toIntOrNull() ?: 60
+        // 3. Process commands
+        when (type) {
+            "RING" -> {
+                val durationSeconds = data["durationSeconds"]?.toIntOrNull() ?: 60
 
-            val ringIntent = Intent(applicationContext, RingService::class.java).apply {
-                action = RingService.ACTION_START_RING
-                putExtra(RingService.EXTRA_COMMAND_ID, commandId)
-                putExtra(RingService.EXTRA_DURATION_SECONDS, durationSeconds)
+                val ringIntent = Intent(applicationContext, RingService::class.java).apply {
+                    action = RingService.ACTION_START_RING
+                    putExtra(RingService.EXTRA_COMMAND_ID, commandId)
+                    putExtra(RingService.EXTRA_DURATION_SECONDS, durationSeconds)
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(ringIntent)
+                } else {
+                    startService(ringIntent)
+                }
             }
+            "VIBRATE" -> {
+                val durationSeconds = data["durationSeconds"]?.toIntOrNull() ?: 5
+                val durationMs = (durationSeconds * 1000).toLong()
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(ringIntent)
-            } else {
-                startService(ringIntent)
+                try {
+                    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        val vibratorManager = getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager
+                        vibratorManager?.defaultVibrator
+                    } else {
+                        @Suppress("DEPRECATION")
+                        getSystemService(android.content.Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+                    }
+
+                    if (vibrator != null && vibrator.hasVibrator()) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            val effect = android.os.VibrationEffect.createOneShot(
+                                durationMs,
+                                android.os.VibrationEffect.DEFAULT_AMPLITUDE
+                            )
+                            vibrator.vibrate(effect)
+                        } else {
+                            @Suppress("DEPRECATION")
+                            vibrator.vibrate(durationMs)
+                        }
+                        CommandAckClient.sendAck(applicationContext, commandId, "EXECUTED")
+                    } else {
+                        CommandAckClient.sendAck(
+                            applicationContext,
+                            commandId,
+                            "FAILED",
+                            "Dispositivo sin hardware de vibración disponible"
+                        )
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error executing VIBRATE: ${e.message}", e)
+                    CommandAckClient.sendAck(
+                        applicationContext,
+                        commandId,
+                        "FAILED",
+                        e.message ?: "Error desconocido al vibrar"
+                    )
+                }
+            }
+            "MESSAGE" -> {
+                val messageText = data["text"] ?: data["message"] ?: "Mensaje de seguridad"
+                val contactPhone = data["contactPhone"] ?: data["phone"]
+
+                try {
+                    val messageIntent = Intent(applicationContext, MessageActivity::class.java).apply {
+                        putExtra(MessageActivity.EXTRA_MESSAGE_TEXT, messageText)
+                        putExtra(MessageActivity.EXTRA_CONTACT_PHONE, contactPhone)
+                        putExtra(MessageActivity.EXTRA_COMMAND_ID, commandId)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    }
+
+                    // On Android 10+ background activity start may be restricted, also prepare full-screen notification fallback
+                    val notificationManager = getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                    val channelId = "guardian_urgent_messages"
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        val channel = android.app.NotificationChannel(
+                            channelId,
+                            "Mensajes Críticos de Guardian",
+                            android.app.NotificationManager.IMPORTANCE_HIGH
+                        ).apply {
+                            setBypassDnd(true)
+                            lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+                        }
+                        notificationManager.createNotificationChannel(channel)
+                    }
+
+                    val pendingIntent = android.app.PendingIntent.getActivity(
+                        applicationContext,
+                        commandId.hashCode(),
+                        messageIntent,
+                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+                    )
+
+                    val notification = androidx.core.app.NotificationCompat.Builder(applicationContext, channelId)
+                        .setSmallIcon(android.R.drawable.ic_dialog_alert)
+                        .setContentTitle("Mensaje del propietario")
+                        .setContentText(messageText)
+                        .setPriority(androidx.core.app.NotificationCompat.PRIORITY_MAX)
+                        .setCategory(androidx.core.app.NotificationCompat.CATEGORY_ALARM)
+                        .setVisibility(androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC)
+                        .setFullScreenIntent(pendingIntent, true)
+                        .setAutoCancel(true)
+                        .build()
+
+                    notificationManager.notify(commandId.hashCode(), notification)
+
+                    // Also try directly starting the activity
+                    startActivity(messageIntent)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error displaying MESSAGE: ${e.message}", e)
+                    CommandAckClient.sendAck(
+                        applicationContext,
+                        commandId,
+                        "FAILED",
+                        e.message ?: "Error al mostrar mensaje"
+                    )
+                }
             }
         }
     }

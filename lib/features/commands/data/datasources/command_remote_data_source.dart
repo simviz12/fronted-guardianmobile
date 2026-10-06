@@ -13,6 +13,42 @@ abstract class CommandRemoteDataSource {
   Future<CommandDto> getCommand(String commandId);
 
   Future<List<CommandDto>> listDeviceCommands(String deviceId);
+
+  Future<CommandPageDto> getDeviceCommandsHistory({
+    required String deviceId,
+    int? limit,
+    String? cursor,
+    String? status,
+    String? type,
+  });
+}
+
+class CommandPageDto {
+  final List<CommandDto> items;
+  final String? nextCursor;
+  final bool hasMore;
+
+  const CommandPageDto({
+    required this.items,
+    this.nextCursor,
+    required this.hasMore,
+  });
+
+  factory CommandPageDto.fromJson(dynamic json) {
+    if (json is Map<String, dynamic>) {
+      final listData = json['commands'] ?? json['items'] ?? json['data'] ?? [];
+      final list = (listData as List<dynamic>)
+          .map((item) => CommandDto.fromJson(item as Map<String, dynamic>))
+          .toList();
+      final nextCursor = json['nextCursor'] as String?;
+      final hasMore = json['hasMore'] as bool? ?? (nextCursor != null);
+      return CommandPageDto(items: list, nextCursor: nextCursor, hasMore: hasMore);
+    } else if (json is List<dynamic>) {
+      final list = json.map((item) => CommandDto.fromJson(item as Map<String, dynamic>)).toList();
+      return CommandPageDto(items: list, nextCursor: null, hasMore: false);
+    }
+    return const CommandPageDto(items: [], nextCursor: null, hasMore: false);
+  }
 }
 
 class CommandRemoteDataSourceImpl implements CommandRemoteDataSource {
@@ -68,6 +104,31 @@ class CommandRemoteDataSourceImpl implements CommandRemoteDataSource {
         list = [];
       }
       return list.map((item) => CommandDto.fromJson(item as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw DioClient.mapDioExceptionToFailure(e);
+    }
+  }
+
+  @override
+  Future<CommandPageDto> getDeviceCommandsHistory({
+    required String deviceId,
+    int? limit,
+    String? cursor,
+    String? status,
+    String? type,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (limit != null) queryParams['limit'] = limit;
+      if (cursor != null) queryParams['cursor'] = cursor;
+      if (status != null) queryParams['status'] = status;
+      if (type != null) queryParams['type'] = type;
+
+      final response = await _client.dio.get(
+        '/devices/$deviceId/commands',
+        queryParameters: queryParams,
+      );
+      return CommandPageDto.fromJson(response.data);
     } on DioException catch (e) {
       throw DioClient.mapDioExceptionToFailure(e);
     }

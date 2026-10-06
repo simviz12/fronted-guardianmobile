@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 
     <application
         android:label="Guardian Mobile"
@@ -17,6 +19,15 @@
             android:name=".RingService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
+
+        <!-- Native Message Full Screen Activity -->
+        <activity
+            android:name=".MessageActivity"
+            android:exported="false"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar.Fullscreen" />
 
         <!-- Native Firebase Messaging Service -->
         <service

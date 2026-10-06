@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:guardian_mobile/features/commands/domain/entities/command.dart';
+import 'package:guardian_mobile/features/commands/domain/entities/command_page.dart';
 import 'package:guardian_mobile/features/commands/domain/repositories/command_repository.dart';
 import 'package:guardian_mobile/features/commands/domain/usecases/command_usecases.dart';
 
@@ -43,6 +44,21 @@ class MockCommandRepository implements CommandRepository {
   @override
   Future<List<Command>> listDeviceCommands(String deviceId) async {
     return commandListToReturn;
+  }
+
+  @override
+  Future<CommandPage> getDeviceCommandsHistory({
+    required String deviceId,
+    int? limit,
+    String? cursor,
+    CommandStatus? status,
+    CommandType? type,
+  }) async {
+    return CommandPage(
+      items: commandListToReturn,
+      nextCursor: null,
+      hasMore: false,
+    );
   }
 }
 
