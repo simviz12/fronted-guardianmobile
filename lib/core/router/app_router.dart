@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/auth/presentation/pages/home_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/devices/presentation/pages/dashboard_page.dart';
+import '../../features/devices/presentation/pages/link_device_page.dart';
+import '../../features/devices/presentation/pages/settings_page.dart';
 import '../../features/server_status/presentation/pages/server_status_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -58,7 +60,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const DashboardPage(),
+      ),
+      GoRoute(
+        path: '/link-device',
+        builder: (context, state) => const LinkDevicePage(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsPage(),
       ),
       GoRoute(
         path: '/server-status',
