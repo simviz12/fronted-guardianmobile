@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 
@@ -7,53 +6,60 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get lightTheme {
-    final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme();
-
-    final textTheme = baseTextTheme.copyWith(
-      displayLarge: GoogleFonts.plusJakartaSans(
+    const defaultFont = 'Plus Jakarta Sans';
+    final textTheme = const TextTheme().copyWith(
+      displayLarge: const TextStyle(
+        fontFamily: defaultFont,
         fontSize: 28,
         fontWeight: FontWeight.w700,
         height: 36 / 28,
         letterSpacing: -0.28,
         color: AppColors.textHeadings,
       ),
-      headlineMedium: GoogleFonts.plusJakartaSans(
+      headlineMedium: const TextStyle(
+        fontFamily: defaultFont,
         fontSize: 20,
         fontWeight: FontWeight.w600,
         height: 28 / 20,
         color: AppColors.textHeadings,
       ),
-      headlineSmall: GoogleFonts.plusJakartaSans(
+      headlineSmall: const TextStyle(
+        fontFamily: defaultFont,
         fontSize: 16,
         fontWeight: FontWeight.w600,
         height: 24 / 16,
         color: AppColors.textHeadings,
       ),
-      bodyLarge: GoogleFonts.plusJakartaSans(
+      bodyLarge: const TextStyle(
+        fontFamily: defaultFont,
         fontSize: 16,
         fontWeight: FontWeight.w400,
         height: 24 / 16,
         color: AppColors.textBody,
       ),
-      bodyMedium: GoogleFonts.plusJakartaSans(
+      bodyMedium: const TextStyle(
+        fontFamily: defaultFont,
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 20 / 14,
         color: AppColors.textBody,
       ),
-      bodySmall: GoogleFonts.plusJakartaSans(
+      bodySmall: const TextStyle(
+        fontFamily: defaultFont,
         fontSize: 13,
         fontWeight: FontWeight.w400,
         height: 18 / 13,
         color: AppColors.textMuted,
       ),
-      labelLarge: GoogleFonts.plusJakartaSans(
+      labelLarge: const TextStyle(
+        fontFamily: defaultFont,
         fontSize: 14,
         fontWeight: FontWeight.w600,
         height: 20 / 14,
         color: AppColors.textHeadings,
       ),
-      labelSmall: GoogleFonts.plusJakartaSans(
+      labelSmall: const TextStyle(
+        fontFamily: defaultFont,
         fontSize: 12,
         fontWeight: FontWeight.w600,
         height: 16 / 12,
@@ -97,19 +103,21 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.md),
           ),
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: const TextStyle(
+            fontFamily: defaultFont,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
           elevation: 0,
         ),
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.textHeadings),
-        titleTextStyle: GoogleFonts.plusJakartaSans(
+        iconTheme: IconThemeData(color: AppColors.textHeadings),
+        titleTextStyle: TextStyle(
+          fontFamily: defaultFont,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textHeadings,

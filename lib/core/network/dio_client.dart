@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
 import '../error/failures.dart';
+import 'auth_interceptor.dart';
+import 'token_storage.dart';
 
 class NetworkInterceptor extends Interceptor {
   @override
@@ -36,8 +38,11 @@ class NetworkInterceptor extends Interceptor {
 class DioClient {
   final Dio dio;
 
-  DioClient({Dio? customDio})
-      : dio = customDio ??
+  DioClient({
+    Dio? customDio,
+    TokenStorage? tokenStorage,
+    void Function()? onSessionTerminated,
+  }) : dio = customDio ??
             Dio(
               BaseOptions(
                 baseUrl: ApiConfig.baseUrl,
@@ -49,6 +54,15 @@ class DioClient {
               ),
             ) {
     if (customDio == null) {
+      if (tokenStorage != null) {
+        dio.interceptors.add(
+          AuthInterceptor(
+            tokenStorage: tokenStorage,
+            dio: dio,
+            onSessionTerminated: onSessionTerminated,
+          ),
+        );
+      }
       dio.interceptors.add(NetworkInterceptor());
     }
   }
