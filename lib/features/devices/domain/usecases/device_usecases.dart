@@ -66,3 +66,13 @@ class GetThisPhoneDeviceIdUseCase {
     return _repository.getThisPhoneDeviceId();
   }
 }
+
+class UpdateFcmTokenUseCase {
+  final DeviceRepository _repository;
+
+  UpdateFcmTokenUseCase(this._repository);
+
+  Future<void> call({required String id, required String fcmToken}) {
+    return _repository.updateFcmToken(id: id, fcmToken: fcmToken);
+  }
+}

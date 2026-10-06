@@ -384,58 +384,61 @@ class DashboardPage extends ConsumerWidget {
     WidgetRef ref,
     Device device,
   ) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryContainer.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(AppRadii.md),
+    return InkWell(
+      onTap: () => context.push('/device-detail', extra: device),
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryContainer.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: const Icon(
+                    Icons.smartphone_rounded,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.smartphone_rounded,
-                  color: AppColors.primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.spaceSm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      device.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textHeadings,
+                const SizedBox(width: AppSpacing.spaceSm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        device.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textHeadings,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'ESTE TELÉFONO • DISPOSITIVO PRINCIPAL',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                        letterSpacing: 0.5,
+                      const SizedBox(height: 2),
+                      const Text(
+                        'ESTE TELÉFONO • DISPOSITIVO PRINCIPAL',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.more_vert_rounded, size: 20),
-                onPressed: () => _showDeviceActionsSheet(context, ref, device, isThisPhone: true),
-              ),
-            ],
-          ),
+                IconButton(
+                  icon: const Icon(Icons.more_vert_rounded, size: 20),
+                  onPressed: () => _showDeviceActionsSheet(context, ref, device, isThisPhone: true),
+                ),
+              ],
+            ),
           const SizedBox(height: AppSpacing.spaceMd),
 
           // Chips row
@@ -494,7 +497,8 @@ class DashboardPage extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildDeviceCard(
@@ -503,19 +507,22 @@ class DashboardPage extends ConsumerWidget {
     Device device, {
     required bool isThisPhone,
   }) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                ),
+    return InkWell(
+      onTap: () => context.push('/device-detail', extra: device),
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
                 child: Icon(
                   device.platform == 'ios' ? Icons.apple_rounded : Icons.phone_android_rounded,
                   color: AppColors.textHeadings,
@@ -572,7 +579,8 @@ class DashboardPage extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildModeChip(DeviceMode mode) {

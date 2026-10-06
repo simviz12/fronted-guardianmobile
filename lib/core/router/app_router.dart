@@ -5,8 +5,11 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/commands/presentation/pages/device_detail_page.dart';
+import '../../features/devices/domain/entities/device.dart';
 import '../../features/devices/presentation/pages/dashboard_page.dart';
 import '../../features/devices/presentation/pages/link_device_page.dart';
+import '../../features/devices/presentation/pages/protected_setup_page.dart';
 import '../../features/devices/presentation/pages/settings_page.dart';
 import '../../features/server_status/presentation/pages/server_status_page.dart';
 
@@ -65,6 +68,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/link-device',
         builder: (context, state) => const LinkDevicePage(),
+      ),
+      GoRoute(
+        path: '/protected-setup',
+        builder: (context, state) => const ProtectedSetupPage(),
+      ),
+      GoRoute(
+        path: '/device-detail',
+        builder: (context, state) {
+          final device = state.extra as Device;
+          return DeviceDetailPage(device: device);
+        },
       ),
       GoRoute(
         path: '/settings',

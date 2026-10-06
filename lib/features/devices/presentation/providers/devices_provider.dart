@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/native_bridge_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/device_identity_service.dart';
 import '../../data/datasources/device_remote_data_source.dart';
@@ -8,6 +9,10 @@ import '../../domain/repositories/device_repository.dart';
 import '../../domain/usecases/device_usecases.dart';
 
 // Services
+final nativeBridgeServiceProvider = Provider<NativeBridgeService>((ref) {
+  return NativeBridgeServiceImpl();
+});
+
 final deviceIdentityServiceProvider = Provider<DeviceIdentityService>((ref) {
   return DeviceIdentityServiceImpl();
 });
@@ -22,15 +27,21 @@ final deviceRemoteDataSourceProvider = Provider<DeviceRemoteDataSource>((ref) {
 final deviceRepositoryProvider = Provider<DeviceRepository>((ref) {
   final remoteDataSource = ref.watch(deviceRemoteDataSourceProvider);
   final identityService = ref.watch(deviceIdentityServiceProvider);
+  final nativeBridgeService = ref.watch(nativeBridgeServiceProvider);
   return DeviceRepositoryImpl(
     remoteDataSource: remoteDataSource,
     identityService: identityService,
+    nativeBridgeService: nativeBridgeService,
   );
 });
 
 // Use Cases
 final linkCurrentDeviceUseCaseProvider = Provider<LinkCurrentDeviceUseCase>((ref) {
   return LinkCurrentDeviceUseCase(ref.watch(deviceRepositoryProvider));
+});
+
+final updateFcmTokenUseCaseProvider = Provider<UpdateFcmTokenUseCase>((ref) {
+  return UpdateFcmTokenUseCase(ref.watch(deviceRepositoryProvider));
 });
 
 final listDevicesUseCaseProvider = Provider<ListDevicesUseCase>((ref) {

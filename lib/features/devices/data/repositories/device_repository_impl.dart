@@ -1,3 +1,5 @@
+import '../../../../core/config/api_config.dart';
+import '../../../../core/network/native_bridge_service.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/repositories/device_repository.dart';
 import '../datasources/device_identity_service.dart';
@@ -6,12 +8,15 @@ import '../datasources/device_remote_data_source.dart';
 class DeviceRepositoryImpl implements DeviceRepository {
   final DeviceRemoteDataSource _remoteDataSource;
   final DeviceIdentityService _identityService;
+  final NativeBridgeService _nativeBridgeService;
 
   DeviceRepositoryImpl({
     required DeviceRemoteDataSource remoteDataSource,
     required DeviceIdentityService identityService,
+    NativeBridgeService? nativeBridgeService,
   })  : _remoteDataSource = remoteDataSource,
-        _identityService = identityService;
+        _identityService = identityService,
+        _nativeBridgeService = nativeBridgeService ?? NativeBridgeServiceImpl();
 
   @override
   Future<LinkedDeviceResult> linkCurrentDevice({
@@ -39,6 +44,13 @@ class DeviceRepositoryImpl implements DeviceRepository {
       token: result.deviceToken,
     );
     await _identityService.saveThisPhoneDeviceId(result.device.id);
+
+    // Sync to native Android EncryptedSharedPreferences for background daemon
+    await _nativeBridgeService.saveDeviceCredentials(
+      apiBaseUrl: ApiConfig.baseUrl,
+      deviceId: result.device.id,
+      deviceToken: result.deviceToken,
+    );
 
     return result;
   }
@@ -70,14 +82,26 @@ class DeviceRepositoryImpl implements DeviceRepository {
   }
 
   @override
+  Future<void> updateFcmToken({
+    required String id,
+    required String fcmToken,
+  }) async {
+    await _remoteDataSource.updateDevice(
+      id: id,
+      fcmToken: fcmToken,
+    );
+  }
+
+  @override
   Future<void> unlinkDevice(String id) async {
     await _remoteDataSource.deleteDevice(id);
 
-    // If unlinked device is this phone, clear its stored deviceToken and identity
+    // If unlinked device is this phone, clear its stored deviceToken, identity and native credentials
     final thisPhoneId = await _identityService.getThisPhoneDeviceId();
     if (thisPhoneId == id) {
       await _identityService.clearDeviceToken(id);
       await _identityService.clearThisPhoneIdentity();
+      await _nativeBridgeService.clearDeviceCredentials();
     } else {
       await _identityService.clearDeviceToken(id);
     }
