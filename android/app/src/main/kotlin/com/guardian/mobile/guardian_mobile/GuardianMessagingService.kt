@@ -190,6 +190,33 @@ class GuardianMessagingService : FirebaseMessagingService() {
                     )
                 }
             }
+            "LOCK" -> {
+                try {
+                    val dpm = getSystemService(android.content.Context.DEVICE_POLICY_SERVICE) as? android.app.admin.DevicePolicyManager
+                    val adminComponent = android.content.ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
+
+                    if (dpm != null && dpm.isAdminActive(adminComponent)) {
+                        dpm.lockNow()
+                        CommandAckClient.sendAck(applicationContext, commandId, "EXECUTED")
+                    } else {
+                        Log.w(TAG, "Cannot execute LOCK: Device Admin is not active")
+                        CommandAckClient.sendAck(
+                            applicationContext,
+                            commandId,
+                            "FAILED",
+                            "ADMIN_NOT_ENABLED"
+                        )
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error executing LOCK: ${e.message}", e)
+                    CommandAckClient.sendAck(
+                        applicationContext,
+                        commandId,
+                        "FAILED",
+                        e.message ?: "ADMIN_NOT_ENABLED"
+                    )
+                }
+            }
         }
     }
 }

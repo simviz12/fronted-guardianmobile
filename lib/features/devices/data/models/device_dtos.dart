@@ -15,6 +15,7 @@ class DeviceDto {
   final bool? isCharging;
   final String? lastSeenAt;
   final bool isOnline;
+  final bool adminEnabled;
   final String createdAt;
   final String updatedAt;
 
@@ -33,6 +34,7 @@ class DeviceDto {
     this.isCharging,
     this.lastSeenAt,
     required this.isOnline,
+    this.adminEnabled = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -53,6 +55,8 @@ class DeviceDto {
       isCharging: json['isCharging'] as bool?,
       lastSeenAt: json['lastSeenAt'] as String?,
       isOnline: json['isOnline'] as bool? ?? false,
+      adminEnabled: json['adminEnabled'] as bool? ??
+          (json['capabilities'] is Map ? (json['capabilities']['adminEnabled'] as bool? ?? false) : false),
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
     );
@@ -95,6 +99,7 @@ class DeviceDto {
       isCharging: isCharging,
       lastSeenAt: lastSeenAt != null ? DateTime.tryParse(lastSeenAt!) : null,
       isOnline: isOnline,
+      adminEnabled: adminEnabled,
       createdAt: DateTime.parse(createdAt),
       updatedAt: DateTime.parse(updatedAt),
     );

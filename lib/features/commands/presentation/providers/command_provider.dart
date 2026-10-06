@@ -181,10 +181,41 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
     }
   }
 
+  Future<bool> sendLockCommand({
+    required String deviceId,
+  }) async {
+    _pollingTimer?.cancel();
+    state = state.copyWith(isSubmitting: true, clearError: true, clearActiveCommand: true);
+
+    try {
+      final sendUseCase = _ref.read(sendCommandUseCaseProvider);
+      final command = await sendUseCase(
+        deviceId: deviceId,
+        type: CommandType.lock,
+        payload: {},
+        ttl: 60,
+      );
+
+      state = state.copyWith(
+        activeCommand: command,
+        isSubmitting: false,
+        isPolling: true,
+      );
+
+      _startPolling(command.id);
+      return true;
+    } catch (e) {
+      _handleSendError(e);
+      return false;
+    }
+  }
+
   void _handleSendError(Object e) {
     String msg = 'Error al enviar la orden.';
     final str = e.toString();
-    if (str.contains('DEVICE_NOT_REACHABLE')) {
+    if (str.contains('CAPABILITY_NOT_AVAILABLE')) {
+      msg = 'Este dispositivo no ha activado el permiso de bloqueo (Administrador de Dispositivo).';
+    } else if (str.contains('DEVICE_NOT_REACHABLE')) {
       msg = 'Este dispositivo aún no puede recibir órdenes.';
     } else if (str.contains('NetworkFailure')) {
       msg = 'No hay conexión con el servidor.';

@@ -13,6 +13,12 @@ abstract class NativeBridgeService {
   Future<bool> isBatteryOptimizationIgnored();
 
   Future<bool> requestIgnoreBatteryOptimization();
+
+  Future<bool> isDeviceAdminActive();
+
+  Future<bool> requestEnableDeviceAdmin();
+
+  Future<bool> syncDeviceCapabilities();
 }
 
 class NativeBridgeServiceImpl implements NativeBridgeService {
@@ -54,6 +60,36 @@ class NativeBridgeServiceImpl implements NativeBridgeService {
   Future<bool> requestIgnoreBatteryOptimization() async {
     try {
       final result = await _channel.invokeMethod<bool>('requestIgnoreBatteryOptimization');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> isDeviceAdminActive() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('isDeviceAdminActive');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> requestEnableDeviceAdmin() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('requestEnableDeviceAdmin');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> syncDeviceCapabilities() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('syncDeviceCapabilities');
       return result ?? false;
     } catch (_) {
       return false;

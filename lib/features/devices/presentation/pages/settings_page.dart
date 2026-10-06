@@ -73,7 +73,38 @@ class SettingsPage extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.spaceLg),
+            // Lock Protection Setup link
+            AppCard(
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: const Icon(
+                    Icons.lock_person_outlined,
+                    color: AppColors.primary,
+                  ),
+                ),
+                title: const Text(
+                  'Protección y Permisos de Bloqueo',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textHeadings,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Configura permisos de Administrador de Dispositivo y Batería',
+                  style: TextStyle(fontSize: 12),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => context.push('/protected-setup'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.spaceMd),
+
             // Diagnostic link
             AppCard(
               child: ListTile(
