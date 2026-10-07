@@ -7,6 +7,7 @@ import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/commands/presentation/pages/command_history_page.dart';
 import '../../features/commands/presentation/pages/device_detail_page.dart';
+import '../../features/locations/presentation/pages/device_map_page.dart';
 import '../../features/devices/domain/entities/device.dart';
 import '../../features/devices/presentation/pages/dashboard_page.dart';
 import '../../features/devices/presentation/pages/link_device_page.dart';
@@ -86,6 +87,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final device = state.extra as Device;
           return CommandHistoryPage(device: device);
+        },
+      ),
+      GoRoute(
+        path: '/device-map',
+        builder: (context, state) {
+          final device = state.extra as Device;
+          return DeviceMapPage(device: device);
         },
       ),
       GoRoute(

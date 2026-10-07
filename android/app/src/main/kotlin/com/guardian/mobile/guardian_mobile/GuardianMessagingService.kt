@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 class GuardianMessagingService : FirebaseMessagingService() {
@@ -215,6 +216,78 @@ class GuardianMessagingService : FirebaseMessagingService() {
                         "FAILED",
                         e.message ?: "ADMIN_NOT_ENABLED"
                     )
+                }
+            }
+            "LOCATE" -> {
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                    try {
+                        if (!LocationHelper.hasLocationPermission(applicationContext)) {
+                            Log.w(TAG, "Cannot execute LOCATE: LOCATION_PERMISSION_DENIED")
+                            CommandAckClient.sendAck(
+                                applicationContext,
+                                commandId,
+                                "FAILED",
+                                "LOCATION_PERMISSION_DENIED"
+                            )
+                            return@launch
+                        }
+
+                        // Try to get a high-accuracy fix with 30s timeout
+                        val location = LocationHelper.getSingleHighAccuracyLocation(
+                            applicationContext,
+                            timeoutMs = 30000L
+                        )
+
+                        if (location != null) {
+                            val iso = LocationHelper.formatIsoTimestamp(java.util.Date(location.time))
+                            val posted = LocationReporterClient.reportSingleLocation(
+                                context = applicationContext,
+                                latitude = location.latitude,
+                                longitude = location.longitude,
+                                accuracyMeters = if (location.hasAccuracy()) location.accuracy else null,
+                                speedMps = if (location.hasSpeed()) location.speed else null,
+                                recordedAtIso = iso,
+                                source = "LOCATE_COMMAND"
+                            )
+
+                            if (posted) {
+                                CommandAckClient.sendAck(applicationContext, commandId, "EXECUTED")
+                            } else {
+                                // Enqueue offline as fallback
+                                OfflineLocationQueue.enqueue(
+                                    context = applicationContext,
+                                    latitude = location.latitude,
+                                    longitude = location.longitude,
+                                    accuracyMeters = if (location.hasAccuracy()) location.accuracy else null,
+                                    speedMps = if (location.hasSpeed()) location.speed else null,
+                                    recordedAtIso = iso,
+                                    source = "LOCATE_COMMAND"
+                                )
+                                CommandAckClient.sendAck(
+                                    applicationContext,
+                                    commandId,
+                                    "FAILED",
+                                    "NETWORK_ERROR"
+                                )
+                            }
+                        } else {
+                            Log.w(TAG, "LOCATE fix timed out or unavailable")
+                            CommandAckClient.sendAck(
+                                applicationContext,
+                                commandId,
+                                "FAILED",
+                                "LOCATION_UNAVAILABLE"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error executing LOCATE: ${e.message}", e)
+                        CommandAckClient.sendAck(
+                            applicationContext,
+                            commandId,
+                            "FAILED",
+                            e.message ?: "LOCATION_ERROR"
+                        )
+                    }
                 }
             }
         }

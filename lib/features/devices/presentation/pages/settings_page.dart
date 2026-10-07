@@ -1,16 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/network/native_bridge_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
-class SettingsPage extends ConsumerWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  bool _periodicEnabled = false;
+  int _intervalMinutes = 15;
+  bool _isLoadingLocationSettings = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocationSettings();
+  }
+
+  Future<void> _loadLocationSettings() async {
+    final nativeBridge = ref.read(nativeBridgeServiceProvider);
+    final enabled = await nativeBridge.isPeriodicLocationEnabled();
+    final interval = await nativeBridge.getLocationIntervalMinutes();
+    if (mounted) {
+      setState(() {
+        _periodicEnabled = enabled;
+        _intervalMinutes = interval;
+        _isLoadingLocationSettings = false;
+      });
+    }
+  }
+
+  Future<void> _togglePeriodic(bool value) async {
+    final nativeBridge = ref.read(nativeBridgeServiceProvider);
+    await nativeBridge.setPeriodicLocationEnabled(value);
+    if (mounted) {
+      setState(() {
+        _periodicEnabled = value;
+      });
+    }
+  }
+
+  Future<void> _updateInterval(int minutes) async {
+    final nativeBridge = ref.read(nativeBridgeServiceProvider);
+    await nativeBridge.setLocationIntervalMinutes(minutes);
+    if (mounted) {
+      setState(() {
+        _intervalMinutes = minutes;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
 
@@ -73,6 +122,98 @@ class SettingsPage extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: AppSpacing.spaceMd),
+
+            // Periodic Location Settings Card
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(AppRadii.md),
+                        ),
+                        child: const Icon(
+                          Icons.radar_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.spaceSm),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Reporte Periódico de Ubicación',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textHeadings,
+                              ),
+                            ),
+                            Text(
+                              'Servicio en segundo plano con notificación activa',
+                              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!_isLoadingLocationSettings)
+                        Switch(
+                          value: _periodicEnabled,
+                          activeThumbColor: AppColors.primary,
+                          onChanged: _togglePeriodic,
+                        ),
+                    ],
+                  ),
+                  if (_periodicEnabled) ...[
+                    const Divider(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Frecuencia de reporte:',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          'Cada $_intervalMinutes min',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      value: _intervalMinutes.toDouble(),
+                      min: 5,
+                      max: 60,
+                      divisions: 11, // 5, 10, 15, ..., 60
+                      label: '$_intervalMinutes min',
+                      activeColor: AppColors.primary,
+                      onChanged: (val) {
+                        setState(() {
+                          _intervalMinutes = val.round();
+                        });
+                      },
+                      onChangeEnd: (val) {
+                        _updateInterval(val.round());
+                      },
+                    ),
+                    const Text(
+                      'Usa precisión balanceada para ahorrar batería. La notificación "Guardian protege este teléfono" permanecerá visible en la barra de estado según las políticas del sistema.',
+                      style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.spaceMd),
+
             // Lock Protection Setup link
             AppCard(
               child: ListTile(

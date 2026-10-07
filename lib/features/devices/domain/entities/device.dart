@@ -1,3 +1,5 @@
+import 'package:guardian_mobile/features/locations/domain/entities/device_location.dart';
+
 enum DeviceMode {
   protected,
   controller;
@@ -35,6 +37,7 @@ class Device {
   final DateTime? lastSeenAt;
   final bool isOnline;
   final bool adminEnabled;
+  final LastLocationSummary? lastLocation;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -54,6 +57,7 @@ class Device {
     this.lastSeenAt,
     required this.isOnline,
     this.adminEnabled = false,
+    this.lastLocation,
     required this.createdAt,
     required this.updatedAt,
   });

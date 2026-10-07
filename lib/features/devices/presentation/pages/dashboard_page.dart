@@ -458,40 +458,63 @@ class DashboardPage extends ConsumerWidget {
               color: AppColors.surfaceContainerLow,
               borderRadius: BorderRadius.circular(AppRadii.md),
             ),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Icon(
-                        device.batteryLevel != null
-                            ? Icons.battery_charging_full_rounded
-                            : Icons.battery_unknown_rounded,
-                        size: 16,
-                        color: AppColors.primary,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            device.batteryLevel != null
+                                ? Icons.battery_charging_full_rounded
+                                : Icons.battery_unknown_rounded,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            device.batteryLevel != null ? '${device.batteryLevel}%' : 'Sin datos',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textHeadings,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        device.batteryLevel != null ? '${device.batteryLevel}%' : 'Sin datos',
+                    ),
+                    Expanded(
+                      child: Text(
+                        'Modelo: ${device.model ?? '—'}',
+                        textAlign: TextAlign.right,
                         style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textHeadings,
+                          fontSize: 11,
+                          color: AppColors.textBody,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (device.lastLocation != null) ...[
+                  const Divider(height: 12, thickness: 0.5),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'Última pos: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textBody,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Modelo: ${device.model ?? '—'}',
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textBody,
-                    ),
-                  ),
-                ),
+                ],
               ],
             ),
           ),
@@ -611,6 +634,24 @@ class DashboardPage extends ConsumerWidget {
               ),
             ],
           ),
+          if (device.lastLocation != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(Icons.location_on_rounded, size: 12, color: AppColors.primary),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'Última pos: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textBody,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     ),

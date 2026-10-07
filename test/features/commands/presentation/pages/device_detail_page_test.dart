@@ -65,7 +65,7 @@ void main() {
     expect(find.text('Mensaje'), findsOneWidget);
     expect(find.text('Bloquear'), findsOneWidget);
     expect(find.text('Localizar'), findsOneWidget);
-    expect(find.text('Próximamente'), findsOneWidget); // Solo Localizar
+    expect(find.text('Próximamente'), findsNothing); // All 5 tactical actions active
   });
 
   testWidgets('DeviceDetailPage shows hint when adminEnabled is false for Lock', (tester) async {

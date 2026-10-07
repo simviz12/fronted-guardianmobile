@@ -210,6 +210,35 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
     }
   }
 
+  Future<bool> sendLocateCommand({
+    required String deviceId,
+  }) async {
+    _pollingTimer?.cancel();
+    state = state.copyWith(isSubmitting: true, clearError: true, clearActiveCommand: true);
+
+    try {
+      final sendUseCase = _ref.read(sendCommandUseCaseProvider);
+      final command = await sendUseCase(
+        deviceId: deviceId,
+        type: CommandType.locate,
+        payload: null,
+        ttl: 60,
+      );
+
+      state = state.copyWith(
+        activeCommand: command,
+        isSubmitting: false,
+        isPolling: true,
+      );
+
+      _startPolling(command.id);
+      return true;
+    } catch (e) {
+      _handleSendError(e);
+      return false;
+    }
+  }
+
   void _handleSendError(Object e) {
     String msg = 'Error al enviar la orden.';
     final str = e.toString();

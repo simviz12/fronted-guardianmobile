@@ -100,7 +100,9 @@ class CommandLiveStatusStepper extends StatelessWidget {
                                 ? 'Mostrado'
                                 : (command.type == CommandType.lock
                                     ? 'Bloqueado'
-                                    : 'Sonando')))),
+                                    : (command.type == CommandType.locate
+                                        ? 'Ubicado'
+                                        : 'Sonando'))))),
                 isCompleted: currentStep >= 3,
                 isActive: currentStep == 3,
                 isError: isFailed || isExpired,
@@ -136,6 +138,8 @@ class CommandLiveStatusStepper extends StatelessWidget {
           return '¡Mensaje mostrado en pantalla!';
         } else if (command.type == CommandType.lock) {
           return '¡Pantalla bloqueada exitosamente!';
+        } else if (command.type == CommandType.locate) {
+          return '¡Ubicación GPS obtenida exitosamente!';
         }
         return '¡Sonando a máximo volumen!';
       case CommandStatus.failed:
