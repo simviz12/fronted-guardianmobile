@@ -495,6 +495,40 @@ class DashboardPage extends ConsumerWidget {
               ],
             ),
           ),
+
+          // Suggestion banner if protected mode and Device Admin is not enabled
+          if (device.mode == DeviceMode.protected && !device.adminEnabled) ...[
+            const SizedBox(height: AppSpacing.spaceSm),
+            InkWell(
+              onTap: () => context.push('/protected-setup'),
+              borderRadius: BorderRadius.circular(AppRadii.md),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.warningSubtle,
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.5)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.shield_outlined, size: 18, color: AppColors.warningText),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Activar protección de bloqueo (Recomendado)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.warningText,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.warningText),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     ),

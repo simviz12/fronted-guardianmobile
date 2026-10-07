@@ -69,6 +69,35 @@ class MainActivity : FlutterActivity() {
                         result.success(true)
                     }
                 }
+                "isDeviceAdminActive" -> {
+                    val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as? android.app.admin.DevicePolicyManager
+                    val comp = android.content.ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
+                    val active = dpm?.isAdminActive(comp) ?: false
+                    result.success(active)
+                }
+                "requestEnableDeviceAdmin" -> {
+                    try {
+                        val comp = android.content.ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
+                        val intent = Intent(android.app.admin.DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                            putExtra(android.app.admin.DevicePolicyManager.EXTRA_DEVICE_ADMIN, comp)
+                            putExtra(
+                                android.app.admin.DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                                "Requerido para bloquear la pantalla de este teléfono de forma remota en caso de pérdida o emergencia."
+                            )
+                        }
+                        startActivity(intent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("ADMIN_INTENT_ERROR", e.message, null)
+                    }
+                }
+                "syncDeviceCapabilities" -> {
+                    val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as? android.app.admin.DevicePolicyManager
+                    val comp = android.content.ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
+                    val active = dpm?.isAdminActive(comp) ?: false
+                    DeviceCapabilityClient.reportCapabilities(applicationContext, adminEnabled = active)
+                    result.success(active)
+                }
                 else -> {
                     result.notImplemented()
                 }

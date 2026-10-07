@@ -65,7 +65,101 @@ void main() {
     expect(find.text('Mensaje'), findsOneWidget);
     expect(find.text('Bloquear'), findsOneWidget);
     expect(find.text('Localizar'), findsOneWidget);
-    expect(find.text('Próximamente'), findsNWidgets(2));
+    expect(find.text('Próximamente'), findsOneWidget); // Solo Localizar
+  });
+
+  testWidgets('DeviceDetailPage shows hint when adminEnabled is false for Lock', (tester) async {
+    final deviceWithoutAdmin = Device(
+      id: 'dev-1',
+      ownerId: 'owner-1',
+      installId: 'inst-1',
+      name: 'Pixel 8 Protegido',
+      platform: 'android',
+      mode: DeviceMode.protected,
+      adminEnabled: false,
+      isOnline: true,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    await tester.pumpWidget(buildWidget(deviceWithoutAdmin));
+
+    expect(find.text('Este dispositivo no ha activado el permiso de bloqueo'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Bloquear'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bloquear'));
+    await tester.pump();
+
+    // Dialog should NOT appear
+    expect(find.text('¿Bloquear dispositivo ahora?'), findsNothing);
+  });
+
+  testWidgets('DeviceDetailPage shows confirmation dialog and sends LOCK command when adminEnabled is true', (tester) async {
+    final deviceWithAdmin = Device(
+      id: 'dev-1',
+      ownerId: 'owner-1',
+      installId: 'inst-1',
+      name: 'Pixel 8 Protegido',
+      platform: 'android',
+      mode: DeviceMode.protected,
+      adminEnabled: true,
+      isOnline: true,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    when(() => mockCommandRepository.sendCommand(
+          deviceId: 'dev-1',
+          type: CommandType.lock,
+          payload: any(named: 'payload'),
+          ttl: any(named: 'ttl'),
+        )).thenAnswer((_) async => Command(
+          id: 'cmd-lock-1',
+          deviceId: 'dev-1',
+          type: CommandType.lock,
+          status: CommandStatus.pending,
+          payload: const {},
+          issuedAt: DateTime.now(),
+          ttl: 60,
+        ));
+
+    when(() => mockCommandRepository.getCommand('cmd-lock-1')).thenAnswer(
+      (_) async => Command(
+        id: 'cmd-lock-1',
+        deviceId: 'dev-1',
+        type: CommandType.lock,
+        status: CommandStatus.executed,
+        payload: const {},
+        issuedAt: DateTime.now(),
+        deliveredAt: DateTime.now(),
+        executedAt: DateTime.now(),
+        ttl: 60,
+      ),
+    );
+
+    await tester.pumpWidget(buildWidget(deviceWithAdmin));
+
+    // Scroll down to Bloquear tile and tap it
+    await tester.ensureVisible(find.text('Bloquear'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bloquear'));
+    await tester.pumpAndSettle();
+
+    // Verify confirmation modal
+    expect(find.text('¿Bloquear dispositivo ahora?'), findsOneWidget);
+    expect(find.text('Bloquear ahora'), findsOneWidget);
+
+    // Confirm action
+    await tester.tap(find.text('Bloquear ahora'));
+    await tester.pump();
+
+    verify(() => mockCommandRepository.sendCommand(
+          deviceId: 'dev-1',
+          type: CommandType.lock,
+          payload: any(named: 'payload'),
+          ttl: any(named: 'ttl'),
+        )).called(1);
   });
 
   testWidgets('DeviceDetailPage shows confirmation dialog and sends ring command', (tester) async {

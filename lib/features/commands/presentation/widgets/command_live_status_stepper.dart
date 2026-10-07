@@ -98,7 +98,9 @@ class CommandLiveStatusStepper extends StatelessWidget {
                             ? 'Vibrando'
                             : (command.type == CommandType.message
                                 ? 'Mostrado'
-                                : 'Sonando'))),
+                                : (command.type == CommandType.lock
+                                    ? 'Bloqueado'
+                                    : 'Sonando')))),
                 isCompleted: currentStep >= 3,
                 isActive: currentStep == 3,
                 isError: isFailed || isExpired,
@@ -132,6 +134,8 @@ class CommandLiveStatusStepper extends StatelessWidget {
           return '¡Vibrando por el tiempo elegido!';
         } else if (command.type == CommandType.message) {
           return '¡Mensaje mostrado en pantalla!';
+        } else if (command.type == CommandType.lock) {
+          return '¡Pantalla bloqueada exitosamente!';
         }
         return '¡Sonando a máximo volumen!';
       case CommandStatus.failed:

@@ -34,6 +34,7 @@ class Device {
   final bool? isCharging;
   final DateTime? lastSeenAt;
   final bool isOnline;
+  final bool adminEnabled;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -52,6 +53,7 @@ class Device {
     this.isCharging,
     this.lastSeenAt,
     required this.isOnline,
+    this.adminEnabled = false,
     required this.createdAt,
     required this.updatedAt,
   });

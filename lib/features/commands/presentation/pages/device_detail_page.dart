@@ -133,18 +133,18 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                     isLoading: commandState.isSubmitting || commandState.isPolling,
                   ),
 
-                  // 4. LOCALIZAR (Disabled - Próximamente)
+                  // 4. BLOQUEAR (Active if target is PROTECTED, checks adminEnabled)
+                  _buildLockActionTile(
+                    isProtectedMode: isProtectedMode,
+                    isAdminEnabled: widget.device.adminEnabled,
+                    isLoading: commandState.isSubmitting || commandState.isPolling,
+                  ),
+
+                  // 5. LOCALIZAR (Disabled - Próximamente)
                   _buildDisabledActionTile(
                     title: 'Localizar',
                     subtitle: 'Triangulación GPS de alta precisión',
                     icon: Icons.my_location_rounded,
-                  ),
-
-                  // 5. BLOQUEAR (Disabled - Próximamente)
-                  _buildDisabledActionTile(
-                    title: 'Bloquear',
-                    subtitle: 'PIN forzoso e inhabilita biometría',
-                    icon: Icons.lock_rounded,
                   ),
                 ],
               ),
@@ -570,5 +570,125 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
         },
       ),
     );
+  }
+
+  Widget _buildLockActionTile({
+    required bool isProtectedMode,
+    required bool isAdminEnabled,
+    required bool isLoading,
+  }) {
+    if (!isProtectedMode) {
+      return _buildDisabledActionTile(
+        title: 'Bloquear',
+        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        icon: Icons.lock_rounded,
+        badgeLabel: 'No protegido',
+      );
+    }
+
+    if (!isAdminEnabled) {
+      return _buildDisabledActionTile(
+        title: 'Bloquear',
+        subtitle: 'Este dispositivo no ha activado el permiso de bloqueo',
+        icon: Icons.lock_rounded,
+        badgeLabel: 'Sin permiso',
+      );
+    }
+
+    return InkWell(
+      onTap: isLoading ? null : _confirmAndSendLock,
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.spaceMd),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySubtle,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: const Icon(Icons.lock_rounded, color: AppColors.primary, size: 24),
+                ),
+                if (isLoading)
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  ),
+              ],
+            ),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bloquear',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textHeadings,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Bloquea la pantalla inmediatamente',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmAndSendLock() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('¿Bloquear dispositivo ahora?'),
+        content: Text(
+          'La pantalla de "${widget.device.name}" se apagará de inmediato y exigirá el PIN o patrón de seguridad actual para poder acceder.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.alert),
+            child: const Text('Bloquear ahora'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await ref
+          .read(commandNotifierProvider.notifier)
+          .sendLockCommand(deviceId: widget.device.id);
+    }
   }
 }

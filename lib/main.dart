@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/network/fcm_notification_service.dart';
+import 'core/network/native_bridge_service.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
@@ -32,6 +33,7 @@ class _GuardianMobileAppState extends ConsumerState<GuardianMobileApp> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(fcmNotificationServiceProvider).initialize(ref);
+      ref.read(nativeBridgeServiceProvider).syncDeviceCapabilities();
     });
   }
 
