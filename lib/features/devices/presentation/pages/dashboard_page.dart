@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/realtime/realtime_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
@@ -221,6 +222,7 @@ class DashboardPage extends ConsumerWidget {
 
     final thisPhone = state.thisPhoneDevice;
     final otherDevices = state.otherDevices;
+    final realtimeState = ref.watch(realtimeConnectionStateProvider).valueOrNull ?? RealtimeConnectionState.disconnected;
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -231,6 +233,12 @@ class DashboardPage extends ConsumerWidget {
         bottom: 80,
       ),
       children: [
+        // Realtime Reconnection subtle banner
+        if (realtimeState != RealtimeConnectionState.connected) ...[
+          _buildRealtimeDisconnectedBanner(),
+          const SizedBox(height: AppSpacing.spaceSm),
+        ],
+
         // Global security summary banner
         _buildSummaryBanner(state.devices.length),
         const SizedBox(height: AppSpacing.spaceMd),
@@ -458,40 +466,42 @@ class DashboardPage extends ConsumerWidget {
               color: AppColors.surfaceContainerLow,
               borderRadius: BorderRadius.circular(AppRadii.md),
             ),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Icon(
-                        device.batteryLevel != null
-                            ? Icons.battery_charging_full_rounded
-                            : Icons.battery_unknown_rounded,
-                        size: 16,
-                        color: AppColors.primary,
+                Row(
+                  children: [
+                    _buildBatteryIndicator(device.batteryLevel, device.isCharging),
+                    const SizedBox(width: AppSpacing.spaceMd),
+                    _buildNetworkIndicator(device.networkType),
+                    const Spacer(),
+                    Text(
+                      _formatLastSeen(device.lastSeenAt),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textMuted,
                       ),
+                    ),
+                  ],
+                ),
+                if (device.lastLocation != null) ...[
+                  const Divider(height: 12, thickness: 0.5),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
                       const SizedBox(width: 4),
-                      Text(
-                        device.batteryLevel != null ? '${device.batteryLevel}%' : 'Sin datos',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textHeadings,
+                      Expanded(
+                        child: Text(
+                          'Última pos: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textBody,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Modelo: ${device.model ?? '—'}',
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textBody,
-                    ),
-                  ),
-                ),
+                ],
               ],
             ),
           ),
@@ -541,50 +551,60 @@ class DashboardPage extends ConsumerWidget {
     Device device, {
     required bool isThisPhone,
   }) {
-    return InkWell(
-      onTap: () => context.push('/device-detail', extra: device),
-      borderRadius: BorderRadius.circular(AppRadii.lg),
-      child: AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.push('/device-detail', extra: device),
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.spaceMd),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(AppRadii.md),
-                  ),
-                child: Icon(
-                  device.platform == 'ios' ? Icons.apple_rounded : Icons.phone_android_rounded,
-                  color: AppColors.textHeadings,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.spaceSm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      device.name,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(AppRadii.md),
+                      ),
+                      child: Icon(
+                        device.platform == 'ios' ? Icons.apple_rounded : Icons.phone_android_rounded,
                         color: AppColors.textHeadings,
+                        size: 20,
                       ),
                     ),
-                    Text(
-                      'Modelo: ${device.model ?? '—'} • SO: ${device.osVersion ?? '—'}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textMuted,
+                    const SizedBox(width: AppSpacing.spaceSm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            device.name,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textHeadings,
+                            ),
+                          ),
+                          Text(
+                            'Modelo: ${device.model ?? '—'} • SO: ${device.osVersion ?? '—'}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.primary),
+                tooltip: 'Administrar dispositivo',
+                onPressed: () => context.push('/device-detail', extra: device),
               ),
               IconButton(
                 icon: const Icon(Icons.more_vert_rounded, size: 20),
@@ -599,22 +619,173 @@ class DashboardPage extends ConsumerWidget {
               const SizedBox(width: AppSpacing.spaceXs),
               _buildOnlineChip(device.isOnline),
               const Spacer(),
-              Row(
-                children: [
-                  const Icon(Icons.battery_std_rounded, size: 14, color: AppColors.textMuted),
-                  const SizedBox(width: 2),
-                  Text(
-                    device.batteryLevel != null ? '${device.batteryLevel}%' : 'Sin datos',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                  ),
-                ],
+              _buildBatteryIndicator(device.batteryLevel, device.isCharging),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              _buildNetworkIndicator(device.networkType),
+              const Spacer(),
+              Text(
+                _formatLastSeen(device.lastSeenAt),
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
               ),
             ],
           ),
-        ],
+              if (device.lastLocation != null) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 12, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        'Última pos: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textBody,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     ),
   );
+}
+
+  Widget _buildRealtimeDisconnectedBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: const Row(
+        children: [
+          Icon(
+            Icons.wifi_off_rounded,
+            size: 16,
+            color: AppColors.textMuted,
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Sin conexión en tiempo real, reconectando…',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textBody,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBatteryIndicator(int? level, bool? isCharging) {
+    if (level == null) {
+      return const Row(
+        children: [
+          Icon(Icons.battery_unknown_rounded, size: 16, color: AppColors.textMuted),
+          SizedBox(width: 4),
+          Text('Sin datos', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+        ],
+      );
+    }
+
+    final Color color;
+    final IconData icon;
+
+    if (isCharging == true) {
+      icon = Icons.battery_charging_full_rounded;
+      color = AppColors.safe;
+    } else if (level > 80) {
+      icon = Icons.battery_full_rounded;
+      color = AppColors.safe;
+    } else if (level > 50) {
+      icon = Icons.battery_6_bar_rounded;
+      color = AppColors.primary;
+    } else if (level > 20) {
+      icon = Icons.battery_3_bar_rounded;
+      color = AppColors.warning;
+    } else {
+      icon = Icons.battery_alert_rounded;
+      color = AppColors.alert;
+    }
+
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 4),
+        Text(
+          '$level%',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+        if (isCharging == true) ...[
+          const SizedBox(width: 2),
+          const Text('⚡', style: TextStyle(fontSize: 12)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildNetworkIndicator(String? networkType) {
+    IconData icon;
+    String label;
+    switch (networkType?.toLowerCase()) {
+      case 'wifi':
+        icon = Icons.wifi_rounded;
+        label = 'Wi-Fi';
+        break;
+      case 'mobile':
+        icon = Icons.signal_cellular_alt_rounded;
+        label = 'Datos';
+        break;
+      case 'none':
+        icon = Icons.signal_cellular_connected_no_internet_4_bar_rounded;
+        label = 'Sin red';
+        break;
+      default:
+        icon = Icons.help_outline_rounded;
+        label = '—';
+    }
+
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: AppColors.textMuted),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+        ),
+      ],
+    );
+  }
+
+  String _formatLastSeen(DateTime? lastSeen) {
+    if (lastSeen == null) return 'Visto hace —';
+    final diff = DateTime.now().difference(lastSeen);
+    if (diff.inSeconds < 60) {
+      return 'Visto hace un momento';
+    } else if (diff.inMinutes < 60) {
+      return 'Visto hace ${diff.inMinutes} m';
+    } else if (diff.inHours < 24) {
+      return 'Visto hace ${diff.inHours} h';
+    } else {
+      return 'Visto hace ${diff.inDays} d';
+    }
   }
 
   Widget _buildModeChip(DeviceMode mode) {

@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/network/fcm_notification_service.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_provider.dart';
 
@@ -37,10 +38,14 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
     });
 
     try {
+      final fcmService = ref.read(fcmNotificationServiceProvider);
+      final fcmToken = await fcmService.getFcmToken();
+
       final linkUseCase = ref.read(linkCurrentDeviceUseCaseProvider);
       await linkUseCase(
         name: _nameController.text.trim(),
         mode: _selectedMode,
+        fcmToken: fcmToken,
       );
 
       // Refresh dashboard
@@ -53,7 +58,11 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
             backgroundColor: AppColors.primary,
           ),
         );
-        context.pop();
+        if (_selectedMode == DeviceMode.protected) {
+          context.pushReplacement('/protected-setup');
+        } else {
+          context.pop();
+        }
       }
     } catch (e) {
       if (mounted) {

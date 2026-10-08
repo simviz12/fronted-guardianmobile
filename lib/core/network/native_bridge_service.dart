@@ -19,6 +19,26 @@ abstract class NativeBridgeService {
   Future<bool> requestEnableDeviceAdmin();
 
   Future<bool> syncDeviceCapabilities();
+
+  Future<bool> hasLocationPermission();
+
+  Future<bool> hasBackgroundLocationPermission();
+
+  Future<bool> requestForegroundLocationPermission();
+
+  Future<bool> requestBackgroundLocationPermission();
+
+  Future<void> openAppSettings();
+
+  Future<bool> isPeriodicLocationEnabled();
+
+  Future<bool> setPeriodicLocationEnabled(bool enabled);
+
+  Future<int> getLocationIntervalMinutes();
+
+  Future<bool> setLocationIntervalMinutes(int minutes);
+
+  Future<void> flushOfflineLocations();
 }
 
 class NativeBridgeServiceImpl implements NativeBridgeService {
@@ -94,6 +114,104 @@ class NativeBridgeServiceImpl implements NativeBridgeService {
     } catch (_) {
       return false;
     }
+  }
+
+  @override
+  Future<bool> hasLocationPermission() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('hasLocationPermission');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> hasBackgroundLocationPermission() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('hasBackgroundLocationPermission');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> requestForegroundLocationPermission() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('requestForegroundLocationPermission');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> requestBackgroundLocationPermission() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('requestBackgroundLocationPermission');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<void> openAppSettings() async {
+    try {
+      await _channel.invokeMethod('openAppSettings');
+    } catch (_) {}
+  }
+
+  @override
+  Future<bool> isPeriodicLocationEnabled() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('isPeriodicLocationEnabled');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> setPeriodicLocationEnabled(bool enabled) async {
+    try {
+      final result = await _channel.invokeMethod<bool>('setPeriodicLocationEnabled', {
+        'enabled': enabled,
+      });
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<int> getLocationIntervalMinutes() async {
+    try {
+      final result = await _channel.invokeMethod<int>('getLocationIntervalMinutes');
+      return result ?? 15;
+    } catch (_) {
+      return 15;
+    }
+  }
+
+  @override
+  Future<bool> setLocationIntervalMinutes(int minutes) async {
+    try {
+      final result = await _channel.invokeMethod<bool>('setLocationIntervalMinutes', {
+        'minutes': minutes,
+      });
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<void> flushOfflineLocations() async {
+    try {
+      await _channel.invokeMethod('flushOfflineLocations');
+    } catch (_) {}
   }
 }
 

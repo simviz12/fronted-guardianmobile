@@ -6,12 +6,15 @@ import 'package:guardian_mobile/features/devices/domain/entities/device.dart';
 import 'package:guardian_mobile/features/devices/domain/repositories/device_repository.dart';
 import 'package:guardian_mobile/features/devices/presentation/pages/link_device_page.dart';
 import 'package:guardian_mobile/features/devices/presentation/providers/devices_provider.dart';
+import 'package:guardian_mobile/core/network/fcm_notification_service.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockDeviceRepository extends Mock implements DeviceRepository {}
+class MockFcmNotificationService extends Mock implements FcmNotificationService {}
 
 void main() {
   late MockDeviceRepository mockDeviceRepository;
+  late MockFcmNotificationService mockFcmService;
 
   const sampleInstallInfo = DeviceInstallInfo(
     installId: 'test-install-123',
@@ -28,6 +31,8 @@ void main() {
 
   setUp(() {
     mockDeviceRepository = MockDeviceRepository();
+    mockFcmService = MockFcmNotificationService();
+    when(() => mockFcmService.getFcmToken()).thenAnswer((_) async => 'fake-fcm-token');
   });
 
   Widget buildLinkDevicePage() {
@@ -35,6 +40,7 @@ void main() {
       overrides: [
         deviceInstallInfoProvider.overrideWith((ref) async => sampleInstallInfo),
         deviceRepositoryProvider.overrideWithValue(mockDeviceRepository),
+        fcmNotificationServiceProvider.overrideWithValue(mockFcmService),
       ],
       child: const MaterialApp(
         home: LinkDevicePage(),
@@ -62,6 +68,7 @@ void main() {
       () => mockDeviceRepository.linkCurrentDevice(
         name: any(named: 'name'),
         mode: any(named: 'mode'),
+        fcmToken: any(named: 'fcmToken'),
       ),
     ).thenAnswer((_) async => linkedResult);
 
@@ -83,6 +90,7 @@ void main() {
       () => mockDeviceRepository.linkCurrentDevice(
         name: 'Pixel 8 Pro',
         mode: DeviceMode.protected,
+        fcmToken: 'fake-fcm-token',
       ),
     ).called(1);
   });

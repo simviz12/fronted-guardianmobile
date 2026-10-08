@@ -18,6 +18,8 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
   bool _notificationGranted = false;
   bool _batteryExempted = false;
   bool _adminEnabled = false;
+  bool _hasForegroundLocation = false;
+  bool _hasBackgroundLocation = false;
 
   @override
   void initState() {
@@ -43,10 +45,15 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
     final nativeBridge = ref.read(nativeBridgeServiceProvider);
     final isIgnored = await nativeBridge.isBatteryOptimizationIgnored();
     final isAdmin = await nativeBridge.isDeviceAdminActive();
+    final hasLoc = await nativeBridge.hasLocationPermission();
+    final hasBgLoc = await nativeBridge.hasBackgroundLocationPermission();
+    await nativeBridge.syncDeviceCapabilities();
     if (mounted) {
       setState(() {
         _batteryExempted = isIgnored;
         _adminEnabled = isAdmin;
+        _hasForegroundLocation = hasLoc;
+        _hasBackgroundLocation = hasBgLoc;
       });
     }
   }
@@ -54,6 +61,21 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
   Future<void> _requestDeviceAdmin() async {
     final nativeBridge = ref.read(nativeBridgeServiceProvider);
     await nativeBridge.requestEnableDeviceAdmin();
+  }
+
+  Future<void> _requestForegroundLocation() async {
+    final nativeBridge = ref.read(nativeBridgeServiceProvider);
+    await nativeBridge.requestForegroundLocationPermission();
+  }
+
+  Future<void> _requestBackgroundLocation() async {
+    final nativeBridge = ref.read(nativeBridgeServiceProvider);
+    await nativeBridge.requestBackgroundLocationPermission();
+  }
+
+  Future<void> _openSettings() async {
+    final nativeBridge = ref.read(nativeBridgeServiceProvider);
+    await nativeBridge.openAppSettings();
   }
 
   Future<void> _requestNotification() async {
@@ -86,7 +108,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
         elevation: 0,
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.marginMobile),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -202,13 +224,23 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
                     const Text(
-                      'Evita que el sistema operativo suspenda el servicio de alarma cuando el teléfono lleve varias horas sin usarse.',
+                      'Evita que el sistema operativo suspenda el servicio de alarma cuando el teléfono lleve varias horas sin usarse.\nEn Xiaomi/HyperOS, selecciona la opción "Sin restricciones" en el Ahorro de batería de la app.',
                       style: TextStyle(fontSize: 12, color: AppColors.textBody),
                     ),
                     const SizedBox(height: AppSpacing.spaceSm),
-                    OutlinedButton(
-                      onPressed: _requestBatteryOptimization,
-                      child: const Text('Ajustar Ahorro de Batería'),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton(
+                          onPressed: _requestBatteryOptimization,
+                          child: const Text('1. Solicitar Exención Directa'),
+                        ),
+                        OutlinedButton(
+                          onPressed: _openSettings,
+                          child: const Text('2. Ajustes de la App (Xiaomi)'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -271,6 +303,95 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                         onPressed: _requestDeviceAdmin,
                         child: const Text('Activar Permiso de Bloqueo'),
                       ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.spaceMd),
+
+              // CARD 4: PERMISO DE UBICACIÓN
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_rounded, color: AppColors.primary),
+                        const SizedBox(width: AppSpacing.spaceSm),
+                        const Expanded(
+                          child: Text(
+                            'Permiso de Ubicación',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textHeadings,
+                            ),
+                          ),
+                        ),
+                        if (_hasForegroundLocation && _hasBackgroundLocation)
+                          const StatusChip(label: 'Total', type: StatusChipType.safe)
+                        else if (_hasForegroundLocation)
+                          const StatusChip(label: 'Parcial', type: StatusChipType.warning)
+                        else
+                          const StatusChip(label: 'Pendiente', type: StatusChipType.warning),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.spaceXs),
+                    const Text(
+                      'Requerido para encontrar tu teléfono si se pierde o te lo roban. Primero se solicita acceso a ubicación en primer plano y luego en segundo plano ("todo el tiempo").',
+                      style: TextStyle(fontSize: 12, color: AppColors.textBody),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(AppRadii.sm),
+                      ),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.shield_rounded, size: 16, color: AppColors.primary),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '¿Por qué en segundo plano?',
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Permite reportar la ubicación periódicamente y recibir la orden remota "Localizar" incluso con el celular bloqueado o con la app cerrada.',
+                            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.spaceSm),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        if (!_hasForegroundLocation)
+                          OutlinedButton(
+                            onPressed: _requestForegroundLocation,
+                            child: const Text('1. Permitir Ubicación Precisa'),
+                          ),
+                        if (_hasForegroundLocation && !_hasBackgroundLocation)
+                          OutlinedButton(
+                            onPressed: _requestBackgroundLocation,
+                            child: const Text('2. Permitir Todo el Tiempo'),
+                          ),
+                        OutlinedButton(
+                          onPressed: _openSettings,
+                          child: const Text('Ajustes del Sistema'),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

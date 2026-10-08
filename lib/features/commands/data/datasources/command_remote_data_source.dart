@@ -68,7 +68,6 @@ class CommandRemoteDataSourceImpl implements CommandRemoteDataSource {
         'type': type,
       };
       if (payload != null) body['payload'] = payload;
-      if (ttl != null) body['ttl'] = ttl;
 
       final response = await _client.dio.post(
         '/devices/$deviceId/commands',

@@ -94,9 +94,100 @@ class MainActivity : FlutterActivity() {
                 "syncDeviceCapabilities" -> {
                     val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as? android.app.admin.DevicePolicyManager
                     val comp = android.content.ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
-                    val active = dpm?.isAdminActive(comp) ?: false
-                    DeviceCapabilityClient.reportCapabilities(applicationContext, adminEnabled = active)
-                    result.success(active)
+                    val adminActive = dpm?.isAdminActive(comp) ?: false
+
+                    val pm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        getSystemService(Context.POWER_SERVICE) as PowerManager
+                    } else null
+                    val batteryIgnored = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && pm != null) {
+                        pm.isIgnoringBatteryOptimizations(packageName)
+                    } else true
+
+                    val hasNotifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                    } else true
+
+                    val hasFgLocation = LocationHelper.hasLocationPermission(applicationContext)
+                    val hasBgLocation = LocationHelper.hasBackgroundLocationPermission(applicationContext)
+
+                    DeviceCapabilityClient.reportCapabilities(
+                        context = applicationContext,
+                        adminEnabled = adminActive,
+                        notificationsGranted = hasNotifications,
+                        locationForegroundGranted = hasFgLocation,
+                        locationBackgroundGranted = hasBgLocation,
+                        batteryOptimizationIgnored = batteryIgnored,
+                        fullScreenIntentGranted = true
+                    )
+                    result.success(adminActive)
+                }
+                "hasLocationPermission" -> {
+                    result.success(LocationHelper.hasLocationPermission(applicationContext))
+                }
+                "hasBackgroundLocationPermission" -> {
+                    result.success(LocationHelper.hasBackgroundLocationPermission(applicationContext))
+                }
+                "requestForegroundLocationPermission" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        requestPermissions(
+                            arrayOf(
+                                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                            ),
+                            1001
+                        )
+                    }
+                    result.success(true)
+                }
+                "requestBackgroundLocationPermission" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        requestPermissions(
+                            arrayOf(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                            1002
+                        )
+                    }
+                    result.success(true)
+                }
+                "openAppSettings" -> {
+                    try {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", packageName, null)
+                        }
+                        startActivity(intent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("APP_SETTINGS_ERROR", e.message, null)
+                    }
+                }
+                "isPeriodicLocationEnabled" -> {
+                    result.success(LocationPreferences.isPeriodicEnabled(applicationContext))
+                }
+                "setPeriodicLocationEnabled" -> {
+                    val enabled = call.argument<Boolean>("enabled") ?: false
+                    LocationPreferences.setPeriodicEnabled(applicationContext, enabled)
+                    if (enabled) {
+                        LocationService.start(applicationContext)
+                    } else {
+                        LocationService.stop(applicationContext)
+                    }
+                    result.success(true)
+                }
+                "getLocationIntervalMinutes" -> {
+                    result.success(LocationPreferences.getIntervalMinutes(applicationContext))
+                }
+                "setLocationIntervalMinutes" -> {
+                    val minutes = call.argument<Int>("minutes") ?: 15
+                    LocationPreferences.setIntervalMinutes(applicationContext, minutes)
+                    if (LocationPreferences.isPeriodicEnabled(applicationContext)) {
+                        LocationService.start(applicationContext) // Restarts with new interval
+                    }
+                    result.success(true)
+                }
+                "flushOfflineLocations" -> {
+                    Thread {
+                        OfflineLocationQueue.flushQueue(applicationContext)
+                    }.start()
+                    result.success(true)
                 }
                 else -> {
                     result.notImplemented()

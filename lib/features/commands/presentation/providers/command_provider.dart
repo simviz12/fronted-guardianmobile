@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/error/failures.dart';
+import '../../../../core/realtime/realtime_events.dart';
+import '../../../../core/realtime/realtime_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/command_remote_data_source.dart';
 import '../../data/repositories/command_repository_impl.dart';
@@ -71,7 +74,38 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
   int _pollAttempts = 0;
   static const int _maxPollAttempts = 75; // 75 * 2s = 150s (2.5 minutes)
 
-  CommandNotifier(this._ref) : super(CommandExecutionState.idle());
+  CommandNotifier(this._ref) : super(CommandExecutionState.idle()) {
+    _listenToRealtimeCommands();
+  }
+
+  void _listenToRealtimeCommands() {
+    _ref.listen<AsyncValue<dynamic>>(
+      realtimeEventsStreamProvider,
+      (previous, next) {
+        next.whenData((event) {
+          if (event is CommandUpdatedEvent) {
+            final active = state.activeCommand;
+            if (active != null && active.id == event.commandId) {
+              final status = CommandStatus.fromString(event.status);
+              final updated = active.copyWith(
+                status: status,
+                failureReason: event.failureReason,
+                deliveredAt: status == CommandStatus.delivered ? event.updatedAt : active.deliveredAt,
+                executedAt: status == CommandStatus.executed ? event.updatedAt : active.executedAt,
+              );
+              state = state.copyWith(
+                activeCommand: updated,
+                isPolling: !updated.isFinal,
+              );
+              if (updated.isFinal) {
+                _pollingTimer?.cancel();
+              }
+            }
+          }
+        });
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -101,6 +135,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -133,6 +168,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -171,6 +207,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -192,7 +229,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
       final command = await sendUseCase(
         deviceId: deviceId,
         type: CommandType.lock,
-        payload: {},
+        payload: null,
         ttl: 60,
       );
 
@@ -200,6 +237,37 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
+      );
+
+      _startPolling(command.id);
+      return true;
+    } catch (e) {
+      _handleSendError(e);
+      return false;
+    }
+  }
+
+  Future<bool> sendLocateCommand({
+    required String deviceId,
+  }) async {
+    _pollingTimer?.cancel();
+    state = state.copyWith(isSubmitting: true, clearError: true, clearActiveCommand: true);
+
+    try {
+      final sendUseCase = _ref.read(sendCommandUseCaseProvider);
+      final command = await sendUseCase(
+        deviceId: deviceId,
+        type: CommandType.locate,
+        payload: null,
+        ttl: 60,
+      );
+
+      state = state.copyWith(
+        activeCommand: command,
+        isSubmitting: false,
+        isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -212,17 +280,24 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
 
   void _handleSendError(Object e) {
     String msg = 'Error al enviar la orden.';
+    if (e is ServerFailure) {
+      if (e.details.isNotEmpty) {
+        msg = '${e.message}: ${e.details.join(", ")}';
+      } else {
+        msg = e.message;
+      }
+    } else if (e is Failure && e.message.isNotEmpty) {
+      msg = e.message;
+    }
     final str = e.toString();
     if (str.contains('CAPABILITY_NOT_AVAILABLE')) {
       msg = 'Este dispositivo no ha activado el permiso de bloqueo (Administrador de Dispositivo).';
     } else if (str.contains('DEVICE_NOT_REACHABLE')) {
-      msg = 'Este dispositivo aún no puede recibir órdenes.';
+      msg = 'Este dispositivo aún no puede recibir órdenes (sin token FCM registrado).';
     } else if (str.contains('NetworkFailure')) {
       msg = 'No hay conexión con el servidor.';
     } else if (str.contains('DEVICE_NOT_FOUND')) {
       msg = 'Dispositivo no encontrado.';
-    } else if (str.contains('VALIDATION_ERROR')) {
-      msg = 'Error de validación en los datos del comando.';
     }
     state = state.copyWith(
       isSubmitting: false,
@@ -233,7 +308,15 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
 
   void _startPolling(String commandId) {
     _pollAttempts = 0;
-    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+    // Check if socket is connected
+    final realtimeService = _ref.read(realtimeServiceProvider);
+    final isSocketConnected = realtimeService.currentState == RealtimeConnectionState.connected;
+
+    // If socket is connected, realtime will push updates via command.updated.
+    // We only set a fallback poll if socket is disconnected (every 15 s) or as a safety net.
+    final interval = isSocketConnected ? const Duration(seconds: 15) : const Duration(seconds: 15);
+
+    _pollingTimer = Timer.periodic(interval, (timer) async {
       _pollAttempts++;
 
       if (_pollAttempts >= _maxPollAttempts) {
@@ -242,6 +325,13 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
           isPolling: false,
           errorMessage: 'El comando tardó demasiado en responder (Expiró).',
         );
+        return;
+      }
+
+      // If socket is connected, we don't need aggressive HTTP polling
+      final currentConnected = _ref.read(realtimeServiceProvider).currentState == RealtimeConnectionState.connected;
+      if (currentConnected && _pollAttempts % 2 != 0) {
+        // Skip some iterations when socket is alive
         return;
       }
 
@@ -264,6 +354,10 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
   void clearActiveCommand() {
     _pollingTimer?.cancel();
     state = CommandExecutionState.idle();
+  }
+
+  void clearError() {
+    state = state.copyWith(clearError: true);
   }
 }
 

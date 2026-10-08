@@ -24,6 +24,14 @@ class DeviceDetailPage extends ConsumerStatefulWidget {
 
 class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(commandNotifierProvider.notifier).clearActiveCommand();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final commandState = ref.watch(commandNotifierProvider);
     final isProtectedMode = widget.device.mode == DeviceMode.protected;
@@ -35,6 +43,20 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.medical_services_outlined, color: AppColors.primary),
+            tooltip: 'Diagnóstico de Conectividad',
+            onPressed: () {
+              context.push('/device-diagnostics', extra: widget.device);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.map_rounded, color: AppColors.primary),
+            tooltip: 'Ver Mapa de Rastreo',
+            onPressed: () {
+              context.push('/device-map', extra: widget.device);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.history_rounded, color: AppColors.primary),
             tooltip: 'Historial de Órdenes',
@@ -60,9 +82,9 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 const SizedBox(height: AppSpacing.spaceMd),
               ],
 
-              if (commandState.errorMessage != null) ...[
+              if (commandState.errorMessage != null && commandState.activeCommand == null) ...[
                 Container(
-                  padding: const EdgeInsets.all(AppSpacing.spaceMd),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.spaceMd, vertical: AppSpacing.spaceSm),
                   decoration: BoxDecoration(
                     color: AppColors.alertContainer,
                     borderRadius: BorderRadius.circular(AppRadii.md),
@@ -81,6 +103,12 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: AppColors.alertText, size: 18),
+                        onPressed: () {
+                          ref.read(commandNotifierProvider.notifier).clearError();
+                        },
                       ),
                     ],
                   ),
@@ -140,11 +168,9 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                     isLoading: commandState.isSubmitting || commandState.isPolling,
                   ),
 
-                  // 5. LOCALIZAR (Disabled - Próximamente)
-                  _buildDisabledActionTile(
-                    title: 'Localizar',
-                    subtitle: 'Triangulación GPS de alta precisión',
-                    icon: Icons.my_location_rounded,
+                  // 5. LOCALIZAR (Active if target is PROTECTED, navigates to map)
+                  _buildLocateActionTile(
+                    isProtectedMode: isProtectedMode,
                   ),
                 ],
               ),
@@ -690,5 +716,81 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
           .read(commandNotifierProvider.notifier)
           .sendLockCommand(deviceId: widget.device.id);
     }
+  }
+
+  Widget _buildLocateActionTile({
+    required bool isProtectedMode,
+  }) {
+    if (!isProtectedMode) {
+      return _buildDisabledActionTile(
+        title: 'Localizar',
+        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        icon: Icons.my_location_rounded,
+      );
+    }
+
+    return InkWell(
+      onTap: () {
+        context.push('/device-map', extra: widget.device);
+      },
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.spaceMd),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySubtle,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: const Icon(Icons.my_location_rounded, color: AppColors.primary, size: 24),
+                ),
+                const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
+              ],
+            ),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Localizar',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textHeadings,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Ver mapa y rastreo en tiempo real',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

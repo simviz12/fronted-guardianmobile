@@ -1,6 +1,10 @@
 package com.guardian.mobile.guardian_mobile
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
+import android.os.Build
 import android.util.Log
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -19,7 +23,15 @@ object DeviceCapabilityClient {
         .writeTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    fun reportCapabilities(context: Context, adminEnabled: Boolean) {
+    fun reportCapabilities(
+        context: Context,
+        adminEnabled: Boolean? = null,
+        notificationsGranted: Boolean? = null,
+        locationForegroundGranted: Boolean? = null,
+        locationBackgroundGranted: Boolean? = null,
+        batteryOptimizationIgnored: Boolean? = null,
+        fullScreenIntentGranted: Boolean? = null
+    ) {
         val baseUrl = NativeSecurityStorage.getApiBaseUrl(context)
         val deviceId = NativeSecurityStorage.getDeviceId(context)
         val deviceToken = NativeSecurityStorage.getDeviceToken(context)
@@ -32,8 +44,36 @@ object DeviceCapabilityClient {
         Thread {
             try {
                 val url = "$baseUrl/devices/$deviceId/capabilities"
+
+                // Battery status
+                val batteryStatus: Intent? = context.registerReceiver(
+                    null,
+                    IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+                )
+                val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+                val batteryPct = if (level >= 0 && scale > 0) (level * 100 / scale) else null
+
+                val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+                val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                        status == BatteryManager.BATTERY_STATUS_FULL
+
+                val permissionsJson = JSONObject().apply {
+                    notificationsGranted?.let { put("notifications", it) }
+                    locationForegroundGranted?.let { put("locationForeground", it) }
+                    locationBackgroundGranted?.let { put("locationBackground", it) }
+                    batteryOptimizationIgnored?.let { put("batteryOptimizationIgnored", it) }
+                    adminEnabled?.let { put("deviceAdmin", it) }
+                    fullScreenIntentGranted?.let { put("fullScreenIntent", it) }
+                }
+
                 val json = JSONObject().apply {
-                    put("adminEnabled", adminEnabled)
+                    adminEnabled?.let { put("adminEnabled", it) }
+                    batteryPct?.let { put("batteryLevel", it) }
+                    put("isCharging", isCharging)
+                    if (permissionsJson.length() > 0) {
+                        put("permissions", permissionsJson)
+                    }
                 }
 
                 val requestBody = json.toString().toRequestBody(JSON_MEDIA_TYPE)
@@ -45,9 +85,9 @@ object DeviceCapabilityClient {
 
                 httpClient.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
-                        Log.i(TAG, "Capabilities reported successfully: adminEnabled=$adminEnabled (code: ${response.code})")
+                        Log.i(TAG, "Capabilities reported successfully to $url (code: ${response.code})")
                     } else {
-                        Log.w(TAG, "Failed to report capabilities (code: ${response.code})")
+                        Log.w(TAG, "Failed to report capabilities: HTTP ${response.code}")
                     }
                 }
             } catch (e: Exception) {

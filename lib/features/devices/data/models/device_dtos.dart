@@ -1,3 +1,4 @@
+import 'package:guardian_mobile/features/locations/domain/entities/device_location.dart';
 import '../../domain/entities/device.dart';
 
 class DeviceDto {
@@ -16,6 +17,8 @@ class DeviceDto {
   final String? lastSeenAt;
   final bool isOnline;
   final bool adminEnabled;
+  final LastLocationSummary? lastLocation;
+  final String? networkType;
   final String createdAt;
   final String updatedAt;
 
@@ -35,6 +38,8 @@ class DeviceDto {
     this.lastSeenAt,
     required this.isOnline,
     this.adminEnabled = false,
+    this.lastLocation,
+    this.networkType,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -57,6 +62,10 @@ class DeviceDto {
       isOnline: json['isOnline'] as bool? ?? false,
       adminEnabled: json['adminEnabled'] as bool? ??
           (json['capabilities'] is Map ? (json['capabilities']['adminEnabled'] as bool? ?? false) : false),
+      lastLocation: json['lastLocation'] != null && json['lastLocation'] is Map
+          ? LastLocationSummary.fromJson(json['lastLocation'] as Map<String, dynamic>)
+          : null,
+      networkType: json['networkType'] as String?,
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
     );
@@ -78,6 +87,7 @@ class DeviceDto {
       'isCharging': isCharging,
       'lastSeenAt': lastSeenAt,
       'isOnline': isOnline,
+      'networkType': networkType,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -100,6 +110,8 @@ class DeviceDto {
       lastSeenAt: lastSeenAt != null ? DateTime.tryParse(lastSeenAt!) : null,
       isOnline: isOnline,
       adminEnabled: adminEnabled,
+      lastLocation: lastLocation,
+      networkType: networkType,
       createdAt: DateTime.parse(createdAt),
       updatedAt: DateTime.parse(updatedAt),
     );

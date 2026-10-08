@@ -55,21 +55,23 @@ class MessageActivity : Activity() {
 
         // Header Title
         val titleView = TextView(this).apply {
-            text = "Mensaje del propietario"
-            textSize = 24f
-            setTextColor(0xFFFFFFFF.toInt())
+            text = "MENSAJE DEL PROPIETARIO"
+            textSize = 28f
+            setTextColor(0xFF38BDF8.toInt()) // Light sky blue accent
             gravity = Gravity.CENTER
             setTypeface(null, android.graphics.Typeface.BOLD)
+            setPadding(0, 24, 0, 24)
         }
         rootLayout.addView(titleView)
 
-        // Message Body
+        // Message Body (Extra large)
         val bodyView = TextView(this).apply {
             text = messageText
-            textSize = 20f
-            setTextColor(0xFFE2E8F0.toInt())
+            textSize = 28f
+            setTextColor(0xFFFFFFFF.toInt())
             gravity = Gravity.CENTER
-            setPadding(0, 48, 0, 48)
+            setPadding(16, 48, 16, 48)
+            setTypeface(null, android.graphics.Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 0,

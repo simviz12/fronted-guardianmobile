@@ -24,4 +24,5 @@ abstract class DeviceRepository {
   Future<String?> getDeviceToken(String deviceId);
 
   Future<void> updateFcmToken({required String id, required String fcmToken});
+  Future<dynamic> getDeviceDiagnostics(String id);
 }
