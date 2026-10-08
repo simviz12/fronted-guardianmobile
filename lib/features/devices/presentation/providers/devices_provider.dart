@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/native_bridge_service.dart';
+import '../../../../core/realtime/realtime_events.dart';
+import '../../../../core/realtime/realtime_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/device_identity_service.dart';
 import '../../data/datasources/device_remote_data_source.dart';
@@ -116,6 +118,40 @@ class DevicesNotifier extends StateNotifier<DevicesDashboardState> {
 
   DevicesNotifier(this._ref) : super(DevicesDashboardState.initial()) {
     loadDevices();
+    _listenToRealtimeEvents();
+  }
+
+  void _listenToRealtimeEvents() {
+    _ref.listen<AsyncValue<dynamic>>(
+      realtimeEventsStreamProvider,
+      (previous, next) {
+        next.whenData((event) {
+          if (event is DeviceStatusEvent) {
+            _onDeviceStatus(event);
+          } else if (event is DeviceLinkedEvent || event is DeviceUnlinkedEvent) {
+            // Reload list when device is linked or unlinked
+            loadDevices();
+          }
+        });
+      },
+    );
+  }
+
+  void _onDeviceStatus(DeviceStatusEvent event) {
+    final updatedList = state.devices.map((device) {
+      if (device.id == event.deviceId) {
+        return device.copyWith(
+          isOnline: event.isOnline,
+          batteryLevel: event.batteryLevel ?? device.batteryLevel,
+          isCharging: event.isCharging ?? device.isCharging,
+          networkType: event.networkType ?? device.networkType,
+          lastSeenAt: event.lastSeenAt,
+        );
+      }
+      return device;
+    }).toList();
+
+    state = state.copyWith(devices: updatedList);
   }
 
   Future<void> loadDevices() async {

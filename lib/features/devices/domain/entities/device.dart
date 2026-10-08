@@ -38,6 +38,7 @@ class Device {
   final bool isOnline;
   final bool adminEnabled;
   final LastLocationSummary? lastLocation;
+  final String? networkType; // "wifi" | "mobile" | "none" | "unknown"
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -58,9 +59,54 @@ class Device {
     required this.isOnline,
     this.adminEnabled = false,
     this.lastLocation,
+    this.networkType,
     required this.createdAt,
     required this.updatedAt,
   });
+
+  Device copyWith({
+    String? id,
+    String? ownerId,
+    String? installId,
+    String? name,
+    String? platform,
+    String? model,
+    String? osVersion,
+    String? appVersion,
+    DeviceMode? mode,
+    String? fcmToken,
+    int? batteryLevel,
+    bool? isCharging,
+    DateTime? lastSeenAt,
+    bool? isOnline,
+    bool? adminEnabled,
+    LastLocationSummary? lastLocation,
+    String? networkType,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Device(
+      id: id ?? this.id,
+      ownerId: ownerId ?? this.ownerId,
+      installId: installId ?? this.installId,
+      name: name ?? this.name,
+      platform: platform ?? this.platform,
+      model: model ?? this.model,
+      osVersion: osVersion ?? this.osVersion,
+      appVersion: appVersion ?? this.appVersion,
+      mode: mode ?? this.mode,
+      fcmToken: fcmToken ?? this.fcmToken,
+      batteryLevel: batteryLevel ?? this.batteryLevel,
+      isCharging: isCharging ?? this.isCharging,
+      lastSeenAt: lastSeenAt ?? this.lastSeenAt,
+      isOnline: isOnline ?? this.isOnline,
+      adminEnabled: adminEnabled ?? this.adminEnabled,
+      lastLocation: lastLocation ?? this.lastLocation,
+      networkType: networkType ?? this.networkType,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 class LinkedDeviceResult {

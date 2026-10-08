@@ -18,6 +18,7 @@ class DeviceDto {
   final bool isOnline;
   final bool adminEnabled;
   final LastLocationSummary? lastLocation;
+  final String? networkType;
   final String createdAt;
   final String updatedAt;
 
@@ -38,6 +39,7 @@ class DeviceDto {
     required this.isOnline,
     this.adminEnabled = false,
     this.lastLocation,
+    this.networkType,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -63,6 +65,7 @@ class DeviceDto {
       lastLocation: json['lastLocation'] != null && json['lastLocation'] is Map
           ? LastLocationSummary.fromJson(json['lastLocation'] as Map<String, dynamic>)
           : null,
+      networkType: json['networkType'] as String?,
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
     );
@@ -84,6 +87,7 @@ class DeviceDto {
       'isCharging': isCharging,
       'lastSeenAt': lastSeenAt,
       'isOnline': isOnline,
+      'networkType': networkType,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -107,6 +111,7 @@ class DeviceDto {
       isOnline: isOnline,
       adminEnabled: adminEnabled,
       lastLocation: lastLocation,
+      networkType: networkType,
       createdAt: DateTime.parse(createdAt),
       updatedAt: DateTime.parse(updatedAt),
     );

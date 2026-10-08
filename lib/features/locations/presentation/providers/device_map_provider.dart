@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/realtime/realtime_events.dart';
+import '../../../../core/realtime/realtime_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/location_remote_data_source.dart';
 import '../../data/repositories/location_repository_impl.dart';
@@ -106,6 +108,25 @@ class DeviceMapNotifier extends StateNotifier<DeviceMapState> {
 
   DeviceMapNotifier(this._ref, this._deviceId) : super(const DeviceMapState()) {
     loadMapData();
+    _listenToRealtimeLocations();
+  }
+
+  void _listenToRealtimeLocations() {
+    _ref.listen<AsyncValue<dynamic>>(
+      realtimeEventsStreamProvider,
+      (previous, next) {
+        next.whenData((event) {
+          if (event is LocationUpdatedEvent && event.deviceId == _deviceId) {
+            final loc = event.location;
+            final updatedHistory = [loc, ...state.history];
+            state = state.copyWith(
+              latestLocation: loc,
+              history: updatedHistory,
+            );
+          }
+        });
+      },
+    );
   }
 
   Future<void> loadMapData({bool silent = false}) async {

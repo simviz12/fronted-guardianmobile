@@ -96,4 +96,30 @@ class Command {
       status == CommandStatus.executed ||
       status == CommandStatus.failed ||
       status == CommandStatus.expired;
+
+  Command copyWith({
+    String? id,
+    String? deviceId,
+    CommandType? type,
+    CommandStatus? status,
+    Map<String, dynamic>? payload,
+    String? failureReason,
+    DateTime? issuedAt,
+    DateTime? deliveredAt,
+    DateTime? executedAt,
+    int? ttl,
+  }) {
+    return Command(
+      id: id ?? this.id,
+      deviceId: deviceId ?? this.deviceId,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      payload: payload ?? this.payload,
+      failureReason: failureReason ?? this.failureReason,
+      issuedAt: issuedAt ?? this.issuedAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      executedAt: executedAt ?? this.executedAt,
+      ttl: ttl ?? this.ttl,
+    );
+  }
 }

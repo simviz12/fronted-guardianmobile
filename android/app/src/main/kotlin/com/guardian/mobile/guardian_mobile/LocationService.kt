@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
@@ -48,6 +49,10 @@ class LocationService : Service() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var locationCallback: LocationCallback? = null
 
+    private var heartbeatHandler = Handler(Looper.getMainLooper())
+    private var heartbeatRunnable: Runnable? = null
+    private val HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000L // 2 minutes
+
     override fun onCreate() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -58,6 +63,8 @@ class LocationService : Service() {
         val action = intent?.action ?: ACTION_START
         if (action == ACTION_STOP) {
             stopLocationTracking()
+            stopHeartbeat()
+            DeviceStatusReporter.stopListening(this)
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return START_NOT_STICKY
@@ -75,12 +82,34 @@ class LocationService : Service() {
         }
 
         startLocationTracking()
+        startHeartbeat()
+        DeviceStatusReporter.startListening(this)
         return START_STICKY
     }
 
     override fun onDestroy() {
         stopLocationTracking()
+        stopHeartbeat()
+        DeviceStatusReporter.stopListening(this)
         super.onDestroy()
+    }
+
+    private fun startHeartbeat() {
+        stopHeartbeat()
+        heartbeatRunnable = object : Runnable {
+            override fun run() {
+                DeviceStatusReporter.reportStatusNow(applicationContext)
+                heartbeatHandler.postDelayed(this, HEARTBEAT_INTERVAL_MS)
+            }
+        }
+        heartbeatHandler.post(heartbeatRunnable!!)
+    }
+
+    private fun stopHeartbeat() {
+        heartbeatRunnable?.let {
+            heartbeatHandler.removeCallbacks(it)
+            heartbeatRunnable = null
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
