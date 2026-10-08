@@ -56,4 +56,47 @@ object NativeSecurityStorage {
 
     fun getDeviceToken(context: Context): String? =
         getPrefs(context).getString(KEY_DEVICE_TOKEN, null)
+
+    // Theft Mode Storage
+    private const val KEY_THEFT_MODE_ACTIVE = "theft_mode_active"
+    private const val KEY_THEFT_MESSAGE = "theft_mode_message"
+    private const val KEY_THEFT_CONTACT_PHONE = "theft_mode_contact_phone"
+    private const val KEY_THEFT_INTERVAL_SEC = "theft_mode_interval_sec"
+
+    fun saveTheftModeConfig(
+        context: Context,
+        message: String,
+        contactPhone: String?,
+        intervalSeconds: Int
+    ) {
+        getPrefs(context).edit().apply {
+            putBoolean(KEY_THEFT_MODE_ACTIVE, true)
+            putString(KEY_THEFT_MESSAGE, message)
+            putString(KEY_THEFT_CONTACT_PHONE, contactPhone)
+            putInt(KEY_THEFT_INTERVAL_SEC, intervalSeconds)
+            apply()
+        }
+    }
+
+    fun clearTheftModeConfig(context: Context) {
+        getPrefs(context).edit().apply {
+            remove(KEY_THEFT_MODE_ACTIVE)
+            remove(KEY_THEFT_MESSAGE)
+            remove(KEY_THEFT_CONTACT_PHONE)
+            remove(KEY_THEFT_INTERVAL_SEC)
+            apply()
+        }
+    }
+
+    fun isTheftModeActive(context: Context): Boolean =
+        getPrefs(context).getBoolean(KEY_THEFT_MODE_ACTIVE, false)
+
+    fun getTheftMessage(context: Context): String? =
+        getPrefs(context).getString(KEY_THEFT_MESSAGE, null)
+
+    fun getTheftContactPhone(context: Context): String? =
+        getPrefs(context).getString(KEY_THEFT_CONTACT_PHONE, null)
+
+    fun getTheftIntervalSeconds(context: Context): Int =
+        getPrefs(context).getInt(KEY_THEFT_INTERVAL_SEC, 60)
 }

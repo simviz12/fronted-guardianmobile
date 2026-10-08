@@ -172,6 +172,12 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   _buildLocateActionTile(
                     isProtectedMode: isProtectedMode,
                   ),
+
+                  // 6. MODO ROBO (Prominent action tile for Theft Mode)
+                  _buildTheftModeActionTile(
+                    isProtectedMode: isProtectedMode,
+                    theftModeActive: widget.device.theftModeActive,
+                  ),
                 ],
               ),
             ],
@@ -783,6 +789,104 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textMuted,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTheftModeActionTile({
+    required bool isProtectedMode,
+    required bool theftModeActive,
+  }) {
+    if (!isProtectedMode) {
+      return _buildDisabledActionTile(
+        title: 'Modo Robo',
+        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        icon: Icons.shield_rounded,
+        badgeLabel: 'No protegido',
+      );
+    }
+
+    return InkWell(
+      onTap: () {
+        context.push('/theft-mode', extra: widget.device);
+      },
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.spaceMd),
+        decoration: BoxDecoration(
+          color: theftModeActive ? AppColors.alertContainer : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(
+            color: theftModeActive ? AppColors.alert : AppColors.alert.withValues(alpha: 0.5),
+            width: theftModeActive ? 1.5 : 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.alert.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theftModeActive ? AppColors.alert : AppColors.alertContainer,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: Icon(
+                    Icons.shield_rounded,
+                    color: theftModeActive ? Colors.white : AppColors.alert,
+                    size: 24,
+                  ),
+                ),
+                if (theftModeActive)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.alert,
+                      borderRadius: BorderRadius.circular(AppRadii.full),
+                    ),
+                    child: const Text(
+                      'ACTIVO',
+                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  )
+                else
+                  const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Modo Robo',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: theftModeActive ? AppColors.alertText : AppColors.textHeadings,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  theftModeActive ? 'Protocolo de extravío activo' : 'Bloqueo y rastreo de emergencia',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: theftModeActive ? AppColors.alertText : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),

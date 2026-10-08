@@ -39,6 +39,7 @@ class Device {
   final bool adminEnabled;
   final LastLocationSummary? lastLocation;
   final String? networkType; // "wifi" | "mobile" | "none" | "unknown"
+  final bool theftModeActive;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -60,6 +61,7 @@ class Device {
     this.adminEnabled = false,
     this.lastLocation,
     this.networkType,
+    this.theftModeActive = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -82,6 +84,7 @@ class Device {
     bool? adminEnabled,
     LastLocationSummary? lastLocation,
     String? networkType,
+    bool? theftModeActive,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -103,6 +106,7 @@ class Device {
       adminEnabled: adminEnabled ?? this.adminEnabled,
       lastLocation: lastLocation ?? this.lastLocation,
       networkType: networkType ?? this.networkType,
+      theftModeActive: theftModeActive ?? this.theftModeActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

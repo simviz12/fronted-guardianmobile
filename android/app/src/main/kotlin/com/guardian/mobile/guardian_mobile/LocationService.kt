@@ -140,12 +140,22 @@ class LocationService : Service() {
             )
         } else null
 
+        val isTheft = NativeSecurityStorage.isTheftModeActive(this)
+        val contactPhone = NativeSecurityStorage.getTheftContactPhone(this)
+
+        val title = if (isTheft) "MODO ROBO ACTIVO" else "Guardian protege este teléfono"
+        val text = if (isTheft) {
+            "Rastreo de emergencia activo${if (!contactPhone.isNullOrEmpty()) " — Contacto: $contactPhone" else ""}"
+        } else {
+            "Rastreo y monitoreo de ubicación en segundo plano activo"
+        }
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Guardian protege este teléfono")
-            .setContentText("Rastreo y monitoreo de ubicación en segundo plano activo")
-            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(if (isTheft) android.R.drawable.ic_dialog_alert else android.R.drawable.ic_menu_mylocation)
             .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(if (isTheft) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setContentIntent(pendingIntent)
             .build()
@@ -158,15 +168,21 @@ class LocationService : Service() {
             return
         }
 
-        val intervalMinutes = LocationPreferences.getIntervalMinutes(this)
-        val intervalMillis = (intervalMinutes * 60 * 1000L).coerceAtLeast(300000L) // Min 5 min
+        val isTheft = NativeSecurityStorage.isTheftModeActive(this)
+        val intervalMillis: Long = if (isTheft) {
+            val theftSec = NativeSecurityStorage.getTheftIntervalSeconds(this)
+            (theftSec * 1000L).coerceAtLeast(30000L) // Support down to 30s-60s for theft mode
+        } else {
+            val intervalMinutes = LocationPreferences.getIntervalMinutes(this)
+            (intervalMinutes * 60 * 1000L).coerceAtLeast(300000L) // Min 5 min for periodic
+        }
 
-        Log.i(TAG, "Starting periodic location tracking every $intervalMinutes minutes ($intervalMillis ms)")
+        Log.i(TAG, "Starting location tracking: isTheft=$isTheft, interval=${intervalMillis}ms")
 
         stopLocationTracking()
 
         val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            if (isTheft) Priority.PRIORITY_HIGH_ACCURACY else Priority.PRIORITY_BALANCED_POWER_ACCURACY,
             intervalMillis
         )
             .setMinUpdateIntervalMillis(intervalMillis / 2)
@@ -175,7 +191,9 @@ class LocationService : Service() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 val loc = locationResult.lastLocation ?: return
-                Log.i(TAG, "Periodic location update received: lat=${loc.latitude}, lon=${loc.longitude}")
+                val currentIsTheft = NativeSecurityStorage.isTheftModeActive(applicationContext)
+                val reportSource = if (currentIsTheft) "THEFT_MODE" else "PERIODIC"
+                Log.i(TAG, "Location update received: source=$reportSource, lat=${loc.latitude}, lon=${loc.longitude}")
 
                 Thread {
                     // Try to flush offline queue first
@@ -189,7 +207,7 @@ class LocationService : Service() {
                         accuracyMeters = if (loc.hasAccuracy()) loc.accuracy else null,
                         speedMps = if (loc.hasSpeed()) loc.speed else null,
                         recordedAtIso = iso,
-                        source = "PERIODIC"
+                        source = reportSource
                     )
 
                     if (!success) {
@@ -200,7 +218,7 @@ class LocationService : Service() {
                             accuracyMeters = if (loc.hasAccuracy()) loc.accuracy else null,
                             speedMps = if (loc.hasSpeed()) loc.speed else null,
                             recordedAtIso = iso,
-                            source = "PERIODIC"
+                            source = reportSource
                         )
                     }
                 }.start()

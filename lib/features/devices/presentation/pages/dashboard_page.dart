@@ -455,6 +455,13 @@ class DashboardPage extends ConsumerWidget {
               _buildModeChip(device.mode),
               const SizedBox(width: AppSpacing.spaceXs),
               _buildOnlineChip(device.isOnline),
+              if (device.theftModeActive) ...[
+                const SizedBox(width: AppSpacing.spaceXs),
+                const StatusChip(
+                  label: 'MODO ROBO ACTIVO',
+                  type: StatusChipType.danger,
+                ),
+              ],
             ],
           ),
           const SizedBox(height: AppSpacing.spaceMd),
@@ -618,6 +625,13 @@ class DashboardPage extends ConsumerWidget {
               _buildModeChip(device.mode),
               const SizedBox(width: AppSpacing.spaceXs),
               _buildOnlineChip(device.isOnline),
+              if (device.theftModeActive) ...[
+                const SizedBox(width: AppSpacing.spaceXs),
+                const StatusChip(
+                  label: 'MODO ROBO',
+                  type: StatusChipType.danger,
+                ),
+              ],
               const Spacer(),
               _buildBatteryIndicator(device.batteryLevel, device.isCharging),
             ],

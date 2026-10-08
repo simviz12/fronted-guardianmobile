@@ -291,6 +291,10 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
         return Icons.my_location_rounded;
       case CommandType.lock:
         return Icons.lock_rounded;
+      case CommandType.theftModeOn:
+        return Icons.shield_rounded;
+      case CommandType.theftModeOff:
+        return Icons.shield_outlined;
     }
   }
 
@@ -306,6 +310,10 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
         return 'Localización';
       case CommandType.lock:
         return 'Bloqueo';
+      case CommandType.theftModeOn:
+        return 'Activar Modo Robo';
+      case CommandType.theftModeOff:
+        return 'Desactivar Modo Robo';
     }
   }
 

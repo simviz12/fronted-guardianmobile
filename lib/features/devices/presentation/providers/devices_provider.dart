@@ -145,6 +145,7 @@ class DevicesNotifier extends StateNotifier<DevicesDashboardState> {
           batteryLevel: event.batteryLevel ?? device.batteryLevel,
           isCharging: event.isCharging ?? device.isCharging,
           networkType: event.networkType ?? device.networkType,
+          theftModeActive: event.theftModeActive ?? device.theftModeActive,
           lastSeenAt: event.lastSeenAt,
         );
       }

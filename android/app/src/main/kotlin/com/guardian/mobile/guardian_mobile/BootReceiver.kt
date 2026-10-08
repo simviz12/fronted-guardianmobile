@@ -16,13 +16,14 @@ class BootReceiver : BroadcastReceiver() {
 
         if (Intent.ACTION_BOOT_COMPLETED == action || Intent.ACTION_MY_PACKAGE_REPLACED == action) {
             val enabled = LocationPreferences.isPeriodicEnabled(context)
+            val isTheft = NativeSecurityStorage.isTheftModeActive(context)
             val hasPermission = LocationHelper.hasLocationPermission(context)
-            Log.i(TAG, "Device rebooted. Periodic reporting enabled=$enabled, hasPermission=$hasPermission")
+            Log.i(TAG, "Device rebooted. Periodic enabled=$enabled, isTheft=$isTheft, hasPermission=$hasPermission")
 
-            if (enabled && hasPermission) {
+            if ((enabled || isTheft) && hasPermission) {
                 try {
                     LocationService.start(context)
-                    Log.i(TAG, "Successfully resumed LocationService after boot")
+                    Log.i(TAG, "Successfully resumed LocationService after boot (isTheft=$isTheft)")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to start LocationService after boot: ${e.message}", e)
                 }

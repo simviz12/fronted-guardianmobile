@@ -3,7 +3,9 @@ enum CommandType {
   vibrate,
   locate,
   lock,
-  message;
+  message,
+  theftModeOn,
+  theftModeOff;
 
   String toContractString() {
     switch (this) {
@@ -17,6 +19,10 @@ enum CommandType {
         return 'LOCK';
       case CommandType.message:
         return 'MESSAGE';
+      case CommandType.theftModeOn:
+        return 'THEFT_MODE_ON';
+      case CommandType.theftModeOff:
+        return 'THEFT_MODE_OFF';
     }
   }
 
@@ -32,6 +38,10 @@ enum CommandType {
         return CommandType.lock;
       case 'MESSAGE':
         return CommandType.message;
+      case 'THEFT_MODE_ON':
+        return CommandType.theftModeOn;
+      case 'THEFT_MODE_OFF':
+        return CommandType.theftModeOff;
       default:
         return CommandType.ring;
     }

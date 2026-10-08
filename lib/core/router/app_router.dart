@@ -15,6 +15,7 @@ import '../../features/devices/presentation/pages/protected_setup_page.dart';
 import '../../features/devices/presentation/pages/settings_page.dart';
 import '../../features/devices/presentation/pages/device_diagnostics_page.dart';
 import '../../features/server_status/presentation/pages/server_status_page.dart';
+import '../../features/theft_mode/presentation/pages/theft_mode_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authNotifier = ref.watch(authNotifierProvider.notifier);
@@ -105,6 +106,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      GoRoute(
+        path: '/theft-mode',
+        builder: (context, state) {
+          final device = state.extra as Device;
+          return TheftModePage(device: device);
+        },
+      ),
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsPage(),

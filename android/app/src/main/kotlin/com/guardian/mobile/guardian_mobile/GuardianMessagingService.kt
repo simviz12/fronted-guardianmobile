@@ -329,6 +329,105 @@ class GuardianMessagingService : FirebaseMessagingService() {
                     }
                 }
             }
+            "THEFT_MODE_ON" -> {
+                try {
+                    val message = payloadObj?.optString("message", "")?.takeIf { it.isNotEmpty() }
+                        ?: data["message"]
+                        ?: "Este teléfono está perdido. Por favor contacta a su dueño."
+                    val contactPhone = payloadObj?.optString("contactPhone", "")?.takeIf { it.isNotEmpty() }
+                        ?: data["contactPhone"]
+                    val intervalSeconds = payloadObj?.optInt("locationIntervalSeconds", 60)
+                        ?: data["locationIntervalSeconds"]?.toIntOrNull()
+                        ?: 60
+                    val alarm = payloadObj?.optBoolean("alarm", false)
+                        ?: (data["alarm"] == "true")
+                    val lock = payloadObj?.optBoolean("lock", false)
+                        ?: (data["lock"] == "true")
+
+                    // 1. Persist config in EncryptedSharedPreferences
+                    NativeSecurityStorage.saveTheftModeConfig(
+                        context = applicationContext,
+                        message = message,
+                        contactPhone = contactPhone,
+                        intervalSeconds = intervalSeconds
+                    )
+
+                    // 2. Lock if configured
+                    if (lock) {
+                        val dpm = getSystemService(android.content.Context.DEVICE_POLICY_SERVICE) as? android.app.admin.DevicePolicyManager
+                        val adminComponent = android.content.ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
+                        if (dpm != null && dpm.isAdminActive(adminComponent)) {
+                            dpm.lockNow()
+                        }
+                    }
+
+                    // 3. Show Message Activity
+                    val messageIntent = Intent(applicationContext, MessageActivity::class.java).apply {
+                        putExtra(MessageActivity.EXTRA_MESSAGE_TEXT, message)
+                        putExtra(MessageActivity.EXTRA_CONTACT_PHONE, contactPhone)
+                        putExtra(MessageActivity.EXTRA_COMMAND_ID, commandId)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    }
+                    startActivity(messageIntent)
+
+                    // 4. Ring if configured
+                    if (alarm) {
+                        val ringIntent = Intent(applicationContext, RingService::class.java).apply {
+                            action = RingService.ACTION_START_RING
+                            putExtra(RingService.EXTRA_DURATION_SECONDS, 60)
+                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            startForegroundService(ringIntent)
+                        } else {
+                            startService(ringIntent)
+                        }
+                    }
+
+                    // 5. Restart location service with THEFT_MODE interval
+                    LocationService.start(applicationContext)
+
+                    // 6. Ack EXECUTED
+                    CommandAckClient.sendAck(applicationContext, commandId, "EXECUTED")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error executing THEFT_MODE_ON: ${e.message}", e)
+                    CommandAckClient.sendAck(
+                        applicationContext,
+                        commandId,
+                        "FAILED",
+                        e.message ?: "THEFT_MODE_ERROR"
+                    )
+                }
+            }
+            "THEFT_MODE_OFF" -> {
+                try {
+                    // 1. Clear theft mode config
+                    NativeSecurityStorage.clearTheftModeConfig(applicationContext)
+
+                    // 2. Stop ring service if active
+                    val stopRingIntent = Intent(applicationContext, RingService::class.java).apply {
+                        action = RingService.ACTION_STOP_RING
+                    }
+                    startService(stopRingIntent)
+
+                    // 3. Restart location service to revert to normal periodic interval & notification
+                    if (LocationPreferences.isPeriodicEnabled(applicationContext)) {
+                        LocationService.start(applicationContext)
+                    } else {
+                        LocationService.stop(applicationContext)
+                    }
+
+                    // 4. Ack EXECUTED
+                    CommandAckClient.sendAck(applicationContext, commandId, "EXECUTED")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error executing THEFT_MODE_OFF: ${e.message}", e)
+                    CommandAckClient.sendAck(
+                        applicationContext,
+                        commandId,
+                        "FAILED",
+                        e.message ?: "THEFT_MODE_OFF_ERROR"
+                    )
+                }
+            }
         }
     }
 }

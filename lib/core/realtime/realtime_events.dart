@@ -10,6 +10,7 @@ class DeviceStatusEvent extends RealtimeEvent {
   final int? batteryLevel;
   final bool? isCharging;
   final String? networkType;
+  final bool? theftModeActive;
   final DateTime lastSeenAt;
 
   const DeviceStatusEvent({
@@ -18,6 +19,7 @@ class DeviceStatusEvent extends RealtimeEvent {
     this.batteryLevel,
     this.isCharging,
     this.networkType,
+    this.theftModeActive,
     required this.lastSeenAt,
   });
 
@@ -28,6 +30,7 @@ class DeviceStatusEvent extends RealtimeEvent {
       batteryLevel: json['batteryLevel'] as int?,
       isCharging: json['isCharging'] as bool?,
       networkType: json['networkType'] as String?,
+      theftModeActive: json['theftModeActive'] as bool?,
       lastSeenAt: DateTime.tryParse(json['lastSeenAt'] as String? ?? '') ?? DateTime.now(),
     );
   }
