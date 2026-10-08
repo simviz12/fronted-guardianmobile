@@ -295,6 +295,8 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
         return Icons.shield_rounded;
       case CommandType.theftModeOff:
         return Icons.shield_outlined;
+      case CommandType.wipe:
+        return Icons.delete_forever_rounded;
     }
   }
 
@@ -314,6 +316,8 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
         return 'Activar Modo Robo';
       case CommandType.theftModeOff:
         return 'Desactivar Modo Robo';
+      case CommandType.wipe:
+        return 'Borrado Remoto Total';
     }
   }
 

@@ -11,6 +11,8 @@ class DeviceStatusEvent extends RealtimeEvent {
   final bool? isCharging;
   final String? networkType;
   final bool? theftModeActive;
+  final bool? wipeEnabled;
+  final DateTime? wipedAt;
   final DateTime lastSeenAt;
 
   const DeviceStatusEvent({
@@ -20,6 +22,8 @@ class DeviceStatusEvent extends RealtimeEvent {
     this.isCharging,
     this.networkType,
     this.theftModeActive,
+    this.wipeEnabled,
+    this.wipedAt,
     required this.lastSeenAt,
   });
 
@@ -31,6 +35,8 @@ class DeviceStatusEvent extends RealtimeEvent {
       isCharging: json['isCharging'] as bool?,
       networkType: json['networkType'] as String?,
       theftModeActive: json['theftModeActive'] as bool?,
+      wipeEnabled: json['wipeEnabled'] as bool?,
+      wipedAt: json['wipedAt'] != null ? DateTime.tryParse(json['wipedAt'] as String) : null,
       lastSeenAt: DateTime.tryParse(json['lastSeenAt'] as String? ?? '') ?? DateTime.now(),
     );
   }

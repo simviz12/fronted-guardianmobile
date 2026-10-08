@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
@@ -401,6 +402,11 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
           icon: Icons.lock_open_rounded,
           onPressed: () => _showDeactivateDialog(context),
         ),
+
+        const SizedBox(height: AppSpacing.spaceXl),
+
+        // Zona de Destrucción Irreversible (Wipe Section)
+        _buildDestructionZoneSection(context, device),
       ],
     );
   }
@@ -591,6 +597,11 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
             isLoading: theftState.isSubmitting,
             onPressed: () => _confirmActivation(context),
           ),
+
+          const SizedBox(height: AppSpacing.spaceXl),
+
+          // Zona de Destrucción Irreversible (Wipe Section)
+          _buildDestructionZoneSection(context, device),
         ],
       ),
     );
@@ -755,5 +766,95 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
 
   String _formatDateTime(DateTime dt) {
     return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} ${dt.day}/${dt.month}/${dt.year}';
+  }
+
+  Widget _buildDestructionZoneSection(BuildContext context, Device device) {
+    final isWiped = device.wipedAt != null;
+    final isProtectedMode = device.mode == DeviceMode.protected;
+    final canWipe = isProtectedMode && device.adminEnabled && device.wipeEnabled && !isWiped;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.spaceMd),
+      decoration: BoxDecoration(
+        color: AppColors.alertContainer.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(AppRadii.xl),
+        border: Border.all(
+          color: AppColors.alert.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.delete_forever_rounded, color: AppColors.alert, size: 24),
+              const SizedBox(width: AppSpacing.spaceSm),
+              const Expanded(
+                child: Text(
+                  'Zona de Destrucción Irreversible',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.alertText,
+                  ),
+                ),
+              ),
+              if (isWiped)
+                const StatusChip(label: 'BORRADO', type: StatusChipType.danger),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.spaceSm),
+          Text(
+            isWiped
+                ? 'Este dispositivo ya ejecutó el restablecimiento de fábrica total y se encuentra desvinculado.'
+                : 'Si el dispositivo está en manos no autorizadas y contiene credenciales corporativas o personales críticas, procede a la destrucción remota.',
+            style: const TextStyle(fontSize: 12, color: AppColors.alertText, height: 1.35),
+          ),
+          const SizedBox(height: AppSpacing.spaceMd),
+          if (isWiped)
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.spaceSm),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              child: const Text(
+                'El dispositivo ya no responde a órdenes ni puede ser localizado.',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                textAlign: TextAlign.center,
+              ),
+            )
+          else if (!canWipe)
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.spaceSm),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 16, color: AppColors.alert),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'El dispositivo no tiene permisos de Administrador de Dispositivos para borrado remoto.',
+                      style: TextStyle(fontSize: 11, color: AppColors.alertText),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            DangerButton(
+              text: 'INICIAR BORRADO REMOTO TOTAL (WIPE)',
+              icon: Icons.delete_forever_rounded,
+              onPressed: () {
+                context.push('/wipe-wizard', extra: device);
+              },
+            ),
+        ],
+      ),
+    );
   }
 }

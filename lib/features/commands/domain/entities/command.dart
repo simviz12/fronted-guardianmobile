@@ -5,7 +5,8 @@ enum CommandType {
   lock,
   message,
   theftModeOn,
-  theftModeOff;
+  theftModeOff,
+  wipe;
 
   String toContractString() {
     switch (this) {
@@ -23,6 +24,8 @@ enum CommandType {
         return 'THEFT_MODE_ON';
       case CommandType.theftModeOff:
         return 'THEFT_MODE_OFF';
+      case CommandType.wipe:
+        return 'WIPE';
     }
   }
 
@@ -42,6 +45,8 @@ enum CommandType {
         return CommandType.theftModeOn;
       case 'THEFT_MODE_OFF':
         return CommandType.theftModeOff;
+      case 'WIPE':
+        return CommandType.wipe;
       default:
         return CommandType.ring;
     }

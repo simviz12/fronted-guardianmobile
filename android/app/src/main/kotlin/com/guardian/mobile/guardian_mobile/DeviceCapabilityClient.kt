@@ -68,7 +68,10 @@ object DeviceCapabilityClient {
                 }
 
                 val json = JSONObject().apply {
-                    adminEnabled?.let { put("adminEnabled", it) }
+                    adminEnabled?.let {
+                        put("adminEnabled", it)
+                        put("wipeEnabled", it)
+                    }
                     batteryPct?.let { put("batteryLevel", it) }
                     put("isCharging", isCharging)
                     if (permissionsJson.length() > 0) {

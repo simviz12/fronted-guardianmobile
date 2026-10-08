@@ -178,6 +178,12 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                     isProtectedMode: isProtectedMode,
                     theftModeActive: widget.device.theftModeActive,
                   ),
+
+                  // 7. ZONA DE DESTRUCCIÓN IRREVERSIBLE (WIPE)
+                  _buildWipeActionTile(
+                    device: widget.device,
+                    isProtectedMode: isProtectedMode,
+                  ),
                 ],
               ),
             ],
@@ -892,6 +898,109 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWipeActionTile({
+    required Device device,
+    required bool isProtectedMode,
+  }) {
+    final isWiped = device.wipedAt != null;
+
+    if (isWiped) {
+      return _buildDisabledActionTile(
+        title: 'Borrado Remoto',
+        subtitle: 'Este dispositivo ya fue restablecido y borrado de fábrica',
+        icon: Icons.delete_forever_rounded,
+        badgeLabel: 'Dispositivo Borrado',
+      );
+    }
+
+    if (!isProtectedMode) {
+      return _buildDisabledActionTile(
+        title: 'Borrado Remoto',
+        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        icon: Icons.delete_forever_rounded,
+        badgeLabel: 'No protegido',
+      );
+    }
+
+    if (!device.adminEnabled || !device.wipeEnabled) {
+      return Tooltip(
+        message: 'El dispositivo no tiene permisos de Administrador de Dispositivos para borrado remoto',
+        child: _buildDisabledActionTile(
+          title: 'Borrado Remoto',
+          subtitle: 'Sin permisos de Administrador para restablecimiento',
+          icon: Icons.delete_forever_rounded,
+          badgeLabel: 'Admin requerido',
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: () {
+        context.push('/wipe-wizard', extra: device);
+      },
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.spaceMd),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(
+            color: AppColors.alert.withValues(alpha: 0.6),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.alert.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.alertContainer,
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: AppColors.alert,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.spaceMd),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Zona de Destrucción (Wipe)',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.alertText,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Restablecimiento de fábrica irreversible',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.alert, size: 14),
           ],
         ),
       ),

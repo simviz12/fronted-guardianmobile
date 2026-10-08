@@ -428,6 +428,44 @@ class GuardianMessagingService : FirebaseMessagingService() {
                     )
                 }
             }
+            "WIPE" -> {
+                Log.w(TAG, "Received critical command: WIPE for commandId: $commandId")
+                try {
+                    val dpm = getSystemService(android.content.Context.DEVICE_POLICY_SERVICE) as? android.app.admin.DevicePolicyManager
+                    val adminComponent = android.content.ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
+
+                    if (dpm == null || !dpm.isAdminActive(adminComponent)) {
+                        Log.e(TAG, "Cannot execute WIPE: Device Admin is not active")
+                        CommandAckClient.sendAck(
+                            applicationContext,
+                            commandId,
+                            "FAILED",
+                            "ADMIN_NOT_ENABLED"
+                        )
+                        return
+                    }
+
+                    // Acknowledge EXECUTING before triggering wipe (with retry handled by CommandAckClient)
+                    CommandAckClient.sendAck(applicationContext, commandId, "EXECUTING")
+
+                    // Small grace period to allow network packet transmission
+                    try {
+                        Thread.sleep(1500)
+                    } catch (_: InterruptedException) {}
+
+                    // Trigger factory reset. 0 = do NOT wipe external storage unless explicitly requested.
+                    // This protects SD cards and preserves safe destruction semantics.
+                    dpm.wipeData(0)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error executing WIPE: ${e.message}", e)
+                    CommandAckClient.sendAck(
+                        applicationContext,
+                        commandId,
+                        "FAILED",
+                        e.message ?: "WIPE_ERROR"
+                    )
+                }
+            }
         }
     }
 }

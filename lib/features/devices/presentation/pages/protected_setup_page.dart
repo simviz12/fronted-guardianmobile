@@ -274,7 +274,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
                     const Text(
-                      'Permite apagar y bloquear la pantalla de forma remota ante pérdida o robo. Solo otorga la política de "forzar bloqueo", NO permite borrar datos ni leer información personal.',
+                      'Permite apagar y forzar el bloqueo de la pantalla, así como ejecutar el restablecimiento de fábrica (borrado remoto total) en caso de robo o pérdida irreparable.',
                       style: TextStyle(fontSize: 12, color: AppColors.textBody),
                     ),
                     const SizedBox(height: 6),

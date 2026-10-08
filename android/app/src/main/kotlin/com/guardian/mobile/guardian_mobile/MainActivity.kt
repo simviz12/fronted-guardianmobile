@@ -82,7 +82,7 @@ class MainActivity : FlutterActivity() {
                             putExtra(android.app.admin.DevicePolicyManager.EXTRA_DEVICE_ADMIN, comp)
                             putExtra(
                                 android.app.admin.DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                                "Requerido para bloquear la pantalla de este teléfono de forma remota en caso de pérdida o emergencia."
+                                "Requerido para bloquear la pantalla y permitir el restablecimiento de fábrica (borrado remoto de seguridad) ante pérdida o robo."
                             )
                         }
                         startActivity(intent)

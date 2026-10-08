@@ -454,13 +454,20 @@ class DashboardPage extends ConsumerWidget {
             children: [
               _buildModeChip(device.mode),
               const SizedBox(width: AppSpacing.spaceXs),
-              _buildOnlineChip(device.isOnline),
-              if (device.theftModeActive) ...[
-                const SizedBox(width: AppSpacing.spaceXs),
+              if (device.wipedAt != null) ...[
                 const StatusChip(
-                  label: 'MODO ROBO ACTIVO',
+                  label: 'DISPOSITIVO BORRADO',
                   type: StatusChipType.danger,
                 ),
+              ] else ...[
+                _buildOnlineChip(device.isOnline),
+                if (device.theftModeActive) ...[
+                  const SizedBox(width: AppSpacing.spaceXs),
+                  const StatusChip(
+                    label: 'MODO ROBO ACTIVO',
+                    type: StatusChipType.danger,
+                  ),
+                ],
               ],
             ],
           ),
@@ -624,13 +631,20 @@ class DashboardPage extends ConsumerWidget {
             children: [
               _buildModeChip(device.mode),
               const SizedBox(width: AppSpacing.spaceXs),
-              _buildOnlineChip(device.isOnline),
-              if (device.theftModeActive) ...[
-                const SizedBox(width: AppSpacing.spaceXs),
+              if (device.wipedAt != null) ...[
                 const StatusChip(
-                  label: 'MODO ROBO',
+                  label: 'BORRADO',
                   type: StatusChipType.danger,
                 ),
+              ] else ...[
+                _buildOnlineChip(device.isOnline),
+                if (device.theftModeActive) ...[
+                  const SizedBox(width: AppSpacing.spaceXs),
+                  const StatusChip(
+                    label: 'MODO ROBO',
+                    type: StatusChipType.danger,
+                  ),
+                ],
               ],
               const Spacer(),
               _buildBatteryIndicator(device.batteryLevel, device.isCharging),

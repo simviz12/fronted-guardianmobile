@@ -37,6 +37,8 @@ class Device {
   final DateTime? lastSeenAt;
   final bool isOnline;
   final bool adminEnabled;
+  final bool wipeEnabled;
+  final DateTime? wipedAt;
   final LastLocationSummary? lastLocation;
   final String? networkType; // "wifi" | "mobile" | "none" | "unknown"
   final bool theftModeActive;
@@ -59,6 +61,8 @@ class Device {
     this.lastSeenAt,
     required this.isOnline,
     this.adminEnabled = false,
+    this.wipeEnabled = false,
+    this.wipedAt,
     this.lastLocation,
     this.networkType,
     this.theftModeActive = false,
@@ -82,6 +86,8 @@ class Device {
     DateTime? lastSeenAt,
     bool? isOnline,
     bool? adminEnabled,
+    bool? wipeEnabled,
+    DateTime? wipedAt,
     LastLocationSummary? lastLocation,
     String? networkType,
     bool? theftModeActive,
@@ -104,6 +110,8 @@ class Device {
       lastSeenAt: lastSeenAt ?? this.lastSeenAt,
       isOnline: isOnline ?? this.isOnline,
       adminEnabled: adminEnabled ?? this.adminEnabled,
+      wipeEnabled: wipeEnabled ?? this.wipeEnabled,
+      wipedAt: wipedAt ?? this.wipedAt,
       lastLocation: lastLocation ?? this.lastLocation,
       networkType: networkType ?? this.networkType,
       theftModeActive: theftModeActive ?? this.theftModeActive,

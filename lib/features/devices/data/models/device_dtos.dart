@@ -17,6 +17,8 @@ class DeviceDto {
   final String? lastSeenAt;
   final bool isOnline;
   final bool adminEnabled;
+  final bool wipeEnabled;
+  final String? wipedAt;
   final LastLocationSummary? lastLocation;
   final String? networkType;
   final bool theftModeActive;
@@ -39,6 +41,8 @@ class DeviceDto {
     this.lastSeenAt,
     required this.isOnline,
     this.adminEnabled = false,
+    this.wipeEnabled = false,
+    this.wipedAt,
     this.lastLocation,
     this.networkType,
     this.theftModeActive = false,
@@ -64,6 +68,9 @@ class DeviceDto {
       isOnline: json['isOnline'] as bool? ?? false,
       adminEnabled: json['adminEnabled'] as bool? ??
           (json['capabilities'] is Map ? (json['capabilities']['adminEnabled'] as bool? ?? false) : false),
+      wipeEnabled: json['wipeEnabled'] as bool? ??
+          (json['capabilities'] is Map ? (json['capabilities']['wipeEnabled'] as bool? ?? false) : false),
+      wipedAt: json['wipedAt'] as String?,
       lastLocation: json['lastLocation'] != null && json['lastLocation'] is Map
           ? LastLocationSummary.fromJson(json['lastLocation'] as Map<String, dynamic>)
           : null,
@@ -90,6 +97,9 @@ class DeviceDto {
       'isCharging': isCharging,
       'lastSeenAt': lastSeenAt,
       'isOnline': isOnline,
+      'adminEnabled': adminEnabled,
+      'wipeEnabled': wipeEnabled,
+      'wipedAt': wipedAt,
       'networkType': networkType,
       'theftModeActive': theftModeActive,
       'createdAt': createdAt,
@@ -114,6 +124,8 @@ class DeviceDto {
       lastSeenAt: lastSeenAt != null ? DateTime.tryParse(lastSeenAt!) : null,
       isOnline: isOnline,
       adminEnabled: adminEnabled,
+      wipeEnabled: wipeEnabled,
+      wipedAt: wipedAt != null ? DateTime.tryParse(wipedAt!) : null,
       lastLocation: lastLocation,
       networkType: networkType,
       theftModeActive: theftModeActive,
