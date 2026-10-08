@@ -18,5 +18,6 @@ abstract class TheftModeRepository {
     required String deviceId,
     required String password,
     bool force = false,
+    String? twoFactorCode,
   });
 }

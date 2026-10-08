@@ -135,4 +135,13 @@ class _StaticAuthNotifier extends StateNotifier<AuthState> implements AuthNotifi
 
   @override
   Future<void> restoreSession() async {}
+
+  @override
+  void cancelTwoFactorLogin() {}
+
+  @override
+  void updateUser(User user) {}
+
+  @override
+  Future<bool> verifyTwoFactorLogin({required String code}) async => true;
 }

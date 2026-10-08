@@ -27,12 +27,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _submitLogin() {
+  Future<void> _submitLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(authNotifierProvider.notifier).login(
+      final result = await ref.read(authNotifierProvider.notifier).login(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
+      if (result == null && mounted) {
+        // 2FA required: navigate to 2FA verification page
+        context.push('/2fa-login');
+      }
     }
   }
 
@@ -73,7 +77,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _buildTrustHeader() {
     return Column(
       children: [
-        // Shield aura icon
         Stack(
           alignment: Alignment.center,
           children: [

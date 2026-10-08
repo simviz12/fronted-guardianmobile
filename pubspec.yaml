@@ -49,6 +49,7 @@ dependencies:
   url_launcher: ^6.3.3
   shared_preferences: ^2.5.6
   socket_io_client: ^3.1.6
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

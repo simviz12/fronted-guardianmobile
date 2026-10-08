@@ -12,6 +12,7 @@ class FakeWipeRepository implements WipeRepository {
     required String deviceId,
     required String password,
     String confirmationText = 'BORRAR',
+    String? twoFactorCode,
   }) async {}
 }
 

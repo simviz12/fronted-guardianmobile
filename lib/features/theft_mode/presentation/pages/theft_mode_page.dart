@@ -706,6 +706,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
 
   void _showDeactivateDialog(BuildContext context) {
     final passwordController = TextEditingController();
+    final twoFactorController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
     showDialog(
@@ -736,6 +737,15 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                   return null;
                 },
               ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: twoFactorController,
+                decoration: const InputDecoration(
+                  labelText: 'Código 2FA (si está activo)',
+                  hintText: 'TOTP o de respaldo',
+                  prefixIcon: Icon(Icons.pin_outlined, color: AppColors.primary),
+                ),
+              ),
             ],
           ),
         ),
@@ -748,9 +758,13 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 final nav = Navigator.of(ctx);
+                final code = twoFactorController.text.trim();
                 final success = await ref
                     .read(theftModeProvider(widget.device.id).notifier)
-                    .deactivate(password: passwordController.text);
+                    .deactivate(
+                      password: passwordController.text,
+                      twoFactorCode: code.isNotEmpty ? code : null,
+                    );
                 if (success) {
                   nav.pop();
                 }

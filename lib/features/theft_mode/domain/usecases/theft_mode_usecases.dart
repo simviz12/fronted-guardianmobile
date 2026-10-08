@@ -54,11 +54,13 @@ class DeactivateTheftModeUseCase {
     required String deviceId,
     required String password,
     bool force = false,
+    String? twoFactorCode,
   }) {
     return _repository.deactivateTheftMode(
       deviceId: deviceId,
       password: password,
       force: force,
+      twoFactorCode: twoFactorCode,
     );
   }
 }

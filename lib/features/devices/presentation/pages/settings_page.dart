@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/providers/two_factor_provider.dart';
 import '../providers/devices_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -25,6 +26,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   void initState() {
     super.initState();
     _loadLocationSettings();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(sessionsProvider.notifier).load();
+    });
   }
 
   Future<void> _loadLocationSettings() async {
@@ -64,6 +68,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
+    final sessionsState = ref.watch(sessionsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -121,6 +126,215 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ],
                     ),
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.spaceMd),
+
+            // Security & 2FA Section
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(AppRadii.md),
+                        ),
+                        child: const Icon(
+                          Icons.security_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.spaceSm),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Seguridad de la Cuenta',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textHeadings,
+                              ),
+                            ),
+                            Text(
+                              '2FA (TOTP), contraseñas y sesiones activas',
+                              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 24),
+
+                  // 2FA row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Text(
+                                  'Autenticación en 2 Pasos (2FA)',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: (user?.twoFactorEnabled ?? false)
+                                        ? AppColors.safeSubtle
+                                        : AppColors.surfaceContainerLow,
+                                    borderRadius: BorderRadius.circular(AppRadii.full),
+                                  ),
+                                  child: Text(
+                                    (user?.twoFactorEnabled ?? false) ? 'ACTIVO' : 'INACTIVO',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: (user?.twoFactorEnabled ?? false)
+                                          ? AppColors.safeText
+                                          : AppColors.textMuted,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Protege acciones sensibles como el borrado y desactivación de robo',
+                              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (user?.twoFactorEnabled ?? false)
+                        TextButton(
+                          onPressed: () => _showDisable2FaDialog(),
+                          style: TextButton.styleFrom(foregroundColor: AppColors.alert),
+                          child: const Text('Desactivar'),
+                        )
+                      else
+                        ElevatedButton(
+                          onPressed: () => context.push('/2fa-setup'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Activar'),
+                        ),
+                    ],
+                  ),
+                  const Divider(height: 20),
+
+                  // Change password action
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.password_rounded, size: 20, color: AppColors.textMuted),
+                    title: const Text('Cambiar Contraseña Maestra', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                    trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                    onTap: () => _showChangePasswordDialog(),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.spaceMd),
+
+            // Active Sessions Card
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Sesiones Activas',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textHeadings,
+                        ),
+                      ),
+                      if (sessionsState.sessions.isNotEmpty)
+                        TextButton(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('¿Cerrar todas las sesiones?'),
+                                content: const Text(
+                                  'Se revocarán todos los tokens de acceso activos en cualquier dispositivo.',
+                                ),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    style: TextButton.styleFrom(foregroundColor: AppColors.alert),
+                                    child: const Text('Cerrar todas'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              await ref.read(sessionsProvider.notifier).revokeAll();
+                              if (context.mounted) context.go('/login');
+                            }
+                          },
+                          child: const Text('Cerrar todas', style: TextStyle(fontSize: 12, color: AppColors.alert)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  if (sessionsState.isLoading)
+                    const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator(strokeWidth: 2)))
+                  else if (sessionsState.sessions.isEmpty)
+                    const Text('No hay otras sesiones activas registradas.', style: TextStyle(fontSize: 12, color: AppColors.textMuted))
+                  else
+                    ...sessionsState.sessions.map((sess) => Container(
+                          margin: const EdgeInsets.only(bottom: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(AppRadii.sm),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.devices_other_rounded, size: 18, color: AppColors.primary),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      sess.userAgent?.isNotEmpty ?? false ? sess.userAgent! : 'Dispositivo Guardian',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                    ),
+                                    Text(
+                                      'ID: ${sess.id.length > 8 ? sess.id.substring(0, 8) : sess.id}...',
+                                      style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.alert),
+                                onPressed: () => ref.read(sessionsProvider.notifier).revoke(sess.id),
+                              ),
+                            ],
+                          ),
+                        )),
                 ],
               ),
             ),
@@ -194,7 +408,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       value: _intervalMinutes.toDouble(),
                       min: 5,
                       max: 60,
-                      divisions: 11, // 5, 10, 15, ..., 60
+                      divisions: 11,
                       label: '$_intervalMinutes min',
                       activeColor: AppColors.primary,
                       onChanged: (val) {
@@ -315,28 +529,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ],
                     ),
                   ),
-                  if (ApiConfig.baseUrl.contains('localhost') || ApiConfig.baseUrl.contains('127.0.0.1')) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.warningSubtle,
-                        borderRadius: BorderRadius.circular(AppRadii.sm),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.warningText),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Advertencia: "localhost" solo funciona por cable con "adb reverse activo". Para Wi-Fi use la IP local (ej. http://192.168.1.9:3000).',
-                              style: TextStyle(fontSize: 11, color: AppColors.warningText),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -372,7 +564,52 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 onTap: () => context.push('/server-status'),
               ),
             ),
-            const SizedBox(height: AppSpacing.spaceLg),
+            const SizedBox(height: AppSpacing.spaceMd),
+
+            // Privacy link
+            AppCard(
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: const Icon(
+                    Icons.privacy_tip_outlined,
+                    color: AppColors.primary,
+                  ),
+                ),
+                title: const Text(
+                  'Información de Privacidad',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textHeadings,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Consulta qué datos se recopilan y cómo se protegen',
+                  style: TextStyle(fontSize: 12),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => context.push('/privacy'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.spaceSm),
+
+            // App version info
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'Guardian Mobile v1.0.0 (Release 10)',
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.spaceMd),
+
             // Logout button
             DangerButton(
               text: 'Cerrar Sesión Segura',
@@ -415,6 +652,121 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  Future<void> _showDisable2FaDialog() async {
+    final passwordController = TextEditingController();
+    final codeController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Desactivar 2FA'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Ingresa tu contraseña maestra y el código 2FA actual para confirmar.',
+              style: TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Contraseña maestra'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: codeController,
+              keyboardType: TextInputType.text,
+              decoration: const InputDecoration(labelText: 'Código 2FA o de respaldo'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.alert, foregroundColor: Colors.white),
+            child: const Text('Desactivar'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final ok = await ref.read(twoFactorSetupProvider.notifier).disable(
+            password: passwordController.text,
+            twoFactorCode: codeController.text.trim(),
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(ok ? '2FA desactivado correctamente.' : 'Error al desactivar 2FA.'),
+            backgroundColor: ok ? AppColors.safe : AppColors.alert,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showChangePasswordDialog() async {
+    final currentPassController = TextEditingController();
+    final newPassController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cambiar Contraseña'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: currentPassController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Contraseña actual'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: newPassController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Nueva contraseña'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              if (currentPassController.text.isEmpty || newPassController.text.length < 8) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(content: Text('La nueva contraseña debe tener al menos 8 caracteres.')),
+                );
+                return;
+              }
+              final ok = await ref.read(changePasswordProvider.notifier).changePassword(
+                    currentPassword: currentPassController.text,
+                    newPassword: newPassController.text,
+                  );
+              if (ctx.mounted) {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(
+                    content: Text(ok ? 'Contraseña actualizada. Vuelve a iniciar sesión.' : 'Error al cambiar contraseña.'),
+                    backgroundColor: ok ? AppColors.safe : AppColors.alert,
+                  ),
+                );
+                if (ok) {
+                  ref.read(authNotifierProvider.notifier).logout();
+                  if (mounted) context.go('/login');
+                }
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _showEditUrlDialog() async {
     final messenger = ScaffoldMessenger.of(context);
     final controller = TextEditingController(text: ApiConfig.baseUrl);
@@ -427,7 +779,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Ingresa la dirección IP o dominio del backend. En la misma red Wi-Fi suele ser la IP de tu PC (ej. http://192.168.1.9:3000):',
+              'Ingresa la dirección IP o dominio del backend (ej. http://192.168.1.9:3000):',
               style: TextStyle(fontSize: 12),
             ),
             const SizedBox(height: 12),
@@ -456,7 +808,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     if (newUrl != null && newUrl.isNotEmpty && newUrl != ApiConfig.baseUrl) {
       await ApiConfig.setBaseUrl(newUrl);
 
-      // Also update native credentials if this phone is linked
       final identityService = ref.read(deviceIdentityServiceProvider);
       final thisPhoneId = await identityService.getThisPhoneDeviceId();
       if (thisPhoneId != null) {

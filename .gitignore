@@ -47,3 +47,6 @@ android/app/google-services.json
 google-services.json
 .kotlin/
 android/.kotlin/
+android/key.properties
+*.jks
+*.keystore
