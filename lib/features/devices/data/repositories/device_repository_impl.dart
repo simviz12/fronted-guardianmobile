@@ -116,4 +116,9 @@ class DeviceRepositoryImpl implements DeviceRepository {
   Future<String?> getDeviceToken(String deviceId) {
     return _identityService.getDeviceToken(deviceId);
   }
+
+  @override
+  Future<dynamic> getDeviceDiagnostics(String id) {
+    return _remoteDataSource.getDeviceDiagnostics(id);
+  }
 }

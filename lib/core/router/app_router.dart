@@ -13,6 +13,7 @@ import '../../features/devices/presentation/pages/dashboard_page.dart';
 import '../../features/devices/presentation/pages/link_device_page.dart';
 import '../../features/devices/presentation/pages/protected_setup_page.dart';
 import '../../features/devices/presentation/pages/settings_page.dart';
+import '../../features/devices/presentation/pages/device_diagnostics_page.dart';
 import '../../features/server_status/presentation/pages/server_status_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -96,6 +97,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return DeviceMapPage(device: device);
         },
       ),
+      GoRoute(
+        path: '/device-diagnostics',
+        builder: (context, state) {
+          final device = state.extra as Device;
+          return DeviceDiagnosticsPage(device: device);
+        },
+      ),
+
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsPage(),

@@ -72,10 +72,24 @@ class GuardianMessagingService : FirebaseMessagingService() {
             return
         }
 
+        // Parse nested JSON payload if present (sent by backend as data["payload"])
+        val payloadJsonStr = data["payload"]
+        val payloadObj: org.json.JSONObject? = if (!payloadJsonStr.isNullOrEmpty() && payloadJsonStr != "null") {
+            try {
+                org.json.JSONObject(payloadJsonStr)
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+
         // 3. Process commands
         when (type) {
             "RING" -> {
-                val durationSeconds = data["durationSeconds"]?.toIntOrNull() ?: 60
+                val durationSeconds = payloadObj?.optInt("durationSeconds", 0)?.takeIf { it > 0 }
+                    ?: data["durationSeconds"]?.toIntOrNull()
+                    ?: 60
 
                 val ringIntent = Intent(applicationContext, RingService::class.java).apply {
                     action = RingService.ACTION_START_RING
@@ -90,7 +104,9 @@ class GuardianMessagingService : FirebaseMessagingService() {
                 }
             }
             "VIBRATE" -> {
-                val durationSeconds = data["durationSeconds"]?.toIntOrNull() ?: 5
+                val durationSeconds = payloadObj?.optInt("durationSeconds", 0)?.takeIf { it > 0 }
+                    ?: data["durationSeconds"]?.toIntOrNull()
+                    ?: 5
                 val durationMs = (durationSeconds * 1000).toLong()
 
                 try {
@@ -103,15 +119,31 @@ class GuardianMessagingService : FirebaseMessagingService() {
                     }
 
                     if (vibrator != null && vibrator.hasVibrator()) {
+                        val audioAttributes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            android.media.AudioAttributes.Builder()
+                                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                                .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+                                .build()
+                        } else null
+
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            val effect = android.os.VibrationEffect.createOneShot(
-                                durationMs,
-                                android.os.VibrationEffect.DEFAULT_AMPLITUDE
-                            )
-                            vibrator.vibrate(effect)
+                            // Split into repeating pattern pulses (e.g. 800ms vibrate, 200ms pause) so long vibrations don't get truncated by OS
+                            val pattern = LongArray(((durationSeconds * 2)).toInt()) { index ->
+                                if (index % 2 == 0) 800L else 200L
+                            }
+                            val effect = android.os.VibrationEffect.createWaveform(pattern, -1)
+                            if (audioAttributes != null) {
+                                vibrator.vibrate(effect, audioAttributes)
+                            } else {
+                                vibrator.vibrate(effect)
+                            }
                         } else {
                             @Suppress("DEPRECATION")
-                            vibrator.vibrate(durationMs)
+                            val pattern = LongArray(((durationSeconds * 2)).toInt()) { index ->
+                                if (index % 2 == 0) 800L else 200L
+                            }
+                            @Suppress("DEPRECATION")
+                            vibrator.vibrate(pattern, -1)
                         }
                         CommandAckClient.sendAck(applicationContext, commandId, "EXECUTED")
                     } else {
@@ -133,8 +165,15 @@ class GuardianMessagingService : FirebaseMessagingService() {
                 }
             }
             "MESSAGE" -> {
-                val messageText = data["text"] ?: data["message"] ?: "Mensaje de seguridad"
-                val contactPhone = data["contactPhone"] ?: data["phone"]
+                val messageText = payloadObj?.optString("text", "")?.takeIf { it.isNotEmpty() }
+                    ?: payloadObj?.optString("message", "")?.takeIf { it.isNotEmpty() }
+                    ?: data["text"]
+                    ?: data["message"]
+                    ?: "Mensaje de seguridad"
+                val contactPhone = payloadObj?.optString("contactPhone", "")?.takeIf { it.isNotEmpty() }
+                    ?: payloadObj?.optString("phone", "")?.takeIf { it.isNotEmpty() }
+                    ?: data["contactPhone"]
+                    ?: data["phone"]
 
                 try {
                     val messageIntent = Intent(applicationContext, MessageActivity::class.java).apply {

@@ -47,6 +47,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
     final isAdmin = await nativeBridge.isDeviceAdminActive();
     final hasLoc = await nativeBridge.hasLocationPermission();
     final hasBgLoc = await nativeBridge.hasBackgroundLocationPermission();
+    await nativeBridge.syncDeviceCapabilities();
     if (mounted) {
       setState(() {
         _batteryExempted = isIgnored;
@@ -107,7 +108,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
         elevation: 0,
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.marginMobile),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -223,13 +224,23 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
                     const Text(
-                      'Evita que el sistema operativo suspenda el servicio de alarma cuando el teléfono lleve varias horas sin usarse.',
+                      'Evita que el sistema operativo suspenda el servicio de alarma cuando el teléfono lleve varias horas sin usarse.\nEn Xiaomi/HyperOS, selecciona la opción "Sin restricciones" en el Ahorro de batería de la app.',
                       style: TextStyle(fontSize: 12, color: AppColors.textBody),
                     ),
                     const SizedBox(height: AppSpacing.spaceSm),
-                    OutlinedButton(
-                      onPressed: _requestBatteryOptimization,
-                      child: const Text('Ajustar Ahorro de Batería'),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton(
+                          onPressed: _requestBatteryOptimization,
+                          child: const Text('1. Solicitar Exención Directa'),
+                        ),
+                        OutlinedButton(
+                          onPressed: _openSettings,
+                          child: const Text('2. Ajustes de la App (Xiaomi)'),
+                        ),
+                      ],
                     ),
                   ],
                 ),

@@ -94,9 +94,32 @@ class MainActivity : FlutterActivity() {
                 "syncDeviceCapabilities" -> {
                     val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as? android.app.admin.DevicePolicyManager
                     val comp = android.content.ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
-                    val active = dpm?.isAdminActive(comp) ?: false
-                    DeviceCapabilityClient.reportCapabilities(applicationContext, adminEnabled = active)
-                    result.success(active)
+                    val adminActive = dpm?.isAdminActive(comp) ?: false
+
+                    val pm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        getSystemService(Context.POWER_SERVICE) as PowerManager
+                    } else null
+                    val batteryIgnored = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && pm != null) {
+                        pm.isIgnoringBatteryOptimizations(packageName)
+                    } else true
+
+                    val hasNotifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                    } else true
+
+                    val hasFgLocation = LocationHelper.hasLocationPermission(applicationContext)
+                    val hasBgLocation = LocationHelper.hasBackgroundLocationPermission(applicationContext)
+
+                    DeviceCapabilityClient.reportCapabilities(
+                        context = applicationContext,
+                        adminEnabled = adminActive,
+                        notificationsGranted = hasNotifications,
+                        locationForegroundGranted = hasFgLocation,
+                        locationBackgroundGranted = hasBgLocation,
+                        batteryOptimizationIgnored = batteryIgnored,
+                        fullScreenIntentGranted = true
+                    )
+                    result.success(adminActive)
                 }
                 "hasLocationPermission" -> {
                     result.success(LocationHelper.hasLocationPermission(applicationContext))

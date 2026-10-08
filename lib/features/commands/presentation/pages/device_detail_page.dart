@@ -24,6 +24,14 @@ class DeviceDetailPage extends ConsumerStatefulWidget {
 
 class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(commandNotifierProvider.notifier).clearActiveCommand();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final commandState = ref.watch(commandNotifierProvider);
     final isProtectedMode = widget.device.mode == DeviceMode.protected;
@@ -35,6 +43,13 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.medical_services_outlined, color: AppColors.primary),
+            tooltip: 'Diagnóstico de Conectividad',
+            onPressed: () {
+              context.push('/device-diagnostics', extra: widget.device);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.map_rounded, color: AppColors.primary),
             tooltip: 'Ver Mapa de Rastreo',
@@ -67,9 +82,9 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 const SizedBox(height: AppSpacing.spaceMd),
               ],
 
-              if (commandState.errorMessage != null) ...[
+              if (commandState.errorMessage != null && commandState.activeCommand == null) ...[
                 Container(
-                  padding: const EdgeInsets.all(AppSpacing.spaceMd),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.spaceMd, vertical: AppSpacing.spaceSm),
                   decoration: BoxDecoration(
                     color: AppColors.alertContainer,
                     borderRadius: BorderRadius.circular(AppRadii.md),
@@ -88,6 +103,12 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: AppColors.alertText, size: 18),
+                        onPressed: () {
+                          ref.read(commandNotifierProvider.notifier).clearError();
+                        },
                       ),
                     ],
                   ),

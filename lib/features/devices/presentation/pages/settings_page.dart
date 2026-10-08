@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/native_bridge_service.dart';
+import '../../../../core/config/api_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/devices_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -246,6 +248,100 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
             const SizedBox(height: AppSpacing.spaceMd),
 
+            // Server URL & Connection Config
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(AppRadii.md),
+                        ),
+                        child: const Icon(
+                          Icons.settings_ethernet_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.spaceSm),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Servidor Backend (API)',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textHeadings,
+                              ),
+                            ),
+                            Text(
+                              'URL base para órdenes, daemon y sincronización',
+                              style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.spaceSm),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(AppRadii.sm),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            ApiConfig.baseUrl,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => _showEditUrlDialog(),
+                          child: const Text('Cambiar'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (ApiConfig.baseUrl.contains('localhost') || ApiConfig.baseUrl.contains('127.0.0.1')) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.warningSubtle,
+                        borderRadius: BorderRadius.circular(AppRadii.sm),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.warningText),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Advertencia: "localhost" solo funciona por cable con "adb reverse activo". Para Wi-Fi use la IP local (ej. http://192.168.1.9:3000).',
+                              style: TextStyle(fontSize: 11, color: AppColors.warningText),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.spaceMd),
+
             // Diagnostic link
             AppCard(
               child: ListTile(
@@ -317,5 +413,73 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _showEditUrlDialog() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final controller = TextEditingController(text: ApiConfig.baseUrl);
+    final newUrl = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Configurar Servidor API'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ingresa la dirección IP o dominio del backend. En la misma red Wi-Fi suele ser la IP de tu PC (ej. http://192.168.1.9:3000):',
+              style: TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'Base URL',
+                hintText: 'http://192.168.1.9:3000',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (newUrl != null && newUrl.isNotEmpty && newUrl != ApiConfig.baseUrl) {
+      await ApiConfig.setBaseUrl(newUrl);
+
+      // Also update native credentials if this phone is linked
+      final identityService = ref.read(deviceIdentityServiceProvider);
+      final thisPhoneId = await identityService.getThisPhoneDeviceId();
+      if (thisPhoneId != null) {
+        final token = await identityService.getDeviceToken(thisPhoneId);
+        if (token != null) {
+          final nativeBridge = ref.read(nativeBridgeServiceProvider);
+          await nativeBridge.saveDeviceCredentials(
+            apiBaseUrl: newUrl,
+            deviceId: thisPhoneId,
+            deviceToken: token,
+          );
+        }
+      }
+
+      if (mounted) {
+        setState(() {});
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Servidor actualizado a $newUrl'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      }
+    }
   }
 }

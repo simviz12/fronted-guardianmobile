@@ -32,6 +32,16 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
     final mapState = ref.watch(deviceMapProvider(widget.device.id));
     final commandState = ref.watch(commandNotifierProvider);
 
+    // Watch mapState latestLocation change to auto-center if needed
+    ref.listen<DeviceMapState>(deviceMapProvider(widget.device.id), (prev, next) {
+      if (prev?.latestLocation == null && next.latestLocation != null) {
+        _mapController.move(
+          LatLng(next.latestLocation!.latitude, next.latestLocation!.longitude),
+          16.0,
+        );
+      }
+    });
+
     // Watch command completion to refresh map
     ref.listen<CommandExecutionState>(commandNotifierProvider, (prev, next) {
       if (prev?.activeCommand?.type == CommandType.locate) {

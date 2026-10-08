@@ -9,10 +9,6 @@ import '../../domain/repositories/device_repository.dart';
 import '../../domain/usecases/device_usecases.dart';
 
 // Services
-final nativeBridgeServiceProvider = Provider<NativeBridgeService>((ref) {
-  return NativeBridgeServiceImpl();
-});
-
 final deviceIdentityServiceProvider = Provider<DeviceIdentityService>((ref) {
   return DeviceIdentityServiceImpl();
 });
@@ -191,3 +187,9 @@ final devicesNotifierProvider =
     StateNotifierProvider<DevicesNotifier, DevicesDashboardState>((ref) {
   return DevicesNotifier(ref);
 });
+
+final deviceDiagnosticsProvider = FutureProvider.family<dynamic, String>((ref, deviceId) async {
+  final repo = ref.watch(deviceRepositoryProvider);
+  return repo.getDeviceDiagnostics(deviceId);
+});
+

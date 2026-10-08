@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/error/failures.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/command_remote_data_source.dart';
 import '../../data/repositories/command_repository_impl.dart';
@@ -101,6 +102,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -133,6 +135,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -171,6 +174,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -192,7 +196,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
       final command = await sendUseCase(
         deviceId: deviceId,
         type: CommandType.lock,
-        payload: {},
+        payload: null,
         ttl: 60,
       );
 
@@ -200,6 +204,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -229,6 +234,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         activeCommand: command,
         isSubmitting: false,
         isPolling: true,
+        clearError: true,
       );
 
       _startPolling(command.id);
@@ -241,17 +247,24 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
 
   void _handleSendError(Object e) {
     String msg = 'Error al enviar la orden.';
+    if (e is ServerFailure) {
+      if (e.details.isNotEmpty) {
+        msg = '${e.message}: ${e.details.join(", ")}';
+      } else {
+        msg = e.message;
+      }
+    } else if (e is Failure && e.message.isNotEmpty) {
+      msg = e.message;
+    }
     final str = e.toString();
     if (str.contains('CAPABILITY_NOT_AVAILABLE')) {
       msg = 'Este dispositivo no ha activado el permiso de bloqueo (Administrador de Dispositivo).';
     } else if (str.contains('DEVICE_NOT_REACHABLE')) {
-      msg = 'Este dispositivo aún no puede recibir órdenes.';
+      msg = 'Este dispositivo aún no puede recibir órdenes (sin token FCM registrado).';
     } else if (str.contains('NetworkFailure')) {
       msg = 'No hay conexión con el servidor.';
     } else if (str.contains('DEVICE_NOT_FOUND')) {
       msg = 'Dispositivo no encontrado.';
-    } else if (str.contains('VALIDATION_ERROR')) {
-      msg = 'Error de validación en los datos del comando.';
     }
     state = state.copyWith(
       isSubmitting: false,
@@ -293,6 +306,10 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
   void clearActiveCommand() {
     _pollingTimer?.cancel();
     state = CommandExecutionState.idle();
+  }
+
+  void clearError() {
+    state = state.copyWith(clearError: true);
   }
 }
 

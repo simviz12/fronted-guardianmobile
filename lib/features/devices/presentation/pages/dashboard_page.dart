@@ -564,50 +564,60 @@ class DashboardPage extends ConsumerWidget {
     Device device, {
     required bool isThisPhone,
   }) {
-    return InkWell(
-      onTap: () => context.push('/device-detail', extra: device),
-      borderRadius: BorderRadius.circular(AppRadii.lg),
-      child: AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.push('/device-detail', extra: device),
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.spaceMd),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(AppRadii.md),
-                  ),
-                child: Icon(
-                  device.platform == 'ios' ? Icons.apple_rounded : Icons.phone_android_rounded,
-                  color: AppColors.textHeadings,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.spaceSm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      device.name,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(AppRadii.md),
+                      ),
+                      child: Icon(
+                        device.platform == 'ios' ? Icons.apple_rounded : Icons.phone_android_rounded,
                         color: AppColors.textHeadings,
+                        size: 20,
                       ),
                     ),
-                    Text(
-                      'Modelo: ${device.model ?? '—'} • SO: ${device.osVersion ?? '—'}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textMuted,
+                    const SizedBox(width: AppSpacing.spaceSm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            device.name,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textHeadings,
+                            ),
+                          ),
+                          Text(
+                            'Modelo: ${device.model ?? '—'} • SO: ${device.osVersion ?? '—'}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.primary),
+                tooltip: 'Administrar dispositivo',
+                onPressed: () => context.push('/device-detail', extra: device),
               ),
               IconButton(
                 icon: const Icon(Icons.more_vert_rounded, size: 20),
@@ -634,29 +644,31 @@ class DashboardPage extends ConsumerWidget {
               ),
             ],
           ),
-          if (device.lastLocation != null) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const Icon(Icons.location_on_rounded, size: 12, color: AppColors.primary),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    'Última pos: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textBody,
+              if (device.lastLocation != null) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 12, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        'Última pos: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textBody,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
-            ),
-          ],
-        ],
+            ],
+          ),
+        ),
       ),
     ),
   );
-  }
+}
 
   Widget _buildModeChip(DeviceMode mode) {
     final isProtected = mode == DeviceMode.protected;

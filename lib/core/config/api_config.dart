@@ -1,21 +1,40 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 class ApiConfig {
   ApiConfig._();
 
-  /// Default API base URL from compile-time environment or fallback.
-  /// 
-  /// Diagnostic connection modes:
-  /// 1. Real Android phone via USB cable:
-  ///    Run: `adb reverse tcp:3000 tcp:3000`
-  ///    URL: `http://localhost:3000`
-  /// 2. Android Emulator (Loopback alias):
-  ///    URL: `http://10.0.2.2:3000`
-  /// 3. LAN IP / Wi-Fi direct:
-  ///    URL: `http://<LAN_IP>:3000`
-  static const String baseUrl = String.fromEnvironment(
+  static const String _defaultUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:3000',
+    defaultValue: 'http://192.168.1.9:3000',
   );
 
-  static const Duration connectTimeout = Duration(seconds: 10);
-  static const Duration receiveTimeout = Duration(seconds: 10);
+  static const String keyCustomBaseUrl = 'custom_api_base_url';
+  static String _activeBaseUrl = _defaultUrl;
+
+  static String get baseUrl => _activeBaseUrl;
+
+  static Future<void> init() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedUrl = prefs.getString(keyCustomBaseUrl);
+      if (savedUrl != null && savedUrl.trim().isNotEmpty) {
+        _activeBaseUrl = savedUrl.trim();
+      } else {
+        _activeBaseUrl = _defaultUrl;
+      }
+    } catch (_) {
+      _activeBaseUrl = _defaultUrl;
+    }
+  }
+
+  static Future<void> setBaseUrl(String url) async {
+    _activeBaseUrl = url.trim();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(keyCustomBaseUrl, _activeBaseUrl);
+    } catch (_) {}
+  }
+
+  static Duration connectTimeout = const Duration(seconds: 10);
+  static Duration receiveTimeout = const Duration(seconds: 10);
 }

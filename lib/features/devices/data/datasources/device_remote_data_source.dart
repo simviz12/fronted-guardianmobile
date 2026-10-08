@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/dio_client.dart';
 import '../models/device_dtos.dart';
+import '../models/device_diagnostics_dto.dart';
 
 abstract class DeviceRemoteDataSource {
   Future<LinkDeviceResponseDto> linkDevice({
@@ -25,6 +26,8 @@ abstract class DeviceRemoteDataSource {
   });
 
   Future<void> deleteDevice(String id);
+
+  Future<DeviceDiagnosticsDto> getDeviceDiagnostics(String id);
 }
 
 class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
@@ -110,6 +113,16 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
   Future<void> deleteDevice(String id) async {
     try {
       await _client.dio.delete('/devices/$id');
+    } on DioException catch (e) {
+      throw DioClient.mapDioExceptionToFailure(e);
+    }
+  }
+
+  @override
+  Future<DeviceDiagnosticsDto> getDeviceDiagnostics(String id) async {
+    try {
+      final response = await _client.dio.get('/devices/$id/diagnostics');
+      return DeviceDiagnosticsDto.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw DioClient.mapDioExceptionToFailure(e);
     }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:guardian_mobile/features/commands/presentation/providers/command_provider.dart';
 import 'package:guardian_mobile/features/devices/domain/entities/device.dart';
 import 'package:guardian_mobile/features/locations/domain/entities/device_location.dart';
 import 'package:guardian_mobile/features/locations/domain/repositories/location_repository.dart';

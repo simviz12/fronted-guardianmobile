@@ -46,17 +46,17 @@ enum LocationRangeFilter {
     final now = DateTime.now();
     switch (this) {
       case LocationRangeFilter.today:
-        final from = DateTime(now.year, now.month, now.day);
-        final to = now;
+        // Use 24 hours window to avoid local UTC timezone date truncation issues
+        final from = now.subtract(const Duration(hours: 24));
+        final to = now.add(const Duration(hours: 1));
         return (from, to);
       case LocationRangeFilter.yesterday:
-        final yesterday = now.subtract(const Duration(days: 1));
-        final from = DateTime(yesterday.year, yesterday.month, yesterday.day);
-        final to = DateTime(now.year, now.month, now.day).subtract(const Duration(milliseconds: 1));
+        final from = now.subtract(const Duration(hours: 48));
+        final to = now.subtract(const Duration(hours: 24));
         return (from, to);
       case LocationRangeFilter.last7Days:
         final from = now.subtract(const Duration(days: 7));
-        final to = now;
+        final to = now.add(const Duration(hours: 1));
         return (from, to);
     }
   }
