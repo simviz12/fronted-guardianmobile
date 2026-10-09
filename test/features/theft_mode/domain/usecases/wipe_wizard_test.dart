@@ -7,6 +7,7 @@ class MockWipeRepository implements WipeRepository {
   String? lastDeviceId;
   String? lastPassword;
   String? lastConfirmation;
+  String? lastTwoFactorCode;
   bool shouldThrow = false;
   Exception? exceptionToThrow;
 
@@ -15,6 +16,7 @@ class MockWipeRepository implements WipeRepository {
     required String deviceId,
     required String password,
     String confirmationText = 'BORRAR',
+    String? twoFactorCode,
   }) async {
     if (shouldThrow) {
       throw exceptionToThrow ?? Exception('Network failure');
@@ -22,6 +24,7 @@ class MockWipeRepository implements WipeRepository {
     lastDeviceId = deviceId;
     lastPassword = password;
     lastConfirmation = confirmationText;
+    lastTwoFactorCode = twoFactorCode;
   }
 }
 

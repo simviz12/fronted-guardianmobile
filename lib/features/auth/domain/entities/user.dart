@@ -3,13 +3,31 @@ class User {
   final String email;
   final String displayName;
   final DateTime? createdAt;
+  final bool twoFactorEnabled;
 
   const User({
     required this.id,
     required this.email,
     required this.displayName,
     this.createdAt,
+    this.twoFactorEnabled = false,
   });
+
+  User copyWith({
+    String? id,
+    String? email,
+    String? displayName,
+    DateTime? createdAt,
+    bool? twoFactorEnabled,
+  }) {
+    return User(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      createdAt: createdAt ?? this.createdAt,
+      twoFactorEnabled: twoFactorEnabled ?? this.twoFactorEnabled,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>

@@ -19,11 +19,13 @@ class WipeWizardPage extends ConsumerStatefulWidget {
 class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
   final TextEditingController _confirmationController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _twoFactorController = TextEditingController();
 
   @override
   void dispose() {
     _confirmationController.dispose();
     _passwordController.dispose();
+    _twoFactorController.dispose();
     super.dispose();
   }
 
@@ -532,6 +534,22 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                     style: TextStyle(fontSize: 11, color: AppColors.alert, fontWeight: FontWeight.w600),
                   ),
                 ],
+              ),
+              const SizedBox(height: AppSpacing.spaceMd),
+              const Text(
+                'Código de Verificación 2FA (si está activo)',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _twoFactorController,
+                decoration: const InputDecoration(
+                  hintText: 'Código TOTP o de respaldo',
+                  prefixIcon: Icon(Icons.pin_outlined, color: AppColors.primary),
+                ),
+                onChanged: (val) {
+                  notifier.setTwoFactorCodeInput(val);
+                },
               ),
             ],
           ),

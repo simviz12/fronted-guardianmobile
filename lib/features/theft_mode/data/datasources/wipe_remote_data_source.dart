@@ -6,6 +6,7 @@ abstract class WipeRemoteDataSource {
     required String deviceId,
     required String password,
     String confirmationText = 'BORRAR',
+    String? twoFactorCode,
   });
 }
 
@@ -19,14 +20,19 @@ class WipeRemoteDataSourceImpl implements WipeRemoteDataSource {
     required String deviceId,
     required String password,
     String confirmationText = 'BORRAR',
+    String? twoFactorCode,
   }) async {
     try {
+      final body = <String, dynamic>{
+        'password': password,
+        'confirmationText': confirmationText,
+      };
+      if (twoFactorCode != null && twoFactorCode.trim().isNotEmpty) {
+        body['twoFactorCode'] = twoFactorCode.trim();
+      }
       final response = await _client.dio.post(
         '/devices/$deviceId/wipe',
-        data: {
-          'password': password,
-          'confirmationText': confirmationText,
-        },
+        data: body,
       );
       if (response.data is Map<String, dynamic>) {
         return response.data as Map<String, dynamic>;

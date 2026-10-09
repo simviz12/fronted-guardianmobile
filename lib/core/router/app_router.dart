@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
+import '../../features/auth/presentation/pages/two_factor_login_page.dart';
+import '../../features/auth/presentation/pages/two_factor_setup_page.dart';
+import '../../features/auth/presentation/pages/privacy_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/commands/presentation/pages/command_history_page.dart';
 import '../../features/commands/presentation/pages/device_detail_page.dart';
@@ -28,8 +31,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final authState = ref.read(authNotifierProvider);
       final location = state.uri.path;
 
-      // Allow public diagnostic page unconditionally
-      if (location == '/server-status') {
+      // Allow public diagnostic and privacy pages unconditionally
+      if (location == '/server-status' || location == '/privacy') {
+        return null;
+      }
+
+      // If waiting for 2FA verification after login, allow /2fa-login
+      if (authState.requiresTwoFactor && location == '/2fa-login') {
         return null;
       }
 
@@ -38,11 +46,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final isAuthenticated = authState.status == AuthStatus.authenticated;
-      final isAuthRoute = location == '/login' || location == '/register' || location == '/';
+      final isAuthRoute = location == '/login' ||
+          location == '/register' ||
+          location == '/' ||
+          location == '/2fa-login';
 
       if (!isAuthenticated) {
         // If unauthenticated, redirect to /login unless already in auth screens
-        if (location == '/register') return null;
+        if (location == '/register' || (location == '/2fa-login' && authState.requiresTwoFactor)) {
+          return null;
+        }
         return isAuthRoute && location != '/' ? null : '/login';
       }
 
@@ -61,6 +74,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/2fa-login',
+        builder: (context, state) => const TwoFactorLoginPage(),
       ),
       GoRoute(
         path: '/register',
@@ -106,7 +123,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return DeviceDiagnosticsPage(device: device);
         },
       ),
-
       GoRoute(
         path: '/theft-mode',
         builder: (context, state) {
@@ -124,6 +140,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: '/2fa-setup',
+        builder: (context, state) => const TwoFactorSetupPage(),
+      ),
+      GoRoute(
+        path: '/privacy',
+        builder: (context, state) => const PrivacyPage(),
       ),
       GoRoute(
         path: '/server-status',

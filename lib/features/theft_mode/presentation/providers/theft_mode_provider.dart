@@ -147,6 +147,7 @@ class TheftModeNotifier extends StateNotifier<TheftModeState> {
   Future<bool> deactivate({
     required String password,
     bool force = false,
+    String? twoFactorCode,
   }) async {
     state = state.copyWith(isSubmitting: true, clearError: true, clearSuccess: true);
     try {
@@ -155,6 +156,7 @@ class TheftModeNotifier extends StateNotifier<TheftModeState> {
         deviceId: _deviceId,
         password: password,
         force: force,
+        twoFactorCode: twoFactorCode,
       );
 
       state = state.copyWith(
@@ -168,8 +170,12 @@ class TheftModeNotifier extends StateNotifier<TheftModeState> {
       return true;
     } catch (e) {
       String errorMsg = 'Error al desactivar el modo robo.';
-      final str = e.toString();
-      if (str.contains('INVALID_CREDENTIALS') || str.contains('401')) {
+      final str = e.toString().toUpperCase();
+      if (str.contains('TWO_FACTOR_REQUIRED')) {
+        errorMsg = 'Se requiere el código 2FA para desactivar el modo robo.';
+      } else if (str.contains('TWO_FACTOR_INVALID')) {
+        errorMsg = 'Código 2FA incorrecto o expirado.';
+      } else if (str.contains('INVALID_CREDENTIALS') || str.contains('401')) {
         errorMsg = 'Contraseña incorrecta. Por favor verifica tus credenciales.';
       } else if (e is Failure && e.message.isNotEmpty) {
         errorMsg = e.message;

@@ -21,6 +21,7 @@ abstract class TheftModeRemoteDataSource {
     required String deviceId,
     required String password,
     bool force = false,
+    String? twoFactorCode,
   });
 }
 
@@ -96,12 +97,17 @@ class TheftModeRemoteDataSourceImpl implements TheftModeRemoteDataSource {
     required String deviceId,
     required String password,
     bool force = false,
+    String? twoFactorCode,
   }) async {
     try {
+      final body = <String, dynamic>{'password': password};
+      if (twoFactorCode != null && twoFactorCode.trim().isNotEmpty) {
+        body['twoFactorCode'] = twoFactorCode.trim();
+      }
       await _client.dio.delete(
         '/devices/$deviceId/theft-mode',
         queryParameters: {'force': force},
-        data: {'password': password},
+        data: body,
       );
     } on DioException catch (e) {
       throw _handleDioError(e);

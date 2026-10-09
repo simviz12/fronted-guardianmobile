@@ -74,6 +74,9 @@ class AuthState {
   final bool isLoading;
   final String? errorMessage;
   final String? errorCode;
+  // 2FA pending state
+  final bool requiresTwoFactor;
+  final String? pendingTwoFactorToken;
 
   const AuthState({
     required this.status,
@@ -81,6 +84,8 @@ class AuthState {
     this.isLoading = false,
     this.errorMessage,
     this.errorCode,
+    this.requiresTwoFactor = false,
+    this.pendingTwoFactorToken,
   });
 
   factory AuthState.initial() => const AuthState(status: AuthStatus.initial);
@@ -102,6 +107,9 @@ class AuthState {
     String? errorMessage,
     String? errorCode,
     bool clearError = false,
+    bool? requiresTwoFactor,
+    String? pendingTwoFactorToken,
+    bool clearTwoFactor = false,
   }) {
     return AuthState(
       status: status ?? this.status,
@@ -109,6 +117,8 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       errorCode: clearError ? null : (errorCode ?? this.errorCode),
+      requiresTwoFactor: clearTwoFactor ? false : (requiresTwoFactor ?? this.requiresTwoFactor),
+      pendingTwoFactorToken: clearTwoFactor ? null : (pendingTwoFactorToken ?? this.pendingTwoFactorToken),
     );
   }
 }
@@ -144,17 +154,60 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> login({required String email, required String password}) async {
+  /// Returns true if logged in, false if failed, null if 2FA is required.
+  Future<bool?> login({required String email, required String password}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final loginUseCase = _ref.read(loginUseCaseProvider);
       final session = await loginUseCase(email: email, password: password);
       state = AuthState.authenticated(session.user);
       return true;
+    } on TwoFactorRequiredException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        requiresTwoFactor: true,
+        pendingTwoFactorToken: e.twoFactorToken,
+        clearError: true,
+      );
+      return null;
     } catch (e) {
       _mapFailureToError(e);
       return false;
     }
+  }
+
+  /// Complete 2FA login with a TOTP or backup code.
+  Future<bool> verifyTwoFactorLogin({required String code}) async {
+    final token = state.pendingTwoFactorToken;
+    if (token == null) return false;
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final ds = _ref.read(authRemoteDataSourceProvider);
+      final authDto = await ds.verifyTwoFactorLogin(
+        twoFactorToken: token,
+        code: code,
+      );
+      // Persist tokens via token storage
+      final storage = _ref.read(tokenStorageProvider);
+      await storage.saveTokens(
+        accessToken: authDto.accessToken,
+        refreshToken: authDto.refreshToken,
+      );
+      state = AuthState.authenticated(authDto.user.toEntity());
+      return true;
+    } catch (e) {
+      _mapFailureToError(e);
+      return false;
+    }
+  }
+
+  void cancelTwoFactorLogin() {
+    state = state.copyWith(
+      isLoading: false,
+      clearError: true,
+      clearTwoFactor: true,
+      status: AuthStatus.unauthenticated,
+    );
   }
 
   Future<bool> register({
@@ -188,6 +241,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  /// Update the local user state (e.g. after 2FA enable/disable)
+  void updateUser(User user) {
+    state = state.copyWith(user: user);
+  }
+
   void clearError() {
     state = state.copyWith(clearError: true);
   }
@@ -212,6 +270,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
         if (code == 'INVALID_CREDENTIALS') {
           message = 'Correo o contraseña incorrectos.';
+        } else if (code == 'TWO_FACTOR_INVALID') {
+          message = 'Código 2FA incorrecto. Verifica tu aplicación de autenticación.';
+        } else if (code == 'TWO_FACTOR_REQUIRED') {
+          message = 'Se requiere un código de autenticación de dos factores.';
+        } else if (code == 'ACCOUNT_LOCKED') {
+          message = 'Cuenta bloqueada temporalmente por intentos fallidos. Intenta en 15 minutos.';
         } else if (code == 'TOO_MANY_REQUESTS') {
           message = 'Demasiados intentos, espera un minuto.';
         } else if (code == 'EMAIL_ALREADY_REGISTERED') {

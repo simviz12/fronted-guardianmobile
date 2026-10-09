@@ -39,6 +39,7 @@ class WipeWizardState {
   final bool checklistCorrectDevice;
   final String confirmationInput;
   final String passwordInput;
+  final String twoFactorCodeInput;
   final bool isSubmitting;
   final WipeProgressStep progressStep;
   final String? errorMessage;
@@ -51,6 +52,7 @@ class WipeWizardState {
     this.checklistCorrectDevice = false,
     this.confirmationInput = '',
     this.passwordInput = '',
+    this.twoFactorCodeInput = '',
     this.isSubmitting = false,
     this.progressStep = WipeProgressStep.idle,
     this.errorMessage,
@@ -71,6 +73,7 @@ class WipeWizardState {
     bool? checklistCorrectDevice,
     String? confirmationInput,
     String? passwordInput,
+    String? twoFactorCodeInput,
     bool? isSubmitting,
     WipeProgressStep? progressStep,
     String? errorMessage,
@@ -84,6 +87,7 @@ class WipeWizardState {
       checklistCorrectDevice: checklistCorrectDevice ?? this.checklistCorrectDevice,
       confirmationInput: confirmationInput ?? this.confirmationInput,
       passwordInput: passwordInput ?? this.passwordInput,
+      twoFactorCodeInput: twoFactorCodeInput ?? this.twoFactorCodeInput,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       progressStep: progressStep ?? this.progressStep,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -179,6 +183,10 @@ class WipeWizardNotifier extends StateNotifier<WipeWizardState> {
     state = state.copyWith(passwordInput: val, clearError: true);
   }
 
+  void setTwoFactorCodeInput(String val) {
+    state = state.copyWith(twoFactorCodeInput: val, clearError: true);
+  }
+
   Future<bool> executeWipe() async {
     if (!state.isConfirmationValid) {
       state = state.copyWith(
@@ -205,6 +213,9 @@ class WipeWizardNotifier extends StateNotifier<WipeWizardState> {
         deviceId: _deviceId,
         password: state.passwordInput,
         confirmationText: state.confirmationInput.trim(),
+        twoFactorCode: state.twoFactorCodeInput.trim().isNotEmpty
+            ? state.twoFactorCodeInput.trim()
+            : null,
       );
 
       state = state.copyWith(
@@ -219,7 +230,11 @@ class WipeWizardNotifier extends StateNotifier<WipeWizardState> {
       String message = 'Ocurrió un error al ordenar el borrado del dispositivo.';
       final str = e.toString().toUpperCase();
 
-      if (str.contains('WIPE_DISABLED')) {
+      if (str.contains('TWO_FACTOR_REQUIRED')) {
+        message = 'Se requiere el código de autenticación en dos pasos (2FA).';
+      } else if (str.contains('TWO_FACTOR_INVALID')) {
+        message = 'Código 2FA incorrecto o expirado.';
+      } else if (str.contains('WIPE_DISABLED')) {
         message = 'El borrado remoto está deshabilitado en este dispositivo.';
       } else if (str.contains('INVALID_CREDENTIALS') || str.contains('401')) {
         message = 'Contraseña incorrecta. Límite de 3 intentos por hora.';

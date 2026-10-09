@@ -12,11 +12,13 @@ class WipeRepositoryImpl implements WipeRepository {
     required String deviceId,
     required String password,
     String confirmationText = 'BORRAR',
+    String? twoFactorCode,
   }) async {
     await _remoteDataSource.wipeDevice(
       deviceId: deviceId,
       password: password,
       confirmationText: confirmationText,
+      twoFactorCode: twoFactorCode,
     );
   }
 }

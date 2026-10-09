@@ -45,11 +45,13 @@ class TheftModeRepositoryImpl implements TheftModeRepository {
     required String deviceId,
     required String password,
     bool force = false,
+    String? twoFactorCode,
   }) {
     return _remoteDataSource.deactivateTheftMode(
       deviceId: deviceId,
       password: password,
       force: force,
+      twoFactorCode: twoFactorCode,
     );
   }
 }
