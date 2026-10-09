@@ -30,15 +30,20 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headingColor = isDark ? const Color(0xFFF8FAFC) : AppColors.textHeadings;
+    final fillColor = isDark ? const Color(0xFF0F172A) : AppColors.surfaceContainerLow;
+    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppColors.textMuted;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.textHeadings,
+            color: headingColor,
           ),
         ),
         const SizedBox(height: AppSpacing.spaceXs),
@@ -49,23 +54,23 @@ class AppTextField extends StatelessWidget {
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
           validator: validator,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: AppColors.textHeadings,
+            color: headingColor,
           ),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: const TextStyle(
+            hintStyle: TextStyle(
               fontSize: 14,
-              color: AppColors.textMuted,
+              color: mutedColor,
             ),
             filled: true,
-            fillColor: AppColors.surfaceContainerLow,
+            fillColor: fillColor,
             prefixIcon: Icon(
               prefixIcon,
               size: 20,
-              color: AppColors.textMuted,
+              color: mutedColor,
             ),
             suffixIcon: suffixIcon,
             contentPadding: const EdgeInsets.symmetric(

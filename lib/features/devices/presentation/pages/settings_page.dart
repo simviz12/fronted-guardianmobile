@@ -6,6 +6,8 @@ import '../../../../core/config/api_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/localization/language_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/providers/two_factor_provider.dart';
 import '../providers/devices_provider.dart';
@@ -69,11 +71,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
     final sessionsState = ref.watch(sessionsProvider);
+    final currentTheme = ref.watch(themeModeProvider);
+    final currentLang = ref.watch(languageProvider);
+    final isEn = currentLang == AppLanguage.en;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Ajustes y Perfil'),
+        title: Text(isEn ? 'Settings & Profile' : 'Ajustes y Perfil'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -84,6 +88,126 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             vertical: AppSpacing.spaceMd,
           ),
           children: [
+            // Preference Card: Language & Theme
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(AppRadii.md),
+                        ),
+                        child: const Icon(
+                          Icons.palette_outlined,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.spaceSm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isEn ? 'Appearance & Language' : 'Apariencia e Idioma',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textHeadings,
+                              ),
+                            ),
+                            Text(
+                              isEn
+                                  ? 'Configure theme mode and UI language'
+                                  : 'Configura el modo oscuro/claro y el idioma',
+                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 24),
+
+                  // Language selector: ES / EN
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.language_rounded, size: 20, color: AppColors.textMuted),
+                          const SizedBox(width: 8),
+                          Text(
+                            isEn ? 'Language / Idioma' : 'Idioma / Language',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      SegmentedButton<AppLanguage>(
+                        segments: const [
+                          ButtonSegment<AppLanguage>(
+                            value: AppLanguage.es,
+                            label: Text('ES', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          ),
+                          ButtonSegment<AppLanguage>(
+                            value: AppLanguage.en,
+                            label: Text('EN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          ),
+                        ],
+                        selected: {currentLang},
+                        onSelectionChanged: (newSelection) {
+                          ref.read(languageProvider.notifier).setLanguage(newSelection.first);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Theme selector: Light / Dark
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            currentTheme == ThemeMode.dark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                            size: 20,
+                            color: AppColors.textMuted,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            isEn ? 'Theme (Dark / Light)' : 'Tema (Oscuro / Claro)',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      SegmentedButton<ThemeMode>(
+                        segments: [
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.light,
+                            icon: const Icon(Icons.wb_sunny_outlined, size: 16),
+                            label: Text(isEn ? 'Light' : 'Claro', style: const TextStyle(fontSize: 12)),
+                          ),
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.dark,
+                            icon: const Icon(Icons.nightlight_round, size: 16),
+                            label: Text(isEn ? 'Dark' : 'Oscuro', style: const TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                        selected: {currentTheme},
+                        onSelectionChanged: (newSelection) {
+                          ref.read(themeModeProvider.notifier).setTheme(newSelection.first);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.spaceMd),
+
             // User Card
             AppCard(
               child: Row(

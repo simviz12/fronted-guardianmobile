@@ -5,6 +5,8 @@ import '../../../../core/realtime/realtime_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/localization/language_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_provider.dart';
@@ -17,10 +19,10 @@ class DashboardPage extends ConsumerWidget {
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
     final dashboardState = ref.watch(devicesNotifierProvider);
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(context, user?.displayName),
+      appBar: _buildAppBar(context, ref, user?.displayName, isEn),
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -34,13 +36,13 @@ class DashboardPage extends ConsumerWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_link_rounded),
-        label: const Text('Vincular Celular'),
+        label: Text(isEn ? 'Link Device' : 'Vincular Celular'),
         onPressed: () => context.push('/link-device'),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, String? displayName) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, WidgetRef ref, String? displayName, bool isEn) {
     final initial = (displayName != null && displayName.isNotEmpty)
         ? displayName[0].toUpperCase()
         : 'U';
@@ -89,8 +91,42 @@ class DashboardPage extends ConsumerWidget {
         ],
       ),
       actions: [
+        // Quick Language Toggle: ES / EN
         IconButton(
-          icon: const Icon(Icons.settings_outlined, color: AppColors.textHeadings),
+          tooltip: 'Cambiar idioma / Change language',
+          icon: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).colorScheme.primary, width: 1.5),
+              borderRadius: BorderRadius.circular(AppRadii.sm),
+            ),
+            child: Text(
+              ref.watch(languageProvider) == AppLanguage.en ? 'EN' : 'ES',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          onPressed: () {
+            ref.read(languageProvider.notifier).toggleLanguage();
+          },
+        ),
+        // Quick Theme Toggle: Dark / Light
+        IconButton(
+          tooltip: 'Cambiar tema (Oscuro / Claro)',
+          icon: Icon(
+            ref.watch(themeModeProvider) == ThemeMode.dark
+                ? Icons.light_mode_rounded
+                : Icons.dark_mode_rounded,
+          ),
+          onPressed: () {
+            ref.read(themeModeProvider.notifier).toggleTheme();
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings_outlined),
           onPressed: () => context.push('/settings'),
         ),
         GestureDetector(
