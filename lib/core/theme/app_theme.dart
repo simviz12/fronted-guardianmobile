@@ -5,100 +5,133 @@ import 'app_spacing.dart';
 class AppTheme {
   AppTheme._();
 
+  static const defaultFont = 'Plus Jakarta Sans';
+
   static ThemeData get lightTheme {
-    const defaultFont = 'Plus Jakarta Sans';
+    return _buildTheme(brightness: Brightness.light);
+  }
+
+  static ThemeData get darkTheme {
+    return _buildTheme(brightness: Brightness.dark);
+  }
+
+  static ThemeData _buildTheme({required Brightness brightness}) {
+    final isDark = brightness == Brightness.dark;
+
+    final bgColor = isDark ? const Color(0xFF0F172A) : AppColors.background;
+    final surfaceColor = isDark ? const Color(0xFF1E293B) : AppColors.surface;
+    final textHeadColor = isDark ? const Color(0xFFF8FAFC) : AppColors.textHeadings;
+    final textBodyColor = isDark ? const Color(0xFFCBD5E1) : AppColors.textBody;
+    final textMutedColor = isDark ? const Color(0xFF94A3B8) : AppColors.textMuted;
+    final borderColor = isDark ? const Color(0xFF334155) : AppColors.border;
+
     final textTheme = const TextTheme().copyWith(
-      displayLarge: const TextStyle(
+      displayLarge: TextStyle(
         fontFamily: defaultFont,
         fontSize: 28,
         fontWeight: FontWeight.w700,
         height: 36 / 28,
         letterSpacing: -0.28,
-        color: AppColors.textHeadings,
+        color: textHeadColor,
       ),
-      headlineMedium: const TextStyle(
+      headlineMedium: TextStyle(
         fontFamily: defaultFont,
         fontSize: 20,
         fontWeight: FontWeight.w600,
         height: 28 / 20,
-        color: AppColors.textHeadings,
+        color: textHeadColor,
       ),
-      headlineSmall: const TextStyle(
+      headlineSmall: TextStyle(
         fontFamily: defaultFont,
         fontSize: 16,
         fontWeight: FontWeight.w600,
         height: 24 / 16,
-        color: AppColors.textHeadings,
+        color: textHeadColor,
       ),
-      bodyLarge: const TextStyle(
+      bodyLarge: TextStyle(
         fontFamily: defaultFont,
         fontSize: 16,
         fontWeight: FontWeight.w400,
         height: 24 / 16,
-        color: AppColors.textBody,
+        color: textBodyColor,
       ),
-      bodyMedium: const TextStyle(
+      bodyMedium: TextStyle(
         fontFamily: defaultFont,
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 20 / 14,
-        color: AppColors.textBody,
+        color: textBodyColor,
       ),
-      bodySmall: const TextStyle(
+      bodySmall: TextStyle(
         fontFamily: defaultFont,
         fontSize: 13,
         fontWeight: FontWeight.w400,
         height: 18 / 13,
-        color: AppColors.textMuted,
+        color: textMutedColor,
       ),
-      labelLarge: const TextStyle(
+      labelLarge: TextStyle(
         fontFamily: defaultFont,
         fontSize: 14,
         fontWeight: FontWeight.w600,
         height: 20 / 14,
-        color: AppColors.textHeadings,
+        color: textHeadColor,
       ),
-      labelSmall: const TextStyle(
+      labelSmall: TextStyle(
         fontFamily: defaultFont,
         fontSize: 12,
         fontWeight: FontWeight.w600,
         height: 16 / 12,
         letterSpacing: 0.12,
-        color: AppColors.textMuted,
+        color: textMutedColor,
       ),
     );
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: AppColors.background,
-      colorScheme: const ColorScheme(
-        brightness: Brightness.light,
-        primary: AppColors.primary,
-        onPrimary: AppColors.onPrimary,
-        primaryContainer: AppColors.primaryContainer,
+      brightness: brightness,
+      scaffoldBackgroundColor: bgColor,
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: isDark ? const Color(0xFF10B981) : AppColors.primary,
+        onPrimary: Colors.white,
+        primaryContainer: isDark ? const Color(0xFF064E3B) : AppColors.primaryContainer,
         onPrimaryContainer: Colors.white,
-        secondary: Color(0xFF516071),
+        secondary: isDark ? const Color(0xFF94A3B8) : const Color(0xFF516071),
         onSecondary: Colors.white,
-        error: AppColors.alert,
+        error: isDark ? const Color(0xFFEF4444) : AppColors.alert,
         onError: Colors.white,
-        surface: AppColors.surface,
-        onSurface: AppColors.textHeadings,
+        surface: surfaceColor,
+        onSurface: textHeadColor,
       ),
       textTheme: textTheme,
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: surfaceColor,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.lg),
-          side: const BorderSide(color: AppColors.border, width: 1),
+          side: BorderSide(color: borderColor, width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surfaceColor,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          fontFamily: defaultFont,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: textHeadColor,
+        ),
+        contentTextStyle: TextStyle(
+          fontFamily: defaultFont,
+          fontSize: 13,
+          color: textBodyColor,
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
+          backgroundColor: isDark ? const Color(0xFF10B981) : AppColors.primary,
+          foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.md),
@@ -111,16 +144,16 @@ class AppTheme {
           elevation: 0,
         ),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: surfaceColor,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.textHeadings),
+        iconTheme: IconThemeData(color: textHeadColor),
         titleTextStyle: TextStyle(
           fontFamily: defaultFont,
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: AppColors.textHeadings,
+          color: textHeadColor,
         ),
       ),
     );
