@@ -62,8 +62,8 @@ void main() {
       final router = GoRouter(
         initialLocation: '/2fa',
         routes: [
-          GoRoute(path: '/2fa', builder: (_, __) => const TwoFactorLoginPage()),
-          GoRoute(path: '/home', builder: (_, __) => const SizedBox()),
+          GoRoute(path: '/2fa', builder: (context, state) => const TwoFactorLoginPage()),
+          GoRoute(path: '/home', builder: (context, state) => const SizedBox()),
         ],
       );
 
