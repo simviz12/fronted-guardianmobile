@@ -181,13 +181,14 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                     isProtectedMode: isProtectedMode,
                     theftModeActive: widget.device.theftModeActive,
                   ),
-
-                  // 7. ZONA DE DESTRUCCIÓN IRREVERSIBLE (WIPE)
-                  _buildWipeActionTile(
-                    device: widget.device,
-                    isProtectedMode: isProtectedMode,
-                  ),
                 ],
+              ),
+              const SizedBox(height: AppSpacing.spaceSm),
+
+              // 7. ZONA DE DESTRUCCIÓN IRREVERSIBLE (WIPE) - Full width card below grid
+              _buildWipeActionTile(
+                device: widget.device,
+                isProtectedMode: isProtectedMode,
               ),
             ],
           ),
@@ -885,6 +886,9 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       );
     }
 
+    final theftActiveBg = isDark ? const Color(0xFF2A1515) : AppColors.alertContainer;
+    final theftActiveText = isDark ? const Color(0xFFFCA5A5) : AppColors.alertText;
+
     return InkWell(
       onTap: () {
         context.push('/theft-mode', extra: widget.device);
@@ -893,15 +897,15 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: theftModeActive ? AppColors.alertContainer : defaultBg,
+          color: theftModeActive ? theftActiveBg : defaultBg,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(
-            color: theftModeActive ? AppColors.alert : AppColors.alert.withValues(alpha: 0.5),
+            color: theftModeActive ? (isDark ? const Color(0xFFEF4444) : AppColors.alert) : (isDark ? const Color(0xFF334155) : AppColors.primary.withValues(alpha: 0.5)),
             width: theftModeActive ? 1.5 : 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.alert.withValues(alpha: 0.08),
+              color: theftModeActive ? Colors.red.withValues(alpha: isDark ? 0.2 : 0.08) : AppColors.primary.withValues(alpha: 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -917,12 +921,14 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theftModeActive ? AppColors.alert : AppColors.alertContainer,
+                    color: theftModeActive
+                        ? (isDark ? const Color(0xFF450A0A) : AppColors.alertContainer)
+                        : AppColors.primarySubtle,
                     borderRadius: BorderRadius.circular(AppRadii.md),
                   ),
                   child: Icon(
                     Icons.shield_rounded,
-                    color: theftModeActive ? Colors.white : AppColors.alert,
+                    color: theftModeActive ? (isDark ? const Color(0xFFFCA5A5) : AppColors.alert) : AppColors.primary,
                     size: 24,
                   ),
                 ),
@@ -950,7 +956,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: theftModeActive ? AppColors.alertText : headingColor,
+                    color: theftModeActive ? theftActiveText : headingColor,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -960,7 +966,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                       : (isEn ? 'Emergency lock & tracking' : 'Bloqueo y rastreo de emergencia'),
                   style: TextStyle(
                     fontSize: 11,
-                    color: theftModeActive ? AppColors.alertText : (isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted),
+                    color: theftModeActive ? theftActiveText : (isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted),
                     height: 1.25,
                   ),
                 ),
@@ -980,7 +986,6 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     final isEn = ref.watch(languageProvider) == AppLanguage.en;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
 
     if (isWiped) {
       return _buildDisabledActionTile(
@@ -1028,15 +1033,15 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: cardBg,
+          color: isDark ? const Color(0xFF2A1515) : const Color(0xFFFEF2F2),
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(
-            color: AppColors.alert.withValues(alpha: 0.6),
+            color: isDark ? const Color(0xFFEF4444) : AppColors.alert.withValues(alpha: 0.6),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.alert.withValues(alpha: 0.08),
+              color: Colors.red.withValues(alpha: isDark ? 0.2 : 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -1045,15 +1050,15 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.alertContainer,
+                color: isDark ? const Color(0xFF450A0A) : AppColors.alertContainer,
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.delete_forever_rounded,
-                color: AppColors.alert,
-                size: 24,
+                color: isDark ? const Color(0xFFFCA5A5) : AppColors.alert,
+                size: 26,
               ),
             ),
             const SizedBox(width: AppSpacing.spaceMd),
@@ -1062,11 +1067,11 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isEn ? 'Destruction Zone (Wipe)' : 'Zona de Destrucción (Wipe)',
-                    style: const TextStyle(
+                    isEn ? 'Destruction Zone (Remote Wipe)' : 'Zona de Destrucción (Wipe Remoto)',
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.alertText,
+                      color: isDark ? const Color(0xFFFCA5A5) : AppColors.alertText,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1074,13 +1079,13 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                     isEn ? 'Irreversible factory wipe protocol' : 'Restablecimiento de fábrica irreversible',
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
+                      color: isDark ? const Color(0xFFFECACA) : AppColors.textMuted,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.alert, size: 14),
+            Icon(Icons.arrow_forward_ios_rounded, color: isDark ? const Color(0xFFFCA5A5) : AppColors.alert, size: 14),
           ],
         ),
       ),

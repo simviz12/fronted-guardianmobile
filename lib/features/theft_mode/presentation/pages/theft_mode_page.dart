@@ -163,9 +163,9 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.spaceMd),
           decoration: BoxDecoration(
-            color: AppColors.alertContainer,
+            color: isDark ? const Color(0xFF2A1515) : AppColors.alertContainer,
             borderRadius: BorderRadius.circular(AppRadii.xl),
-            border: Border.all(color: AppColors.alert.withValues(alpha: 0.3)),
+            border: Border.all(color: isDark ? const Color(0xFFEF4444) : AppColors.alert.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,8 +175,8 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: const BoxDecoration(
-                      color: AppColors.alert,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFFDC2626) : AppColors.alert,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -192,19 +192,19 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                       children: [
                         Text(
                           isEn ? 'CRITICAL STATE ACTIVE' : 'ESTADO CRÍTICO ACTIVO',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.alertText,
+                            color: isDark ? const Color(0xFFFCA5A5) : AppColors.alertText,
                             letterSpacing: 0.5,
                           ),
                         ),
                         Text(
                           isEn ? 'THEFT / LOST MODE ACTIVE' : 'MODO ROBO / EXTRAVÍO ACTIVADO',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.alertText,
+                            color: isDark ? Colors.white : AppColors.alertText,
                           ),
                         ),
                       ],
@@ -219,7 +219,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     : 'El dispositivo se encuentra bloqueado. El rastreo de emergencia está transmitiendo activamente.',
                 style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.alertText.withValues(alpha: 0.9),
+                  color: isDark ? const Color(0xFFFECACA) : AppColors.alertText.withValues(alpha: 0.9),
                   height: 1.3,
                 ),
               ),
@@ -813,14 +813,16 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
     final isProtectedMode = device.mode == DeviceMode.protected;
     final canWipe = isProtectedMode && device.adminEnabled && device.wipeEnabled && !isWiped;
     final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceMd),
       decoration: BoxDecoration(
-        color: AppColors.alertContainer.withValues(alpha: 0.4),
+        color: isDark ? const Color(0xFF2A1515) : AppColors.alertContainer.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(AppRadii.xl),
         border: Border.all(
-          color: AppColors.alert.withValues(alpha: 0.4),
+          color: isDark ? const Color(0xFFEF4444) : AppColors.alert.withValues(alpha: 0.4),
           width: 1.5,
         ),
       ),
@@ -829,15 +831,15 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.delete_forever_rounded, color: AppColors.alert, size: 24),
+              Icon(Icons.delete_forever_rounded, color: isDark ? const Color(0xFFFCA5A5) : AppColors.alert, size: 24),
               const SizedBox(width: AppSpacing.spaceSm),
               Expanded(
                 child: Text(
                   isEn ? 'Irreversible Destruction Zone' : 'Zona de Destrucción Irreversible',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.alertText,
+                    color: isDark ? const Color(0xFFFCA5A5) : AppColors.alertText,
                   ),
                 ),
               ),

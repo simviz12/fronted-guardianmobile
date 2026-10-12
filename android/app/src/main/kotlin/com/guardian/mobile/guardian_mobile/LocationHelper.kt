@@ -110,6 +110,39 @@ object LocationHelper {
                     }
                 }
             }
+        } ?: getLastKnownLocation(context)
+    }
+
+    @SuppressLint("MissingPermission")
+    suspend fun getLastKnownLocation(context: Context): Location? {
+        if (!hasLocationPermission(context)) return null
+        return suspendCancellableCoroutine { cont ->
+            try {
+                val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+                fusedClient.lastLocation.addOnSuccessListener { loc ->
+                    if (loc != null) {
+                        Log.i(TAG, "Fallback to lastLocation succeeded: lat=${loc.latitude}, lon=${loc.longitude}")
+                        if (cont.isActive) cont.resume(loc)
+                    } else {
+                        // Fallback to standard LocationManager
+                        val lm = context.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
+                        val gpsLoc = lm?.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
+                        val netLoc = lm?.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
+                        val bestLoc = gpsLoc ?: netLoc
+                        Log.i(TAG, "Fallback to LocationManager returned: lat=${bestLoc?.latitude}, lon=${bestLoc?.longitude}")
+                        if (cont.isActive) cont.resume(bestLoc)
+                    }
+                }.addOnFailureListener { e ->
+                    Log.w(TAG, "fusedClient.lastLocation failed: ${e.message}")
+                    val lm = context.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
+                    val gpsLoc = lm?.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
+                    val netLoc = lm?.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
+                    if (cont.isActive) cont.resume(gpsLoc ?: netLoc)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting last known location: ${e.message}")
+                if (cont.isActive) cont.resume(null)
+            }
         }
     }
 }
