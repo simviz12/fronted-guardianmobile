@@ -168,6 +168,21 @@ class AppTheme {
         backgroundColor: surfaceColor,
         surfaceTintColor: Colors.transparent,
       ),
+      listTileTheme: ListTileThemeData(
+        textColor: textHeadColor,
+        iconColor: textMutedColor,
+        titleTextStyle: TextStyle(
+          fontFamily: defaultFont,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: textHeadColor,
+        ),
+        subtitleTextStyle: TextStyle(
+          fontFamily: defaultFont,
+          fontSize: 12,
+          color: textMutedColor,
+        ),
+      ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF1F2937),
         contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),

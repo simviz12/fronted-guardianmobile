@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/localization/language_provider.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_provider.dart';
 import '../../data/models/device_diagnostics_dto.dart';
@@ -15,16 +16,17 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diagnosticsAsync = ref.watch(deviceDiagnosticsProvider(device.id));
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Diagnóstico: ${device.name}'),
+        title: Text('${isEn ? 'Diagnostics' : 'Diagnóstico'}: ${device.name}'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
-            tooltip: 'Actualizar diagnóstico',
+            tooltip: isEn ? 'Refresh diagnostics' : 'Actualizar diagnóstico',
             onPressed: () => ref.refresh(deviceDiagnosticsProvider(device.id)),
           ),
         ],
@@ -166,6 +168,7 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.spaceSm),
               _buildCheckRow(
+                context,
                 label: 'Token de Notificaciones FCM',
                 active: diag.hasFcmToken,
                 explanation: diag.hasFcmToken
@@ -174,6 +177,7 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
               ),
               const Divider(height: 16),
               _buildCheckRow(
+                context,
                 label: 'Token de Dispositivo (Daemon)',
                 active: diag.hasDeviceToken,
                 explanation: diag.hasDeviceToken
@@ -182,16 +186,19 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
               ),
               const Divider(height: 16),
               _buildInfoRow(
+                context,
                 label: 'Último latido (Heartbeat):',
                 value: diag.lastSeenAt != null ? _formatDate(diag.lastSeenAt!) : 'Nunca visto',
               ),
               const SizedBox(height: 6),
               _buildInfoRow(
+                context,
                 label: 'Último reporte de estado:',
                 value: diag.lastStatusAt != null ? _formatDate(diag.lastStatusAt!) : 'Sin reportes',
               ),
               const SizedBox(height: 6),
               _buildInfoRow(
+                context,
                 label: 'Última ubicación GPS:',
                 value: diag.lastLocationAt != null ? _formatDate(diag.lastLocationAt!) : 'Sin ubicación',
               ),
@@ -217,30 +224,35 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.spaceSm),
                 _buildCheckRow(
+                  context,
                   label: 'Notificaciones en pantalla',
                   active: diag.permissions!.notifications ?? false,
                   explanation: 'Permiso POST_NOTIFICATIONS',
                 ),
                 const Divider(height: 16),
                 _buildCheckRow(
+                  context,
                   label: 'Ubicación precisa (Primer plano)',
                   active: diag.permissions!.locationForeground ?? false,
                   explanation: 'GPS de alta precisión',
                 ),
                 const Divider(height: 16),
                 _buildCheckRow(
+                  context,
                   label: 'Ubicación en segundo plano',
                   active: diag.permissions!.locationBackground ?? false,
                   explanation: 'Rastreo permanente "Todo el tiempo"',
                 ),
                 const Divider(height: 16),
                 _buildCheckRow(
+                  context,
                   label: 'Sin optimización de batería',
                   active: diag.permissions!.batteryOptimizationIgnored ?? false,
                   explanation: 'Evita que Android cierre los servicios en reposo',
                 ),
                 const Divider(height: 16),
                 _buildCheckRow(
+                  context,
                   label: 'Administrador de Dispositivo (Bloqueo)',
                   active: diag.permissions!.deviceAdmin ?? false,
                   explanation: 'Permiso de bloqueo remoto de pantalla',
@@ -253,11 +265,15 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCheckRow({
+  Widget _buildCheckRow(
+    BuildContext context, {
     required String label,
     required bool active,
     required String explanation,
   }) {
+    final theme = Theme.of(context);
+    final headingColor = theme.colorScheme.onSurface;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -273,10 +289,10 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textHeadings,
+                  color: headingColor,
                 ),
               ),
               Text(
@@ -290,14 +306,22 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow({required String label, required String value}) {
+  Widget _buildInfoRow(
+    BuildContext context, {
+    required String label,
+    required String value,
+  }) {
+    final theme = Theme.of(context);
+    final headingColor = theme.colorScheme.onSurface;
+    final bodyColor = theme.textTheme.bodyMedium?.color ?? AppColors.textBody;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textBody)),
+        Text(label, style: TextStyle(fontSize: 12, color: bodyColor)),
         Text(
           value,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textHeadings),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: headingColor),
         ),
       ],
     );

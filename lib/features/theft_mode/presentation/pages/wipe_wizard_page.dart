@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/localization/language_provider.dart';
 import '../../../devices/domain/entities/device.dart';
 import '../providers/wipe_wizard_provider.dart';
 
@@ -40,9 +41,12 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
       return _buildProgressScaffold(context, wizardState);
     }
 
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Protocolo de Destrucción'),
+        title: Text(isEn ? 'Destruction Protocol' : 'Protocolo de Destrucción'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -60,7 +64,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
         child: Column(
           children: [
             // Step Progress Indicator Header
-            _buildStepIndicator(wizardState.currentStep),
+            _buildStepIndicator(wizardState.currentStep, isEn),
 
             if (wizardState.errorMessage != null)
               Padding(
@@ -97,19 +101,23 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.marginMobile),
-                child: _buildCurrentStepContent(context, wizardState, notifier),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildCurrentStepContent(context, wizardState, notifier),
+                    const SizedBox(height: AppSpacing.spaceMd),
+                    _buildFooterButtons(context, wizardState, notifier, isEn),
+                  ],
+                ),
               ),
             ),
-
-            // Footer navigation buttons
-            _buildFooterButtons(context, wizardState, notifier),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStepIndicator(int currentStep) {
+  Widget _buildStepIndicator(int currentStep, bool isEn) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.marginMobile, vertical: AppSpacing.spaceSm),
       child: Column(
@@ -561,6 +569,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     BuildContext context,
     WipeWizardState state,
     WipeWizardNotifier notifier,
+    bool isEn,
   ) {
     final isStep1 = state.currentStep == 1;
     final isStep2 = state.currentStep == 2;
@@ -573,24 +582,32 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     if (isStep3) canProceed = state.isConfirmationValid;
     if (isStep4) canProceed = state.isPasswordValid && !state.isSubmitting;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final footerBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
+
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.marginMobile),
+      padding: const EdgeInsets.all(AppSpacing.spaceMd),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border.withValues(alpha: 0.5))),
+        color: footerBg,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(color: theme.colorScheme.outline),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (!isStep4)
             DangerButton(
-              text: 'Siguiente (${state.currentStep}/4)',
+              text: isEn ? 'Next (${state.currentStep}/4)' : 'Siguiente (${state.currentStep}/4)',
               icon: Icons.arrow_forward_rounded,
               onPressed: canProceed ? () => notifier.nextStep() : null,
             )
           else
             DangerButton(
-              text: state.isSubmitting ? 'Transmitiendo orden...' : 'Borrar dispositivo definitivamente',
+              text: state.isSubmitting
+                  ? (isEn ? 'Broadcasting order...' : 'Transmitiendo orden...')
+                  : (isEn ? 'Permanently wipe device' : 'Borrar dispositivo definitivamente'),
               icon: Icons.delete_forever_rounded,
               isLoading: state.isSubmitting,
               onPressed: canProceed ? () => notifier.executeWipe() : null,
@@ -598,7 +615,10 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
           const SizedBox(height: AppSpacing.spaceSm),
           TextButton(
             onPressed: () => context.pop(),
-            child: const Text('Cancelar y mantener rastreo', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(
+              isEn ? 'Cancel and maintain tracking' : 'Cancelar y mantener rastreo',
+              style: const TextStyle(color: AppColors.textMuted),
+            ),
           ),
         ],
       ),

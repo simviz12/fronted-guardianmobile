@@ -177,6 +177,8 @@ class DashboardPage extends ConsumerWidget {
     WidgetRef ref,
     DevicesDashboardState state,
   ) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+
     if (state.isLoading && state.devices.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
@@ -216,7 +218,7 @@ class DashboardPage extends ConsumerWidget {
           const SizedBox(height: AppSpacing.spaceLg),
           Center(
             child: PrimaryButton(
-              text: 'Reintentar',
+              text: isEn ? 'Retry' : 'Reintentar',
               icon: Icons.refresh_rounded,
               onPressed: () =>
                   ref.read(devicesNotifierProvider.notifier).loadDevices(),
@@ -248,28 +250,30 @@ class DashboardPage extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.spaceLg),
-          const Text(
-            'Sin dispositivos vinculados',
+          Text(
+            isEn ? 'No linked devices' : 'Sin dispositivos vinculados',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.textHeadings,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: AppSpacing.spaceSm),
-          const Text(
-            'Vincula este celular ahora para protegerlo remotamente o administrar otros equipos.',
+          Text(
+            isEn
+                ? 'Link this phone now to protect it remotely or manage other devices.'
+                : 'Vincula este celular ahora para protegerlo remotamente o administrar otros equipos.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textBody,
+              color: Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textBody,
               height: 1.4,
             ),
           ),
           const SizedBox(height: AppSpacing.spaceXl),
           PrimaryButton(
-            text: 'Vincular este Celular',
+            text: isEn ? 'Link this Phone' : 'Vincular este Celular',
             icon: Icons.add_link_rounded,
             onPressed: () => context.push('/link-device'),
           ),
@@ -292,20 +296,20 @@ class DashboardPage extends ConsumerWidget {
       children: [
         // Realtime Reconnection subtle banner
         if (realtimeState != RealtimeConnectionState.connected) ...[
-          _buildRealtimeDisconnectedBanner(),
+          _buildRealtimeDisconnectedBanner(isEn),
           const SizedBox(height: AppSpacing.spaceSm),
         ],
 
         // Global security summary banner
-        _buildSummaryBanner(state.devices.length),
+        _buildSummaryBanner(state.devices.length, isEn),
         const SizedBox(height: AppSpacing.spaceMd),
 
         // THIS PHONE CARD (If linked)
         if (thisPhone != null) ...[
-          _buildThisPhoneCard(context, ref, thisPhone),
+          _buildThisPhoneCard(context, ref, thisPhone, isEn),
           const SizedBox(height: AppSpacing.spaceLg),
         ] else ...[
-          _buildLinkPromptBanner(context),
+          _buildLinkPromptBanner(context, isEn),
           const SizedBox(height: AppSpacing.spaceLg),
         ],
 
@@ -313,12 +317,12 @@ class DashboardPage extends ConsumerWidget {
         if (otherDevices.isNotEmpty) ...[
           Row(
             children: [
-              const Text(
-                'Otros Dispositivos',
+              Text(
+                isEn ? 'Other Devices' : 'Otros Dispositivos',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textHeadings,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(width: AppSpacing.spaceXs),
@@ -343,7 +347,7 @@ class DashboardPage extends ConsumerWidget {
           ...otherDevices.map(
             (device) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.spaceSm),
-              child: _buildDeviceCard(context, ref, device, isThisPhone: false),
+              child: _buildDeviceCard(context, ref, device, isThisPhone: false, isEn: isEn),
             ),
           ),
         ],
@@ -351,7 +355,7 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryBanner(int totalCount) {
+  Widget _buildSummaryBanner(int totalCount, bool isEn) {
     return Builder(
       builder: (context) {
         final theme = Theme.of(context);
@@ -382,7 +386,9 @@ class DashboardPage extends ConsumerWidget {
               const SizedBox(width: AppSpacing.spaceSm),
               Expanded(
                 child: Text(
-                  '$totalCount ${totalCount == 1 ? 'dispositivo bajo vigilancia' : 'dispositivos bajo vigilancia continua'}',
+                  isEn
+                      ? '$totalCount ${totalCount == 1 ? 'device under continuous monitoring' : 'devices under continuous monitoring'}'
+                      : '$totalCount ${totalCount == 1 ? 'dispositivo bajo vigilancia' : 'dispositivos bajo vigilancia continua'}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -395,7 +401,7 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLinkPromptBanner(BuildContext context) {
+  Widget _buildLinkPromptBanner(BuildContext context, bool isEn) {
     return InkWell(
       onTap: () => context.push('/link-device'),
       borderRadius: BorderRadius.circular(AppRadii.lg),
@@ -417,24 +423,26 @@ class DashboardPage extends ConsumerWidget {
               size: 28,
             ),
             const SizedBox(width: AppSpacing.spaceMd),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Vincular este Celular',
-                    style: TextStyle(
+                    isEn ? 'Link this Phone' : 'Vincular este Celular',
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: AppColors.primary,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Activa la protección o el panel de control en este equipo',
+                    isEn
+                        ? 'Activate protection or control center on this device'
+                        : 'Activa la protección o el panel de control en este equipo',
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textBody,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textBody,
                     ),
                   ),
                 ],
@@ -451,6 +459,7 @@ class DashboardPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Device device,
+    bool isEn,
   ) {
     return InkWell(
       onTap: () => context.push('/device-detail', extra: device),
@@ -482,16 +491,16 @@ class DashboardPage extends ConsumerWidget {
                     children: [
                       Text(
                         device.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textHeadings,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'ESTE TELÉFONO • DISPOSITIVO PRINCIPAL',
-                        style: TextStyle(
+                      Text(
+                        isEn ? 'THIS PHONE • PRIMARY DEVICE' : 'ESTE TELÉFONO • DISPOSITIVO PRINCIPAL',
+                        style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
@@ -503,7 +512,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.more_vert_rounded, size: 20),
-                  onPressed: () => _showDeviceActionsSheet(context, ref, device, isThisPhone: true),
+                  onPressed: () => _showDeviceActionsSheet(context, ref, device, isThisPhone: true, isEn: isEn),
                 ),
               ],
             ),
@@ -512,19 +521,19 @@ class DashboardPage extends ConsumerWidget {
           // Chips row
           Row(
             children: [
-              _buildModeChip(device.mode),
+              _buildModeChip(device.mode, isEn),
               const SizedBox(width: AppSpacing.spaceXs),
               if (device.wipedAt != null) ...[
-                const StatusChip(
-                  label: 'DISPOSITIVO BORRADO',
+                StatusChip(
+                  label: isEn ? 'DEVICE WIPED' : 'DISPOSITIVO BORRADO',
                   type: StatusChipType.danger,
                 ),
               ] else ...[
-                _buildOnlineChip(device.isOnline),
+                _buildOnlineChip(device.isOnline, isEn),
                 if (device.theftModeActive) ...[
                   const SizedBox(width: AppSpacing.spaceXs),
-                  const StatusChip(
-                    label: 'MODO ROBO ACTIVO',
+                  StatusChip(
+                    label: isEn ? 'THEFT MODE ACTIVE' : 'MODO ROBO ACTIVO',
                     type: StatusChipType.danger,
                   ),
                 ],
@@ -544,12 +553,12 @@ class DashboardPage extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    _buildBatteryIndicator(device.batteryLevel, device.isCharging),
+                    _buildBatteryIndicator(device.batteryLevel, device.isCharging, isEn),
                     const SizedBox(width: AppSpacing.spaceMd),
-                    _buildNetworkIndicator(device.networkType),
+                    _buildNetworkIndicator(device.networkType, isEn),
                     const Spacer(),
                     Text(
-                      _formatLastSeen(device.lastSeenAt),
+                      _formatLastSeen(device.lastSeenAt, isEn),
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.textMuted,
@@ -565,10 +574,10 @@ class DashboardPage extends ConsumerWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Última pos: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
-                          style: const TextStyle(
+                          '${isEn ? 'Last pos' : 'Última pos'}: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textBody,
+                            color: Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textBody,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -593,21 +602,21 @@ class DashboardPage extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(AppRadii.md),
                   border: Border.all(color: AppColors.warning.withValues(alpha: 0.5)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.shield_outlined, size: 18, color: AppColors.warningText),
-                    SizedBox(width: 8),
+                    const Icon(Icons.shield_outlined, size: 18, color: AppColors.warningText),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Activar protección de bloqueo (Recomendado)',
-                        style: TextStyle(
+                        isEn ? 'Activate lock protection (Recommended)' : 'Activar protección de bloqueo (Recomendado)',
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.warningText,
                         ),
                       ),
                     ),
-                    Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.warningText),
+                    const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.warningText),
                   ],
                 ),
               ),
@@ -624,6 +633,7 @@ class DashboardPage extends ConsumerWidget {
     WidgetRef ref,
     Device device, {
     required bool isThisPhone,
+    required bool isEn,
   }) {
     return AppCard(
       padding: EdgeInsets.zero,
@@ -648,7 +658,7 @@ class DashboardPage extends ConsumerWidget {
                       ),
                       child: Icon(
                         device.platform == 'ios' ? Icons.apple_rounded : Icons.phone_android_rounded,
-                        color: AppColors.textHeadings,
+                        color: Theme.of(context).colorScheme.onSurface,
                         size: 20,
                       ),
                     ),
@@ -659,14 +669,14 @@ class DashboardPage extends ConsumerWidget {
                         children: [
                           Text(
                             device.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textHeadings,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           Text(
-                            'Modelo: ${device.model ?? '—'} • SO: ${device.osVersion ?? '—'}',
+                            '${isEn ? 'Model' : 'Modelo'}: ${device.model ?? '—'} • SO: ${device.osVersion ?? '—'}',
                             style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textMuted,
@@ -677,46 +687,46 @@ class DashboardPage extends ConsumerWidget {
                     ),
               IconButton(
                 icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.primary),
-                tooltip: 'Administrar dispositivo',
+                tooltip: isEn ? 'Manage device' : 'Administrar dispositivo',
                 onPressed: () => context.push('/device-detail', extra: device),
               ),
               IconButton(
                 icon: const Icon(Icons.more_vert_rounded, size: 20),
-                onPressed: () => _showDeviceActionsSheet(context, ref, device, isThisPhone: isThisPhone),
+                onPressed: () => _showDeviceActionsSheet(context, ref, device, isThisPhone: isThisPhone, isEn: isEn),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.spaceSm),
           Row(
             children: [
-              _buildModeChip(device.mode),
+              _buildModeChip(device.mode, isEn),
               const SizedBox(width: AppSpacing.spaceXs),
               if (device.wipedAt != null) ...[
-                const StatusChip(
-                  label: 'BORRADO',
+                StatusChip(
+                  label: isEn ? 'WIPED' : 'BORRADO',
                   type: StatusChipType.danger,
                 ),
               ] else ...[
-                _buildOnlineChip(device.isOnline),
+                _buildOnlineChip(device.isOnline, isEn),
                 if (device.theftModeActive) ...[
                   const SizedBox(width: AppSpacing.spaceXs),
-                  const StatusChip(
-                    label: 'MODO ROBO',
+                  StatusChip(
+                    label: isEn ? 'THEFT MODE' : 'MODO ROBO',
                     type: StatusChipType.danger,
                   ),
                 ],
               ],
               const Spacer(),
-              _buildBatteryIndicator(device.batteryLevel, device.isCharging),
+              _buildBatteryIndicator(device.batteryLevel, device.isCharging, isEn),
             ],
           ),
           const SizedBox(height: 4),
           Row(
             children: [
-              _buildNetworkIndicator(device.networkType),
+              _buildNetworkIndicator(device.networkType, isEn),
               const Spacer(),
               Text(
-                _formatLastSeen(device.lastSeenAt),
+                _formatLastSeen(device.lastSeenAt, isEn),
                 style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
               ),
             ],
@@ -729,10 +739,10 @@ class DashboardPage extends ConsumerWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        'Última pos: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
-                        style: const TextStyle(
+                        '${isEn ? 'Last pos' : 'Última pos'}: ${device.lastLocation!.latitude.toStringAsFixed(4)}, ${device.lastLocation!.longitude.toStringAsFixed(4)} (±${device.lastLocation!.accuracyMeters?.round() ?? '?'}m)',
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textBody,
+                          color: Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textBody,
                         ),
                       ),
                     ),
@@ -747,7 +757,7 @@ class DashboardPage extends ConsumerWidget {
   );
 }
 
-  Widget _buildRealtimeDisconnectedBanner() {
+  Widget _buildRealtimeDisconnectedBanner(bool isEn) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -755,18 +765,18 @@ class DashboardPage extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppRadii.md),
         border: Border.all(color: AppColors.border),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.wifi_off_rounded,
             size: 16,
             color: AppColors.textMuted,
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Sin conexión en tiempo real, reconectando…',
-              style: TextStyle(
+              isEn ? 'No real-time connection, reconnecting…' : 'Sin conexión en tiempo real, reconectando…',
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textBody,
                 fontWeight: FontWeight.w500,
@@ -778,13 +788,13 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBatteryIndicator(int? level, bool? isCharging) {
+  Widget _buildBatteryIndicator(int? level, bool? isCharging, bool isEn) {
     if (level == null) {
-      return const Row(
+      return Row(
         children: [
-          Icon(Icons.battery_unknown_rounded, size: 16, color: AppColors.textMuted),
-          SizedBox(width: 4),
-          Text('Sin datos', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+          const Icon(Icons.battery_unknown_rounded, size: 16, color: AppColors.textMuted),
+          const SizedBox(width: 4),
+          Text(isEn ? 'No data' : 'Sin datos', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
         ],
       );
     }
@@ -829,7 +839,7 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildNetworkIndicator(String? networkType) {
+  Widget _buildNetworkIndicator(String? networkType, bool isEn) {
     IconData icon;
     String label;
     switch (networkType?.toLowerCase()) {
@@ -839,11 +849,11 @@ class DashboardPage extends ConsumerWidget {
         break;
       case 'mobile':
         icon = Icons.signal_cellular_alt_rounded;
-        label = 'Datos';
+        label = isEn ? 'Cellular' : 'Datos';
         break;
       case 'none':
         icon = Icons.signal_cellular_connected_no_internet_4_bar_rounded;
-        label = 'Sin red';
+        label = isEn ? 'No network' : 'Sin red';
         break;
       default:
         icon = Icons.help_outline_rounded;
@@ -862,31 +872,31 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  String _formatLastSeen(DateTime? lastSeen) {
-    if (lastSeen == null) return 'Visto hace —';
+  String _formatLastSeen(DateTime? lastSeen, bool isEn) {
+    if (lastSeen == null) return isEn ? 'Seen —' : 'Visto hace —';
     final diff = DateTime.now().difference(lastSeen);
     if (diff.inSeconds < 60) {
-      return 'Visto hace un momento';
+      return isEn ? 'Seen just now' : 'Visto hace un momento';
     } else if (diff.inMinutes < 60) {
-      return 'Visto hace ${diff.inMinutes} m';
+      return isEn ? 'Seen ${diff.inMinutes}m ago' : 'Visto hace ${diff.inMinutes} m';
     } else if (diff.inHours < 24) {
-      return 'Visto hace ${diff.inHours} h';
+      return isEn ? 'Seen ${diff.inHours}h ago' : 'Visto hace ${diff.inHours} h';
     } else {
-      return 'Visto hace ${diff.inDays} d';
+      return isEn ? 'Seen ${diff.inDays}d ago' : 'Visto hace ${diff.inDays} d';
     }
   }
 
-  Widget _buildModeChip(DeviceMode mode) {
+  Widget _buildModeChip(DeviceMode mode, bool isEn) {
     final isProtected = mode == DeviceMode.protected;
     return StatusChip(
-      label: isProtected ? 'Protegido' : 'Controlador',
+      label: isProtected ? (isEn ? 'Protected' : 'Protegido') : (isEn ? 'Controller' : 'Controlador'),
       type: isProtected ? StatusChipType.safe : StatusChipType.neutral,
     );
   }
 
-  Widget _buildOnlineChip(bool isOnline) {
+  Widget _buildOnlineChip(bool isOnline, bool isEn) {
     return StatusChip(
-      label: isOnline ? 'En línea' : 'Desconectado',
+      label: isOnline ? (isEn ? 'Online' : 'En línea') : (isEn ? 'Offline' : 'Desconectado'),
       type: isOnline ? StatusChipType.safe : StatusChipType.neutral,
     );
   }
@@ -896,6 +906,7 @@ class DashboardPage extends ConsumerWidget {
     WidgetRef ref,
     Device device, {
     required bool isThisPhone,
+    required bool isEn,
   }) {
     showModalBottomSheet(
       context: context,
@@ -919,21 +930,21 @@ class DashboardPage extends ConsumerWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
-                title: const Text('Renombrar dispositivo'),
+                title: Text(isEn ? 'Rename device' : 'Renombrar dispositivo'),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showRenameDialog(context, ref, device);
+                  _showRenameDialog(context, ref, device, isEn);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.link_off_rounded, color: AppColors.alert),
-                title: const Text(
-                  'Desvincular dispositivo',
-                  style: TextStyle(color: AppColors.alert),
+                title: Text(
+                  isEn ? 'Unlink device' : 'Desvincular dispositivo',
+                  style: const TextStyle(color: AppColors.alert),
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showUnlinkConfirmation(context, ref, device, isThisPhone: isThisPhone);
+                  _showUnlinkConfirmation(context, ref, device, isThisPhone: isThisPhone, isEn: isEn);
                 },
               ),
             ],
@@ -943,25 +954,25 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  void _showRenameDialog(BuildContext context, WidgetRef ref, Device device) {
+  void _showRenameDialog(BuildContext context, WidgetRef ref, Device device, bool isEn) {
     final controller = TextEditingController(text: device.name);
     final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Renombrar Dispositivo'),
+        title: Text(isEn ? 'Rename Device' : 'Renombrar Dispositivo'),
         content: Form(
           key: formKey,
           child: TextFormField(
             controller: controller,
-            decoration: const InputDecoration(
-              labelText: 'Nombre del dispositivo',
-              hintText: 'Ingresa un nuevo nombre',
+            decoration: InputDecoration(
+              labelText: isEn ? 'Device name' : 'Nombre del dispositivo',
+              hintText: isEn ? 'Enter a new name' : 'Ingresa un nuevo nombre',
             ),
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'El nombre es obligatorio';
-              if (v.trim().length > 40) return 'Máximo 40 caracteres';
+              if (v == null || v.trim().isEmpty) return isEn ? 'Name is required' : 'El nombre es obligatorio';
+              if (v.trim().length > 40) return isEn ? 'Maximum 40 characters' : 'Máximo 40 caracteres';
               return null;
             },
           ),
@@ -969,7 +980,7 @@ class DashboardPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(isEn ? 'Cancel' : 'Cancelar'),
           ),
           TextButton(
             onPressed: () async {
@@ -981,15 +992,15 @@ class DashboardPage extends ConsumerWidget {
                 nav.pop();
                 if (context.mounted && !success) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('No se pudo renombrar el dispositivo.'),
+                    SnackBar(
+                      content: Text(isEn ? 'Could not rename device.' : 'No se pudo renombrar el dispositivo.'),
                       backgroundColor: AppColors.alert,
                     ),
                   );
                 }
               }
             },
-            child: const Text('Guardar'),
+            child: Text(isEn ? 'Save' : 'Guardar'),
           ),
         ],
       ),
@@ -1001,20 +1012,25 @@ class DashboardPage extends ConsumerWidget {
     WidgetRef ref,
     Device device, {
     required bool isThisPhone,
+    required bool isEn,
   }) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('¿Desvincular dispositivo?'),
+        title: Text(isEn ? 'Unlink device?' : '¿Desvincular dispositivo?'),
         content: Text(
           isThisPhone
-              ? 'Estás a punto de desvincular este mismo celular. Se eliminará el token de protección y dejará de recibir órdenes remotas.'
-              : 'El dispositivo "${device.name}" dejará de estar conectado a tu cuenta y no podrá ser localizado o administrado.',
+              ? (isEn
+                  ? 'You are about to unlink this phone. The protection token will be deleted and it will stop receiving remote commands.'
+                  : 'Estás a punto de desvincular este mismo celular. Se eliminará el token de protección y dejará de recibir órdenes remotas.')
+              : (isEn
+                  ? 'The device "${device.name}" will no longer be connected to your account and cannot be located or managed.'
+                  : 'El dispositivo "${device.name}" dejará de estar conectado a tu cuenta y no podrá ser localizado o administrado.'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(isEn ? 'Cancel' : 'Cancelar'),
           ),
           TextButton(
             onPressed: () async {
@@ -1028,8 +1044,8 @@ class DashboardPage extends ConsumerWidget {
                   SnackBar(
                     content: Text(
                       success
-                          ? 'Dispositivo desvinculado con éxito.'
-                          : 'No se pudo desvincular el dispositivo.',
+                          ? (isEn ? 'Device unlinked successfully.' : 'Dispositivo desvinculado con éxito.')
+                          : (isEn ? 'Could not unlink device.' : 'No se pudo desvincular el dispositivo.'),
                     ),
                     backgroundColor: success ? AppColors.primary : AppColors.alert,
                   ),
@@ -1037,7 +1053,7 @@ class DashboardPage extends ConsumerWidget {
               }
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.alert),
-            child: const Text('Desvincular'),
+            child: Text(isEn ? 'Unlink' : 'Desvincular'),
           ),
         ],
       ),

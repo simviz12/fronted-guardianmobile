@@ -52,4 +52,8 @@ class AppStrings {
   static String get(AppLanguage lang, {required String es, required String en}) {
     return lang == AppLanguage.en ? en : es;
   }
+
+  static String of(bool isEn, String es, String en) {
+    return isEn ? en : es;
+  }
 }
