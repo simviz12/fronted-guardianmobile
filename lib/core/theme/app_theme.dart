@@ -18,12 +18,17 @@ class AppTheme {
   static ThemeData _buildTheme({required Brightness brightness}) {
     final isDark = brightness == Brightness.dark;
 
-    final bgColor = isDark ? const Color(0xFF0F172A) : AppColors.background;
-    final surfaceColor = isDark ? const Color(0xFF1E293B) : AppColors.surface;
-    final textHeadColor = isDark ? const Color(0xFFF8FAFC) : AppColors.textHeadings;
-    final textBodyColor = isDark ? const Color(0xFFCBD5E1) : AppColors.textBody;
-    final textMutedColor = isDark ? const Color(0xFF94A3B8) : AppColors.textMuted;
-    final borderColor = isDark ? const Color(0xFF334155) : AppColors.border;
+    // Deep modern dark background (OLED / Midnight Slate)
+    final bgColor = isDark ? const Color(0xFF0B0F19) : AppColors.background;
+    final surfaceColor = isDark ? const Color(0xFF161F30) : AppColors.surface;
+    final surfaceContainerLow = isDark ? const Color(0xFF111827) : AppColors.surfaceContainerLow;
+    final textHeadColor = isDark ? const Color(0xFFF9FAFB) : AppColors.textHeadings;
+    final textBodyColor = isDark ? const Color(0xFFD1D5DB) : AppColors.textBody;
+    final textMutedColor = isDark ? const Color(0xFF9CA3AF) : AppColors.textMuted;
+    final borderColor = isDark ? const Color(0xFF2D3748) : AppColors.border;
+
+    final primaryColor = isDark ? const Color(0xFF10B981) : AppColors.primary;
+    final primaryContainer = isDark ? const Color(0xFF064E3B) : AppColors.primaryContainer;
 
     final textTheme = const TextTheme().copyWith(
       displayLarge: TextStyle(
@@ -92,16 +97,18 @@ class AppTheme {
       scaffoldBackgroundColor: bgColor,
       colorScheme: ColorScheme(
         brightness: brightness,
-        primary: isDark ? const Color(0xFF10B981) : AppColors.primary,
+        primary: primaryColor,
         onPrimary: Colors.white,
-        primaryContainer: isDark ? const Color(0xFF064E3B) : AppColors.primaryContainer,
+        primaryContainer: primaryContainer,
         onPrimaryContainer: Colors.white,
         secondary: isDark ? const Color(0xFF94A3B8) : const Color(0xFF516071),
         onSecondary: Colors.white,
-        error: isDark ? const Color(0xFFEF4444) : AppColors.alert,
+        error: isDark ? const Color(0xFFF87171) : AppColors.alert,
         onError: Colors.white,
         surface: surfaceColor,
         onSurface: textHeadColor,
+        surfaceContainerLow: surfaceContainerLow,
+        outline: borderColor,
       ),
       textTheme: textTheme,
       cardTheme: CardThemeData(
@@ -130,7 +137,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isDark ? const Color(0xFF10B981) : AppColors.primary,
+          backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(
@@ -145,9 +152,10 @@ class AppTheme {
         ),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: surfaceColor,
+        backgroundColor: bgColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         iconTheme: IconThemeData(color: textHeadColor),
         titleTextStyle: TextStyle(
           fontFamily: defaultFont,
@@ -155,6 +163,15 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: textHeadColor,
         ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: surfaceColor,
+        surfaceTintColor: Colors.transparent,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF1F2937),
+        contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

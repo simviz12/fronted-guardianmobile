@@ -86,7 +86,6 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
     final installInfoAsync = ref.watch(deviceInstallInfoProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Vincular este Celular'),
         backgroundColor: Colors.transparent,

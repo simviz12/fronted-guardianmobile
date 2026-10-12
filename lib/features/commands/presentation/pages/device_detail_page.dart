@@ -37,7 +37,6 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     final isProtectedMode = widget.device.mode == DeviceMode.protected;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(widget.device.name),
         backgroundColor: Colors.transparent,
@@ -141,7 +140,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: AppSpacing.spaceSm,
                 crossAxisSpacing: AppSpacing.spaceSm,
-                childAspectRatio: 0.95,
+                childAspectRatio: 1.15,
                 children: [
                   // 1. HACER SONAR (Active if target is PROTECTED)
                   _buildRingActionTile(
@@ -329,9 +328,9 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceMd),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).cardTheme.color ?? AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.lg),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,7 +439,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           boxShadow: [
@@ -521,7 +520,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           boxShadow: [
@@ -639,7 +638,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           boxShadow: [
@@ -749,7 +748,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           boxShadow: [
@@ -948,7 +947,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(
             color: AppColors.alert.withValues(alpha: 0.6),
