@@ -308,30 +308,24 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
 
   void _startPolling(String commandId) {
     _pollAttempts = 0;
-    // Check if socket is connected
-    final realtimeService = _ref.read(realtimeServiceProvider);
-    final isSocketConnected = realtimeService.currentState == RealtimeConnectionState.connected;
-
-    // If socket is connected, realtime will push updates via command.updated.
-    // We only set a fallback poll if socket is disconnected (every 15 s) or as a safety net.
-    final interval = isSocketConnected ? const Duration(seconds: 15) : const Duration(seconds: 15);
+    // Poll every 3 seconds to deliver fast feedback if realtime WebSocket is delayed
+    const interval = Duration(seconds: 3);
 
     _pollingTimer = Timer.periodic(interval, (timer) async {
       _pollAttempts++;
 
       if (_pollAttempts >= _maxPollAttempts) {
         timer.cancel();
-        state = state.copyWith(
-          isPolling: false,
-          errorMessage: 'El comando tardó demasiado en responder (Expiró).',
-        );
-        return;
-      }
-
-      // If socket is connected, we don't need aggressive HTTP polling
-      final currentConnected = _ref.read(realtimeServiceProvider).currentState == RealtimeConnectionState.connected;
-      if (currentConnected && _pollAttempts % 2 != 0) {
-        // Skip some iterations when socket is alive
+        // Only set error if not already executed/delivered
+        if (state.activeCommand?.status != CommandStatus.executed &&
+            state.activeCommand?.status != CommandStatus.delivered) {
+          state = state.copyWith(
+            isPolling: false,
+            errorMessage: 'El comando tardó demasiado en responder (Expiró).',
+          );
+        } else {
+          state = state.copyWith(isPolling: false);
+        }
         return;
       }
 
@@ -339,7 +333,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         final getUseCase = _ref.read(getCommandUseCaseProvider);
         final latest = await getUseCase(commandId);
 
-        state = state.copyWith(activeCommand: latest);
+        state = state.copyWith(activeCommand: latest, clearError: latest.status == CommandStatus.executed);
 
         if (latest.isFinal) {
           timer.cancel();

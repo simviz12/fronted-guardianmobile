@@ -47,46 +47,54 @@ class DashboardPage extends ConsumerWidget {
         ? displayName[0].toUpperCase()
         : 'U';
 
+    final theme = Theme.of(context);
+
     return AppBar(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
       centerTitle: false,
+      titleSpacing: AppSpacing.marginMobile,
       title: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withValues(alpha: 0.15),
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.shield_rounded,
-              color: AppColors.primary,
+              color: theme.colorScheme.primary,
               size: 20,
             ),
           ),
           const SizedBox(width: AppSpacing.spaceSm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hola, ${displayName ?? 'Usuario'}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textHeadings,
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Hola, ${displayName ?? 'Usuario'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const Text(
-                'Guardian Mobile',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                  letterSpacing: 0.5,
+                Text(
+                  'Guardian Mobile',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.primary,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -94,10 +102,12 @@ class DashboardPage extends ConsumerWidget {
         // Quick Language Toggle: ES / EN
         IconButton(
           tooltip: 'Cambiar idioma / Change language',
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           icon: Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.primary, width: 1.5),
+              border: Border.all(color: theme.colorScheme.primary, width: 1.5),
               borderRadius: BorderRadius.circular(AppRadii.sm),
             ),
             child: Text(
@@ -105,7 +115,7 @@ class DashboardPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
+                color: theme.colorScheme.primary,
               ),
             ),
           ),
@@ -116,32 +126,43 @@ class DashboardPage extends ConsumerWidget {
         // Quick Theme Toggle: Dark / Light
         IconButton(
           tooltip: 'Cambiar tema (Oscuro / Claro)',
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           icon: Icon(
             ref.watch(themeModeProvider) == ThemeMode.dark
                 ? Icons.light_mode_rounded
                 : Icons.dark_mode_rounded,
+            size: 20,
           ),
           onPressed: () {
             ref.read(themeModeProvider.notifier).toggleTheme();
           },
         ),
-        IconButton(
-          icon: const Icon(Icons.settings_outlined),
-          onPressed: () => context.push('/settings'),
-        ),
-        GestureDetector(
-          onTap: () => context.push('/settings'),
-          child: Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.marginMobile),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                initial,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+        // Profile Avatar Button (Direct link to Settings & Profile)
+        Padding(
+          padding: const EdgeInsets.only(right: 12, left: 4),
+          child: InkWell(
+            onTap: () => context.push('/settings'),
+            borderRadius: BorderRadius.circular(20),
+            child: Tooltip(
+              message: 'Mi Perfil y Ajustes',
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: theme.colorScheme.primary, width: 1.5),
+                ),
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: theme.colorScheme.primary,
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -331,43 +352,46 @@ class DashboardPage extends ConsumerWidget {
   }
 
   Widget _buildSummaryBanner(int totalCount) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.spaceMd,
-        vertical: AppSpacing.spaceSm + 2,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: const BoxDecoration(
-              color: AppColors.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.verified_user_rounded,
-              size: 16,
-              color: Colors.white,
-            ),
+    return Builder(
+      builder: (context) {
+        final theme = Theme.of(context);
+        return Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.spaceMd,
+            vertical: AppSpacing.spaceSm + 2,
           ),
-          const SizedBox(width: AppSpacing.spaceSm),
-          Expanded(
-            child: Text(
-              '$totalCount ${totalCount == 1 ? 'dispositivo bajo vigilancia' : 'dispositivos bajo vigilancia continua'}',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textHeadings,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(AppRadii.lg),
+            border: Border.all(color: theme.colorScheme.outline),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.verified_user_rounded,
+                  size: 16,
+                  color: Colors.white,
+                ),
               ),
-            ),
+              const SizedBox(width: AppSpacing.spaceSm),
+              Expanded(
+                child: Text(
+                  '$totalCount ${totalCount == 1 ? 'dispositivo bajo vigilancia' : 'dispositivos bajo vigilancia continua'}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

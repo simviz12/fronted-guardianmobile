@@ -41,7 +41,6 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Protocolo de Destrucción'),
         backgroundColor: Colors.transparent,

@@ -17,7 +17,6 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
     final diagnosticsAsync = ref.watch(deviceDiagnosticsProvider(device.id));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Diagnóstico: ${device.name}'),
         backgroundColor: Colors.transparent,

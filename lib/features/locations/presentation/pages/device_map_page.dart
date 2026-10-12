@@ -69,7 +69,6 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
         : const LatLng(4.60971, -74.08175); // Default Bogota center
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +438,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
         bottom: 24,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).cardTheme.color ?? AppColors.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(

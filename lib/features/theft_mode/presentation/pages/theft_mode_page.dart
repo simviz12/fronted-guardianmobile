@@ -75,7 +75,6 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
     final bool isActuallyActive = theftState.isActive || currentDevice.theftModeActive;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

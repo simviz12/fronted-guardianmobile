@@ -56,7 +56,6 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
     final state = ref.watch(commandHistoryNotifierProvider(widget.device.id));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Historial de Órdenes'),
         backgroundColor: Colors.transparent,
