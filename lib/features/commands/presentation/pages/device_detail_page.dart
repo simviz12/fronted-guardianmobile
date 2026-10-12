@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/localization/language_provider.dart';
 import '../../../devices/domain/entities/device.dart';
 import '../providers/command_provider.dart';
 import '../widgets/command_live_status_stepper.dart';
@@ -35,6 +36,9 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
   Widget build(BuildContext context) {
     final commandState = ref.watch(commandNotifierProvider);
     final isProtectedMode = widget.device.mode == DeviceMode.protected;
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final headingColor = theme.colorScheme.onSurface;
 
     return Scaffold(
       appBar: AppBar(
@@ -44,21 +48,21 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.medical_services_outlined, color: AppColors.primary),
-            tooltip: 'Diagnóstico de Conectividad',
+            tooltip: isEn ? 'Connectivity Diagnostics' : 'Diagnóstico de Conectividad',
             onPressed: () {
               context.push('/device-diagnostics', extra: widget.device);
             },
           ),
           IconButton(
             icon: const Icon(Icons.map_rounded, color: AppColors.primary),
-            tooltip: 'Ver Mapa de Rastreo',
+            tooltip: isEn ? 'View Tracking Map' : 'Ver Mapa de Rastreo',
             onPressed: () {
               context.push('/device-map', extra: widget.device);
             },
           ),
           IconButton(
             icon: const Icon(Icons.history_rounded, color: AppColors.primary),
-            tooltip: 'Historial de Órdenes',
+            tooltip: isEn ? 'Command History' : 'Historial de Órdenes',
             onPressed: () {
               context.push('/command-history', extra: widget.device);
             },
@@ -121,11 +125,11 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   const Icon(Icons.flash_on_rounded, size: 18, color: AppColors.primary),
                   const SizedBox(width: 4),
                   Text(
-                    'ACCIONES TÁCTICAS INMEDIATAS',
+                    isEn ? 'IMMEDIATE TACTICAL ACTIONS' : 'ACCIONES TÁCTICAS INMEDIATAS',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textHeadings,
+                      color: headingColor,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -193,6 +197,10 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
   }
 
   Widget _buildDeviceHeaderCard() {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final headingColor = theme.colorScheme.onSurface;
+
     return AppCard(
       child: Row(
         children: [
@@ -216,22 +224,24 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
               children: [
                 Text(
                   widget.device.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: headingColor,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${widget.device.model ?? 'Modelo no especificado'} • SO ${widget.device.osVersion ?? '—'}',
+                  '${widget.device.model ?? (isEn ? 'Unspecified model' : 'Modelo no especificado')} • SO ${widget.device.osVersion ?? '—'}',
                   style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                 ),
               ],
             ),
           ),
           StatusChip(
-            label: widget.device.mode == DeviceMode.protected ? 'Protegido' : 'Controlador',
+            label: widget.device.mode == DeviceMode.protected
+                ? (isEn ? 'Protected' : 'Protegido')
+                : (isEn ? 'Controller' : 'Controlador'),
             type: widget.device.mode == DeviceMode.protected ? StatusChipType.safe : StatusChipType.neutral,
           ),
         ],
@@ -243,12 +253,16 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     required bool isProtectedMode,
     required bool isLoading,
   }) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+
     if (!isProtectedMode) {
       return _buildDisabledActionTile(
-        title: 'Hacer sonar',
-        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        title: isEn ? 'Ring' : 'Hacer sonar',
+        subtitle: isEn
+            ? 'Only available for Protected mode'
+            : 'Solo disponible para dispositivos en modo Protegido',
         icon: Icons.volume_up_rounded,
-        badgeLabel: 'No protegido',
+        badgeLabel: isEn ? 'Not protected' : 'No protegido',
       );
     }
 
@@ -262,7 +276,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
           borderRadius: BorderRadius.circular(AppRadii.lg),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.25),
+              color: AppColors.primary.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -291,21 +305,21 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   ),
               ],
             ),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hacer sonar',
-                  style: TextStyle(
+                  isEn ? 'Ring Alarm' : 'Hacer sonar',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Máximo volumen incluso si está en silencio',
-                  style: TextStyle(
+                  isEn ? 'Max volume even if device is muted' : 'Máximo volumen incluso si está en silencio',
+                  style: const TextStyle(
                     fontSize: 11,
                     color: Colors.white70,
                     height: 1.25,
@@ -325,12 +339,15 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     required IconData icon,
     String badgeLabel = 'Próximamente',
   }) {
+    final theme = Theme.of(context);
+    final cardBg = theme.brightness == Brightness.dark ? const Color(0xFF1E293B) : AppColors.surface;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceMd),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? AppColors.surface,
+        color: cardBg,
         borderRadius: BorderRadius.circular(AppRadii.lg),
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
+        border: Border.all(color: theme.colorScheme.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,7 +362,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   color: AppColors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(AppRadii.md),
                 ),
-                child: Icon(icon, color: AppColors.textMuted, size: 22),
+                child: Icon(icon, color: theme.brightness == Brightness.dark ? const Color(0xFF94A3B8) : AppColors.textMuted, size: 22),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -369,18 +386,18 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textMuted,
+                  color: theme.brightness == Brightness.dark ? Colors.white70 : AppColors.textMuted,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textMuted,
+                  color: theme.brightness == Brightness.dark ? const Color(0xFF94A3B8) : AppColors.textMuted,
                   height: 1.25,
                 ),
               ),
@@ -392,22 +409,26 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
   }
 
   Future<void> _confirmAndSendRing() async {
+    final isEn = ref.read(languageProvider) == AppLanguage.en;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('¿Hacer sonar alarma?'),
+        title: Text(isEn ? 'Sound alarm?' : '¿Hacer sonar alarma?'),
         content: Text(
-          'Se emitirá un sonido de alarma a máximo volumen en "${widget.device.name}", ignorando el modo silencio o vibración.',
+          isEn
+              ? 'An alarm will ring at maximum volume on "${widget.device.name}", ignoring silent or vibrate mode.'
+              : 'Se emitirá un sonido de alarma a máximo volumen en "${widget.device.name}", ignorando el modo silencio o vibración.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(isEn ? 'Cancel' : 'Cancelar'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
-            child: const Text('Hacer Sonar'),
+            child: Text(isEn ? 'Ring Now' : 'Hacer Sonar'),
           ),
         ],
       ),
@@ -424,12 +445,20 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     required bool isProtectedMode,
     required bool isLoading,
   }) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final headingColor = isDark ? Colors.white : AppColors.textHeadings;
+    final cardBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
+
     if (!isProtectedMode) {
       return _buildDisabledActionTile(
-        title: 'Vibrar',
-        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        title: isEn ? 'Vibrate' : 'Vibrar',
+        subtitle: isEn
+            ? 'Only available for Protected mode'
+            : 'Solo disponible para dispositivos en modo Protegido',
         icon: Icons.vibration_rounded,
-        badgeLabel: 'No protegido',
+        badgeLabel: isEn ? 'Not protected' : 'No protegido',
       );
     }
 
@@ -439,7 +468,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
+          color: cardBg,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           boxShadow: [
@@ -473,23 +502,23 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   ),
               ],
             ),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Vibrar',
+                  isEn ? 'Vibrate' : 'Vibrar',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: headingColor,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Vibración con duración ajustable (1-30 s)',
+                  isEn ? 'Custom duration vibration (1-30 s)' : 'Vibración con duración ajustable (1-30 s)',
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMuted,
+                    color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),
@@ -505,12 +534,20 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     required bool isProtectedMode,
     required bool isLoading,
   }) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final headingColor = isDark ? Colors.white : AppColors.textHeadings;
+    final cardBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
+
     if (!isProtectedMode) {
       return _buildDisabledActionTile(
-        title: 'Mensaje',
-        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        title: isEn ? 'Message' : 'Mensaje',
+        subtitle: isEn
+            ? 'Only available for Protected mode'
+            : 'Solo disponible para dispositivos en modo Protegido',
         icon: Icons.message_rounded,
-        badgeLabel: 'No protegido',
+        badgeLabel: isEn ? 'Not protected' : 'No protegido',
       );
     }
 
@@ -520,7 +557,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
+          color: cardBg,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           boxShadow: [
@@ -554,23 +591,23 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   ),
               ],
             ),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Mensaje',
+                  isEn ? 'Message' : 'Mensaje',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: headingColor,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Muestra texto y botón de llamada en pantalla',
+                  isEn ? 'Display on-screen banner & contact dialer' : 'Muestra texto y botón de llamada en pantalla',
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMuted,
+                    color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),
@@ -614,21 +651,31 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     required bool isAdminEnabled,
     required bool isLoading,
   }) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final headingColor = isDark ? Colors.white : AppColors.textHeadings;
+    final cardBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
+
     if (!isProtectedMode) {
       return _buildDisabledActionTile(
-        title: 'Bloquear',
-        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        title: isEn ? 'Lock' : 'Bloquear',
+        subtitle: isEn
+            ? 'Only available for Protected mode'
+            : 'Solo disponible para dispositivos en modo Protegido',
         icon: Icons.lock_rounded,
-        badgeLabel: 'No protegido',
+        badgeLabel: isEn ? 'Not protected' : 'No protegido',
       );
     }
 
     if (!isAdminEnabled) {
       return _buildDisabledActionTile(
-        title: 'Bloquear',
-        subtitle: 'Este dispositivo no ha activado el permiso de bloqueo',
+        title: isEn ? 'Lock' : 'Bloquear',
+        subtitle: isEn
+            ? 'Device Admin permission not granted'
+            : 'Este dispositivo no ha activado el permiso de bloqueo',
         icon: Icons.lock_rounded,
-        badgeLabel: 'Sin permiso',
+        badgeLabel: isEn ? 'No permission' : 'Sin permiso',
       );
     }
 
@@ -638,7 +685,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
+          color: cardBg,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           boxShadow: [
@@ -672,23 +719,23 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   ),
               ],
             ),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Bloquear',
+                  isEn ? 'Lock' : 'Bloquear',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: headingColor,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Bloquea la pantalla inmediatamente',
+                  isEn ? 'Instantly locks the screen remotely' : 'Bloquea la pantalla inmediatamente',
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMuted,
+                    color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),
@@ -701,22 +748,26 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
   }
 
   Future<void> _confirmAndSendLock() async {
+    final isEn = ref.read(languageProvider) == AppLanguage.en;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('¿Bloquear dispositivo ahora?'),
+        title: Text(isEn ? 'Lock device now?' : '¿Bloquear dispositivo ahora?'),
         content: Text(
-          'La pantalla de "${widget.device.name}" se apagará de inmediato y exigirá el PIN o patrón de seguridad actual para poder acceder.',
+          isEn
+              ? 'The screen on "${widget.device.name}" will turn off immediately and require the current PIN/pattern.'
+              : 'La pantalla de "${widget.device.name}" se apagará de inmediato y exigirá el PIN o patrón de seguridad actual para poder acceder.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(isEn ? 'Cancel' : 'Cancelar'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.alert),
-            child: const Text('Bloquear ahora'),
+            child: Text(isEn ? 'Lock Now' : 'Bloquear ahora'),
           ),
         ],
       ),
@@ -732,10 +783,18 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
   Widget _buildLocateActionTile({
     required bool isProtectedMode,
   }) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final headingColor = isDark ? Colors.white : AppColors.textHeadings;
+    final cardBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
+
     if (!isProtectedMode) {
       return _buildDisabledActionTile(
-        title: 'Localizar',
-        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        title: isEn ? 'Locate' : 'Localizar',
+        subtitle: isEn
+            ? 'Only available for Protected mode'
+            : 'Solo disponible para dispositivos en modo Protegido',
         icon: Icons.my_location_rounded,
       );
     }
@@ -748,7 +807,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
+          color: cardBg,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
           boxShadow: [
@@ -777,23 +836,23 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
               ],
             ),
-            const Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Localizar',
+                  isEn ? 'Locate' : 'Localizar',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: headingColor,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Ver mapa y rastreo en tiempo real',
+                  isEn ? 'View real-time map & location history' : 'Ver mapa y rastreo en tiempo real',
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMuted,
+                    color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),
@@ -809,12 +868,20 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     required bool isProtectedMode,
     required bool theftModeActive,
   }) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final headingColor = isDark ? Colors.white : AppColors.textHeadings;
+    final defaultBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
+
     if (!isProtectedMode) {
       return _buildDisabledActionTile(
-        title: 'Modo Robo',
-        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        title: isEn ? 'Theft Mode' : 'Modo Robo',
+        subtitle: isEn
+            ? 'Only available for Protected mode'
+            : 'Solo disponible para dispositivos en modo Protegido',
         icon: Icons.shield_rounded,
-        badgeLabel: 'No protegido',
+        badgeLabel: isEn ? 'Not protected' : 'No protegido',
       );
     }
 
@@ -826,7 +893,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: theftModeActive ? AppColors.alertContainer : AppColors.surface,
+          color: theftModeActive ? AppColors.alertContainer : defaultBg,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(
             color: theftModeActive ? AppColors.alert : AppColors.alert.withValues(alpha: 0.5),
@@ -866,9 +933,9 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                       color: AppColors.alert,
                       borderRadius: BorderRadius.circular(AppRadii.full),
                     ),
-                    child: const Text(
-                      'ACTIVO',
-                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
+                    child: Text(
+                      isEn ? 'ACTIVE' : 'ACTIVO',
+                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   )
                 else
@@ -879,19 +946,21 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Modo Robo',
+                  isEn ? 'Theft Mode' : 'Modo Robo',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: theftModeActive ? AppColors.alertText : AppColors.textHeadings,
+                    color: theftModeActive ? AppColors.alertText : headingColor,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  theftModeActive ? 'Protocolo de extravío activo' : 'Bloqueo y rastreo de emergencia',
+                  theftModeActive
+                      ? (isEn ? 'Lost device protocol active' : 'Protocolo de extravío activo')
+                      : (isEn ? 'Emergency lock & tracking' : 'Bloqueo y rastreo de emergencia'),
                   style: TextStyle(
                     fontSize: 11,
-                    color: theftModeActive ? AppColors.alertText : AppColors.textMuted,
+                    color: theftModeActive ? AppColors.alertText : (isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted),
                     height: 1.25,
                   ),
                 ),
@@ -908,33 +977,45 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     required bool isProtectedMode,
   }) {
     final isWiped = device.wipedAt != null;
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
 
     if (isWiped) {
       return _buildDisabledActionTile(
-        title: 'Borrado Remoto',
-        subtitle: 'Este dispositivo ya fue restablecido y borrado de fábrica',
+        title: isEn ? 'Remote Wipe' : 'Borrado Remoto',
+        subtitle: isEn
+            ? 'This device was already factory reset and erased'
+            : 'Este dispositivo ya fue restablecido y borrado de fábrica',
         icon: Icons.delete_forever_rounded,
-        badgeLabel: 'Dispositivo Borrado',
+        badgeLabel: isEn ? 'Device Erased' : 'Dispositivo Borrado',
       );
     }
 
     if (!isProtectedMode) {
       return _buildDisabledActionTile(
-        title: 'Borrado Remoto',
-        subtitle: 'Solo disponible para dispositivos en modo Protegido',
+        title: isEn ? 'Remote Wipe' : 'Borrado Remoto',
+        subtitle: isEn
+            ? 'Only available for Protected mode'
+            : 'Solo disponible para dispositivos en modo Protegido',
         icon: Icons.delete_forever_rounded,
-        badgeLabel: 'No protegido',
+        badgeLabel: isEn ? 'Not protected' : 'No protegido',
       );
     }
 
     if (!device.adminEnabled || !device.wipeEnabled) {
       return Tooltip(
-        message: 'El dispositivo no tiene permisos de Administrador de Dispositivos para borrado remoto',
+        message: isEn
+            ? 'Device does not have Device Admin permissions for remote wipe'
+            : 'El dispositivo no tiene permisos de Administrador de Dispositivos para borrado remoto',
         child: _buildDisabledActionTile(
-          title: 'Borrado Remoto',
-          subtitle: 'Sin permisos de Administrador para restablecimiento',
+          title: isEn ? 'Remote Wipe' : 'Borrado Remoto',
+          subtitle: isEn
+              ? 'Admin permissions required for reset'
+              : 'Sin permisos de Administrador para restablecimiento',
           icon: Icons.delete_forever_rounded,
-          badgeLabel: 'Admin requerido',
+          badgeLabel: isEn ? 'Admin required' : 'Admin requerido',
         ),
       );
     }
@@ -947,7 +1028,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color ?? AppColors.surface,
+          color: cardBg,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(
             color: AppColors.alert.withValues(alpha: 0.6),
@@ -976,24 +1057,24 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
               ),
             ),
             const SizedBox(width: AppSpacing.spaceMd),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Zona de Destrucción (Wipe)',
-                    style: TextStyle(
+                    isEn ? 'Destruction Zone (Wipe)' : 'Zona de Destrucción (Wipe)',
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: AppColors.alertText,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Restablecimiento de fábrica irreversible',
+                    isEn ? 'Irreversible factory wipe protocol' : 'Restablecimiento de fábrica irreversible',
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textMuted,
+                      color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
                     ),
                   ),
                 ],

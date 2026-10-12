@@ -12,6 +12,8 @@ import '../../../commands/presentation/widgets/command_live_status_stepper.dart'
 import '../../../devices/domain/entities/device.dart';
 import '../providers/device_map_provider.dart';
 
+import '../../../../core/localization/language_provider.dart';
+
 class DeviceMapPage extends ConsumerStatefulWidget {
   final Device device;
 
@@ -31,6 +33,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
   Widget build(BuildContext context) {
     final mapState = ref.watch(deviceMapProvider(widget.device.id));
     final commandState = ref.watch(commandNotifierProvider);
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
 
     // Watch mapState latestLocation change to auto-center if needed
     ref.listen<DeviceMapState>(deviceMapProvider(widget.device.id), (prev, next) {
@@ -77,10 +80,10 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
               children: [
                 Text(
                   widget.device.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -94,9 +97,9 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                 ),
               ],
             ),
-            const Text(
-              'MAPA DE RASTREO E HISTORIAL',
-              style: TextStyle(
+            Text(
+              isEn ? 'TRACKING & LOCATION HISTORY' : 'MAPA DE RASTREO E HISTORIAL',
+              style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primary,
@@ -108,7 +111,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Actualizar historial',
+            tooltip: isEn ? 'Refresh history' : 'Actualizar historial',
             onPressed: () {
               ref.read(deviceMapProvider(widget.device.id).notifier).loadMapData();
             },
@@ -273,7 +276,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
             top: 12,
             left: AppSpacing.marginMobile,
             right: AppSpacing.marginMobile,
-            child: _buildTopFilterBar(mapState),
+            child: _buildTopFilterBar(mapState, isEn),
           ),
 
           // 3. Quick Map Floating Actions (Center, Open External Maps)
@@ -284,7 +287,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
               children: [
                 _buildFloatingActionButton(
                   icon: Icons.my_location_rounded,
-                  tooltip: 'Centrar en dispositivo',
+                  tooltip: isEn ? 'Center on device' : 'Centrar en dispositivo',
                   onPressed: () {
                     if (mapState.latestLocation != null) {
                       _mapController.move(
@@ -301,7 +304,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                 if (targetLocation != null)
                   _buildFloatingActionButton(
                     icon: Icons.open_in_new_rounded,
-                    tooltip: 'Abrir en Google Maps / Navegador',
+                    tooltip: isEn ? 'Open in Google Maps' : 'Abrir en Google Maps / Navegador',
                     onPressed: () => _openInExternalMaps(
                       targetLocation.latitude,
                       targetLocation.longitude,
@@ -313,24 +316,24 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
 
           // 4. Loading indicator or Error snack
           if (mapState.isLoading)
-            const Positioned(
+            Positioned(
               top: 75,
               left: 16,
               child: Card(
                 elevation: 4,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Row(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
-                        'Actualizando...',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                        isEn ? 'Updating...' : 'Actualizando...',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -341,22 +344,22 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
           // 5. Bottom Trajectory & Action Sheet
           Align(
             alignment: Alignment.bottomCenter,
-            child: _buildBottomSheet(context, mapState, commandState),
+            child: _buildBottomSheet(context, mapState, commandState, isEn),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTopFilterBar(DeviceMapState mapState) {
+  Widget _buildTopFilterBar(DeviceMapState mapState, bool isEn) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.95),
+        color: Theme.of(context).cardTheme.color ?? AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadii.lg),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -366,13 +369,25 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: LocationRangeFilter.values.map((filter) {
           final isSelected = mapState.selectedRange == filter;
+          String filterLabel;
+          switch (filter) {
+            case LocationRangeFilter.today:
+              filterLabel = isEn ? 'Today' : 'Hoy';
+              break;
+            case LocationRangeFilter.yesterday:
+              filterLabel = isEn ? 'Yesterday' : 'Ayer';
+              break;
+            case LocationRangeFilter.last7Days:
+              filterLabel = isEn ? 'Last 7 days' : 'Últimos 7 días';
+              break;
+          }
           return ChoiceChip(
             label: Text(
-              filter.label,
+              filterLabel,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? Colors.white : AppColors.textBody,
+                color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
               ),
             ),
             selected: isSelected,
@@ -396,11 +411,11 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.95),
+        color: Theme.of(context).cardTheme.color ?? AppColors.surface,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
+            color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -418,6 +433,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
     BuildContext context,
     DeviceMapState mapState,
     CommandExecutionState commandState,
+    bool isEn,
   ) {
     final activeCommand = commandState.activeCommand;
     final isLocating = activeCommand != null &&
@@ -481,22 +497,26 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                   children: [
                     Text(
                       targetLocation != null
-                          ? 'Última ubicación: ${_formatRelativeTime(targetLocation.recordedAt)}'
-                          : 'Aún no hay ubicaciones',
-                      style: const TextStyle(
+                          ? (isEn
+                              ? 'Last location: ${_formatRelativeTime(targetLocation.recordedAt, isEn)}'
+                              : 'Última ubicación: ${_formatRelativeTime(targetLocation.recordedAt, isEn)}')
+                          : (isEn ? 'No locations yet' : 'Aún no hay ubicaciones'),
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textHeadings,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       targetLocation != null
                           ? '${targetLocation.latitude.toStringAsFixed(5)}, ${targetLocation.longitude.toStringAsFixed(5)}'
-                          : 'Pide una ubicación para comenzar el rastreo.',
-                      style: const TextStyle(
+                          : (isEn
+                              ? 'Request location to start real-time tracking.'
+                              : 'Pide una ubicación para comenzar el rastreo.'),
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textBody,
+                        color: Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textBody,
                       ),
                     ),
                   ],
@@ -534,7 +554,9 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
             children: [
               Expanded(
                 child: PrimaryButton(
-                  text: isLocating ? 'Obteniendo GPS...' : 'Pedir ubicación ahora',
+                  text: isLocating
+                      ? (isEn ? 'Getting GPS...' : 'Obteniendo GPS...')
+                      : (isEn ? 'Request location now' : 'Pedir ubicación ahora'),
                   icon: Icons.my_location_rounded,
                   isLoading: isLocating || commandState.isSubmitting,
                   onPressed: isLocating || commandState.isSubmitting
@@ -545,7 +567,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
               if (targetLocation != null) ...[
                 const SizedBox(width: 8),
                 IconButton(
-                  tooltip: 'Abrir en mapa externo',
+                  tooltip: isEn ? 'Open in external maps' : 'Abrir en mapa externo',
                   style: IconButton.styleFrom(
                     backgroundColor: AppColors.surfaceContainerLow,
                   ),
@@ -568,10 +590,12 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                 color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Text(
-                'Aún no hay ubicaciones registradas para este periodo.',
+              child: Text(
+                isEn
+                    ? 'No locations recorded for this period yet.'
+                    : 'Aún no hay ubicaciones registradas para este periodo.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
             )
           else if (mapState.history.isNotEmpty)
@@ -579,11 +603,13 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${mapState.history.length} puntos en historial',
-                  style: const TextStyle(
+                  isEn
+                      ? '${mapState.history.length} location points'
+                      : '${mapState.history.length} puntos en historial',
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textBody,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 if (mapState.selectedPoint != null)
@@ -591,9 +617,9 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                     onPressed: () {
                       ref.read(deviceMapProvider(widget.device.id).notifier).selectPoint(null);
                     },
-                    child: const Text(
-                      'Ver más reciente',
-                      style: TextStyle(fontSize: 12, color: AppColors.primary),
+                    child: Text(
+                      isEn ? 'View latest' : 'Ver más reciente',
+                      style: const TextStyle(fontSize: 12, color: AppColors.primary),
                     ),
                   ),
               ],
@@ -630,11 +656,11 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
     } catch (_) {}
   }
 
-  String _formatRelativeTime(DateTime dateTime) {
+  String _formatRelativeTime(DateTime dateTime, bool isEn) {
     final diff = DateTime.now().difference(dateTime);
-    if (diff.inSeconds < 60) return 'hace un momento';
-    if (diff.inMinutes < 60) return 'hace ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'hace ${diff.inHours} h';
-    return 'hace ${diff.inDays} d';
+    if (diff.inSeconds < 60) return isEn ? 'just now' : 'hace un momento';
+    if (diff.inMinutes < 60) return isEn ? '${diff.inMinutes}m ago' : 'hace ${diff.inMinutes} min';
+    if (diff.inHours < 24) return isEn ? '${diff.inHours}h ago' : 'hace ${diff.inHours} h';
+    return isEn ? '${diff.inDays}d ago' : 'hace ${diff.inDays} d';
   }
 }

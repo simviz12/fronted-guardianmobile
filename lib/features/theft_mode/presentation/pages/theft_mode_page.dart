@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/localization/language_provider.dart';
 import '../../../devices/domain/entities/device.dart';
 import '../../../devices/presentation/providers/devices_provider.dart';
 import '../../../locations/presentation/providers/device_map_provider.dart';
@@ -150,6 +151,10 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
   ) {
     final mapState = ref.watch(deviceMapProvider(device.id));
     final latestLoc = mapState.latestLocation;
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final headingColor = theme.colorScheme.onSurface;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -181,13 +186,13 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.spaceSm),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ESTADO CRÍTICO ACTIVO',
-                          style: TextStyle(
+                          isEn ? 'CRITICAL STATE ACTIVE' : 'ESTADO CRÍTICO ACTIVO',
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: AppColors.alertText,
@@ -195,8 +200,8 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                           ),
                         ),
                         Text(
-                          'MODO ROBO / EXTRAVÍO ACTIVADO',
-                          style: TextStyle(
+                          isEn ? 'THEFT / LOST MODE ACTIVE' : 'MODO ROBO / EXTRAVÍO ACTIVADO',
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
                             color: AppColors.alertText,
@@ -209,7 +214,9 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
               ),
               const SizedBox(height: AppSpacing.spaceSm),
               Text(
-                'El dispositivo se encuentra bloqueado. El rastreo de emergencia está transmitiendo activamente.',
+                isEn
+                    ? 'The device is locked. Emergency tracking is actively broadcasting coordinates.'
+                    : 'El dispositivo se encuentra bloqueado. El rastreo de emergencia está transmitiendo activamente.',
                 style: TextStyle(
                   fontSize: 13,
                   color: AppColors.alertText.withValues(alpha: 0.9),
@@ -219,7 +226,9 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
               if (config != null) ...[
                 const SizedBox(height: 6),
                 Text(
-                  'Activado: ${_formatDateTime(config.activatedAt)} (Frecuencia: ${config.locationIntervalSeconds}s)',
+                  isEn
+                      ? 'Activated: ${_formatDateTime(config.activatedAt)} (Interval: ${config.locationIntervalSeconds}s)'
+                      : 'Activado: ${_formatDateTime(config.activatedAt)} (Frecuencia: ${config.locationIntervalSeconds}s)',
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -238,26 +247,37 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.alert,
-                      shape: BoxShape.circle,
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.alert,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            isEn ? 'Live Telemetry' : 'Telemetría en Vivo',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: headingColor,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Telemetría en Vivo',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textHeadings,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (latestLoc?.accuracyMeters != null)
+                  if (latestLoc?.accuracyMeters != null) ...[
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
@@ -266,13 +286,14 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                       ),
                       child: Text(
                         'GPS ±${latestLoc!.accuracyMeters!.round()}m',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textBody,
+                          color: isDark ? const Color(0xFFCBD5E1) : AppColors.textBody,
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
               const SizedBox(height: AppSpacing.spaceSm),
@@ -284,10 +305,10 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     Expanded(
                       child: Text(
                         'Lat: ${latestLoc.latitude.toStringAsFixed(5)}, Lon: ${latestLoc.longitude.toStringAsFixed(5)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textHeadings,
+                          color: headingColor,
                         ),
                       ),
                     ),
@@ -295,16 +316,20 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Último reporte: ${_formatDateTime(latestLoc.recordedAt)} (${latestLoc.source.toContractString()})',
+                  isEn
+                      ? 'Last report: ${_formatDateTime(latestLoc.recordedAt)} (${latestLoc.source.toContractString()})'
+                      : 'Último reporte: ${_formatDateTime(latestLoc.recordedAt)} (${latestLoc.source.toContractString()})',
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textMuted,
                   ),
                 ),
               ] else ...[
-                const Text(
-                  'Esperando primera fijación GPS de emergencia...',
-                  style: TextStyle(
+                Text(
+                  isEn
+                      ? 'Waiting for first emergency GPS fix...'
+                      : 'Esperando primera fijación GPS de emergencia...',
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textMuted,
                     fontStyle: FontStyle.italic,
@@ -321,24 +346,26 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.lock_rounded, size: 18, color: AppColors.textHeadings),
-                  SizedBox(width: 8),
+                  Icon(Icons.lock_rounded, size: 18, color: headingColor),
+                  const SizedBox(width: 8),
                   Text(
-                    'Pantalla Bloqueada Activa',
+                    isEn ? 'Active Locked Screen' : 'Pantalla Bloqueada Activa',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textHeadings,
+                      color: headingColor,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Texto desplegado en pantalla frontal con la máxima visibilidad:',
-                style: TextStyle(fontSize: 12, color: AppColors.textBody),
+              Text(
+                isEn
+                    ? 'Text displayed on front screen with maximum visibility:'
+                    : 'Texto desplegado en pantalla frontal con la máxima visibilidad:',
+                style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFFCBD5E1) : AppColors.textBody),
               ),
               const SizedBox(height: AppSpacing.spaceSm),
               Container(
@@ -356,9 +383,9 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                       size: 28,
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'DISPOSITIVO EXTRAVIADO',
-                      style: TextStyle(
+                    Text(
+                      isEn ? 'LOST DEVICE' : 'DISPOSITIVO EXTRAVIADO',
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFFFFB3AD),
@@ -367,7 +394,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '“${config?.message ?? 'Este teléfono está perdido. Por favor contacta a su dueño.'}”',
+                      '“${config?.message ?? (isEn ? 'This phone is lost. Please contact the owner.' : 'Este teléfono está perdido. Por favor contacta a su dueño.')}”',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 13,
@@ -379,7 +406,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     if (config?.contactPhone != null && config!.contactPhone!.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Text(
-                        'Contacto: ${config.contactPhone}',
+                        '${isEn ? 'Contact' : 'Contacto'}: ${config.contactPhone}',
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -397,7 +424,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
 
         // Deactivate Action Button
         DangerButton(
-          text: 'Desactivar Modo Robo',
+          text: isEn ? 'Deactivate Theft Mode' : 'Desactivar Modo Robo',
           icon: Icons.lock_open_rounded,
           onPressed: () => _showDeactivateDialog(context),
         ),
@@ -785,6 +812,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
     final isWiped = device.wipedAt != null;
     final isProtectedMode = device.mode == DeviceMode.protected;
     final canWipe = isProtectedMode && device.adminEnabled && device.wipeEnabled && !isWiped;
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceMd),
@@ -803,10 +831,10 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
             children: [
               const Icon(Icons.delete_forever_rounded, color: AppColors.alert, size: 24),
               const SizedBox(width: AppSpacing.spaceSm),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Zona de Destrucción Irreversible',
-                  style: TextStyle(
+                  isEn ? 'Irreversible Destruction Zone' : 'Zona de Destrucción Irreversible',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.alertText,
@@ -814,14 +842,18 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                 ),
               ),
               if (isWiped)
-                const StatusChip(label: 'BORRADO', type: StatusChipType.danger),
+                StatusChip(label: isEn ? 'ERASED' : 'BORRADO', type: StatusChipType.danger),
             ],
           ),
           const SizedBox(height: AppSpacing.spaceSm),
           Text(
             isWiped
-                ? 'Este dispositivo ya ejecutó el restablecimiento de fábrica total y se encuentra desvinculado.'
-                : 'Si el dispositivo está en manos no autorizadas y contiene credenciales corporativas o personales críticas, procede a la destrucción remota.',
+                ? (isEn
+                    ? 'This device has completed a full factory reset and is unlinked.'
+                    : 'Este dispositivo ya ejecutó el restablecimiento de fábrica total y se encuentra desvinculado.')
+                : (isEn
+                    ? 'If the device is in unauthorized hands and contains critical data, proceed to remote wipe.'
+                    : 'Si el dispositivo está en manos no autorizadas y contiene credenciales corporativas o personales críticas, procede a la destrucción remota.'),
             style: const TextStyle(fontSize: 12, color: AppColors.alertText, height: 1.35),
           ),
           const SizedBox(height: AppSpacing.spaceMd),
@@ -832,9 +864,11 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                 color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Text(
-                'El dispositivo ya no responde a órdenes ni puede ser localizado.',
-                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+              child: Text(
+                isEn
+                    ? 'The device no longer responds to commands or tracking.'
+                    : 'El dispositivo ya no responde a órdenes ni puede ser localizado.',
+                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                 textAlign: TextAlign.center,
               ),
             )
@@ -845,14 +879,16 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                 color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, size: 16, color: AppColors.alert),
-                  SizedBox(width: 8),
+                  const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.alert),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'El dispositivo no tiene permisos de Administrador de Dispositivos para borrado remoto.',
-                      style: TextStyle(fontSize: 11, color: AppColors.alertText),
+                      isEn
+                          ? 'The device does not have Device Administrator permissions for remote wipe.'
+                          : 'El dispositivo no tiene permisos de Administrador de Dispositivos para borrado remoto.',
+                      style: const TextStyle(fontSize: 11, color: AppColors.alertText),
                     ),
                   ),
                 ],
@@ -860,7 +896,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
             )
           else
             DangerButton(
-              text: 'INICIAR BORRADO REMOTO TOTAL (WIPE)',
+              text: isEn ? 'START REMOTE FACTORY WIPE' : 'INICIAR BORRADO REMOTO TOTAL (WIPE)',
               icon: Icons.delete_forever_rounded,
               onPressed: () {
                 context.push('/wipe-wizard', extra: device);

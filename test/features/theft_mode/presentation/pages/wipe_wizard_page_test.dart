@@ -59,7 +59,9 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap Siguiente to go to Step 2
-    await tester.tap(find.text('Siguiente (1/4)'));
+    final nextBtn = find.text('Siguiente (1/4)');
+    await tester.ensureVisible(nextBtn);
+    await tester.tap(nextBtn);
     await tester.pumpAndSettle();
 
     expect(find.text('PASO 2 DE 4'), findsOneWidget);

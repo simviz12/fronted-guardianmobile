@@ -74,6 +74,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final currentTheme = ref.watch(themeModeProvider);
     final currentLang = ref.watch(languageProvider);
     final isEn = currentLang == AppLanguage.en;
+    final theme = Theme.of(context);
+    final headingColor = theme.colorScheme.onSurface;
+    final bodyColor = theme.textTheme.bodyMedium?.color ?? AppColors.textBody;
 
     return Scaffold(
       appBar: AppBar(
@@ -113,9 +116,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           children: [
                             Text(
                               isEn ? 'Appearance & Language' : 'Apariencia e Idioma',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textHeadings,
+                                color: headingColor,
                               ),
                             ),
                             Text(
@@ -232,19 +235,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user?.displayName ?? 'Usuario',
-                          style: const TextStyle(
+                          user?.displayName ?? (isEn ? 'User' : 'Usuario'),
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textHeadings,
+                            color: headingColor,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           user?.email ?? '—',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.textBody,
+                            color: bodyColor,
                           ),
                         ),
                       ],
@@ -274,20 +277,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.spaceSm),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Seguridad de la Cuenta',
+                              isEn ? 'Account Security' : 'Seguridad de la Cuenta',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textHeadings,
+                                color: headingColor,
                               ),
                             ),
                             Text(
-                              '2FA (TOTP), contraseñas y sesiones activas',
-                              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              isEn
+                                  ? '2FA (TOTP), master password & active sessions'
+                                  : '2FA (TOTP), contraseñas y sesiones activas',
+                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                             ),
                           ],
                         ),
@@ -306,9 +311,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           children: [
                             Row(
                               children: [
-                                const Text(
-                                  'Autenticación en 2 Pasos (2FA)',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                Text(
+                                  isEn ? 'Two-Factor Authentication (2FA)' : 'Autenticación en 2 Pasos (2FA)',
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
@@ -320,7 +325,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                     borderRadius: BorderRadius.circular(AppRadii.full),
                                   ),
                                   child: Text(
-                                    (user?.twoFactorEnabled ?? false) ? 'ACTIVO' : 'INACTIVO',
+                                    (user?.twoFactorEnabled ?? false)
+                                        ? (isEn ? 'ACTIVE' : 'ACTIVO')
+                                        : (isEn ? 'INACTIVE' : 'INACTIVO'),
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -333,9 +340,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               ],
                             ),
                             const SizedBox(height: 2),
-                            const Text(
-                              'Protege acciones sensibles como el borrado y desactivación de robo',
-                              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            Text(
+                              isEn
+                                  ? 'Protects critical actions like wipe and deactivating theft mode'
+                                  : 'Protege acciones sensibles como el borrado y desactivación de robo',
+                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                             ),
                           ],
                         ),
@@ -344,7 +353,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         TextButton(
                           onPressed: () => _showDisable2FaDialog(),
                           style: TextButton.styleFrom(foregroundColor: AppColors.alert),
-                          child: const Text('Desactivar'),
+                          child: Text(isEn ? 'Disable' : 'Desactivar'),
                         )
                       else
                         ElevatedButton(
@@ -353,7 +362,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                           ),
-                          child: const Text('Activar'),
+                          child: Text(isEn ? 'Enable' : 'Activar'),
                         ),
                     ],
                   ),
@@ -364,7 +373,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     contentPadding: EdgeInsets.zero,
                     dense: true,
                     leading: const Icon(Icons.password_rounded, size: 20, color: AppColors.textMuted),
-                    title: const Text('Cambiar Contraseña Maestra', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                    title: Text(
+                      isEn ? 'Change Master Password' : 'Cambiar Contraseña Maestra',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
                     trailing: const Icon(Icons.chevron_right_rounded, size: 20),
                     onTap: () => _showChangePasswordDialog(),
                   ),
@@ -381,12 +393,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Sesiones Activas',
+                      Text(
+                        isEn ? 'Active Sessions' : 'Sesiones Activas',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textHeadings,
+                          color: headingColor,
                         ),
                       ),
                       if (sessionsState.sessions.isNotEmpty)
@@ -395,16 +407,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             final confirm = await showDialog<bool>(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                title: const Text('¿Cerrar todas las sesiones?'),
-                                content: const Text(
-                                  'Se revocarán todos los tokens de acceso activos en cualquier dispositivo.',
+                                title: Text(isEn ? 'Close all sessions?' : '¿Cerrar todas las sesiones?'),
+                                content: Text(
+                                  isEn
+                                      ? 'All active access tokens on any device will be revoked.'
+                                      : 'Se revocarán todos los tokens de acceso activos en cualquier dispositivo.',
                                 ),
                                 actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: Text(isEn ? 'Cancel' : 'Cancelar'),
+                                  ),
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, true),
                                     style: TextButton.styleFrom(foregroundColor: AppColors.alert),
-                                    child: const Text('Cerrar todas'),
+                                    child: Text(isEn ? 'Close all' : 'Cerrar todas'),
                                   ),
                                 ],
                               ),
@@ -414,7 +431,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               if (context.mounted) context.go('/login');
                             }
                           },
-                          child: const Text('Cerrar todas', style: TextStyle(fontSize: 12, color: AppColors.alert)),
+                          child: Text(isEn ? 'Close all' : 'Cerrar todas', style: const TextStyle(fontSize: 12, color: AppColors.alert)),
                         ),
                     ],
                   ),
@@ -422,7 +439,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   if (sessionsState.isLoading)
                     const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator(strokeWidth: 2)))
                   else if (sessionsState.sessions.isEmpty)
-                    const Text('No hay otras sesiones activas registradas.', style: TextStyle(fontSize: 12, color: AppColors.textMuted))
+                    Text(
+                      isEn ? 'No other active sessions recorded.' : 'No hay otras sesiones activas registradas.',
+                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                    )
                   else
                     ...sessionsState.sessions.map((sess) => Container(
                           margin: const EdgeInsets.only(bottom: 6),
@@ -440,7 +460,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      sess.userAgent?.isNotEmpty ?? false ? sess.userAgent! : 'Dispositivo Guardian',
+                                      sess.userAgent?.isNotEmpty ?? false ? sess.userAgent! : (isEn ? 'Guardian Device' : 'Dispositivo Guardian'),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -483,20 +503,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.spaceSm),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Reporte Periódico de Ubicación',
+                              isEn ? 'Periodic Location Report' : 'Reporte Periódico de Ubicación',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textHeadings,
+                                color: headingColor,
                               ),
                             ),
                             Text(
-                              'Servicio en segundo plano con notificación activa',
-                              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              isEn
+                                  ? 'Background service with active foreground notification'
+                                  : 'Servicio en segundo plano con notificación activa',
+                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                             ),
                           ],
                         ),
@@ -514,12 +536,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Frecuencia de reporte:',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                        Text(
+                          isEn ? 'Report frequency:' : 'Frecuencia de reporte:',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                         ),
                         Text(
-                          'Cada $_intervalMinutes min',
+                          isEn ? 'Every $_intervalMinutes min' : 'Cada $_intervalMinutes min',
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -544,9 +566,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         _updateInterval(val.round());
                       },
                     ),
-                    const Text(
-                      'Usa precisión balanceada para ahorrar batería. La notificación "Guardian protege este teléfono" permanecerá visible en la barra de estado según las políticas del sistema.',
-                      style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
+                    Text(
+                      isEn
+                          ? 'Uses balanced power accuracy to save battery. The notification remains in status bar per Android system policy.'
+                          : 'Usa precisión balanceada para ahorrar batería. La notificación "Guardian protege este teléfono" permanecerá visible en la barra de estado según las políticas del sistema.',
+                      style: const TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
                     ),
                   ],
                 ],
@@ -569,16 +593,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     color: AppColors.primary,
                   ),
                 ),
-                title: const Text(
-                  'Protección y Permisos de Bloqueo',
+                title: Text(
+                  isEn ? 'Lock Protection & Permissions' : 'Protección y Permisos de Bloqueo',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textHeadings,
+                    color: headingColor,
                   ),
                 ),
-                subtitle: const Text(
-                  'Configura permisos de Administrador de Dispositivo y Batería',
-                  style: TextStyle(fontSize: 12),
+                subtitle: Text(
+                  isEn
+                      ? 'Configure Device Admin & Battery Optimization permissions'
+                      : 'Configura permisos de Administrador de Dispositivo y Batería',
+                  style: const TextStyle(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => context.push('/protected-setup'),
@@ -605,20 +631,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.spaceSm),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Servidor Backend (API)',
+                              isEn ? 'Backend Server (API)' : 'Servidor Backend (API)',
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textHeadings,
+                                color: headingColor,
                               ),
                             ),
                             Text(
-                              'URL base para órdenes, daemon y sincronización',
-                              style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                              isEn
+                                  ? 'Base URL for commands, daemon & sync'
+                                  : 'URL base para órdenes, daemon y sincronización',
+                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                             ),
                           ],
                         ),
@@ -648,7 +676,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ),
                         TextButton(
                           onPressed: () => _showEditUrlDialog(),
-                          child: const Text('Cambiar'),
+                          child: Text(isEn ? 'Change' : 'Cambiar'),
                         ),
                       ],
                     ),
@@ -673,16 +701,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     color: AppColors.primary,
                   ),
                 ),
-                title: const Text(
-                  'Diagnóstico del Servidor',
+                title: Text(
+                  isEn ? 'Server Diagnostics' : 'Diagnóstico del Servidor',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textHeadings,
+                    color: headingColor,
                   ),
                 ),
-                subtitle: const Text(
-                  'Verifica el estado de conexión y base de datos',
-                  style: TextStyle(fontSize: 12),
+                subtitle: Text(
+                  isEn ? 'Verify connection status & database' : 'Verifica el estado de conexión y base de datos',
+                  style: const TextStyle(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => context.push('/server-status'),
@@ -705,16 +733,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     color: AppColors.primary,
                   ),
                 ),
-                title: const Text(
-                  'Información de Privacidad',
+                title: Text(
+                  isEn ? 'Privacy Policy & Data' : 'Información de Privacidad',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textHeadings,
+                    color: headingColor,
                   ),
                 ),
-                subtitle: const Text(
-                  'Consulta qué datos se recopilan y cómo se protegen',
-                  style: TextStyle(fontSize: 12),
+                subtitle: Text(
+                  isEn ? 'Check what data is gathered and protected' : 'Consulta qué datos se recopilan y cómo se protegen',
+                  style: const TextStyle(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => context.push('/privacy'),
@@ -736,27 +764,29 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
             // Logout button
             DangerButton(
-              text: 'Cerrar Sesión Segura',
+              text: isEn ? 'Secure Sign Out' : 'Cerrar Sesión Segura',
               icon: Icons.logout_rounded,
               onPressed: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('¿Cerrar Sesión?'),
-                    content: const Text(
-                      'Se cerrará tu sesión activa en este teléfono y se limpiarán los tokens de acceso.',
+                    title: Text(isEn ? 'Sign Out?' : '¿Cerrar Sesión?'),
+                    content: Text(
+                      isEn
+                          ? 'Your active session on this device will close and access tokens cleared.'
+                          : 'Se cerrará tu sesión activa en este teléfono y se limpiarán los tokens de acceso.',
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Cancelar'),
+                        child: Text(isEn ? 'Cancel' : 'Cancelar'),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.alert,
                         ),
-                        child: const Text('Cerrar Sesión'),
+                        child: Text(isEn ? 'Sign Out' : 'Cerrar Sesión'),
                       ),
                     ],
                   ),
