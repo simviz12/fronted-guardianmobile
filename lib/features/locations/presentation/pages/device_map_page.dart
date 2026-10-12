@@ -10,6 +10,8 @@ import '../../../commands/domain/entities/command.dart';
 import '../../../commands/presentation/providers/command_provider.dart';
 import '../../../commands/presentation/widgets/command_live_status_stepper.dart';
 import '../../../devices/domain/entities/device.dart';
+import '../../../devices/presentation/providers/devices_provider.dart';
+import '../../../../core/network/native_bridge_service.dart';
 import '../providers/device_map_provider.dart';
 
 import '../../../../core/localization/language_provider.dart';
@@ -630,6 +632,36 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
   }
 
   void _handleRequestLocation() async {
+    final devicesState = ref.read(devicesNotifierProvider);
+    final isThisPhone = devicesState.thisPhoneDevice?.id == widget.device.id;
+
+    if (isThisPhone) {
+      // User is requesting location for this phone directly
+      try {
+        final nativeBridge = ref.read(nativeBridgeServiceProvider);
+        final loc = await nativeBridge.getCurrentLocation();
+        if (loc != null) {
+          await ref.read(deviceMapProvider(widget.device.id).notifier).loadMapData(silent: true);
+          final updatedState = ref.read(deviceMapProvider(widget.device.id));
+          if (updatedState.latestLocation != null) {
+            _mapController.move(
+              LatLng(updatedState.latestLocation!.latitude, updatedState.latestLocation!.longitude),
+              16.0,
+            );
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ubicación obtenida y registrada con éxito.'),
+                backgroundColor: AppColors.primary,
+              ),
+            );
+          }
+          return;
+        }
+      } catch (_) {}
+    }
+
     final success = await ref
         .read(commandNotifierProvider.notifier)
         .sendLocateCommand(deviceId: widget.device.id);

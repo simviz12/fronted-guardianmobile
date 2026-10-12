@@ -34,36 +34,48 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _loadLocationSettings() async {
-    final nativeBridge = ref.read(nativeBridgeServiceProvider);
-    final enabled = await nativeBridge.isPeriodicLocationEnabled();
-    final interval = await nativeBridge.getLocationIntervalMinutes();
-    if (mounted) {
-      setState(() {
-        _periodicEnabled = enabled;
-        _intervalMinutes = interval;
-        _isLoadingLocationSettings = false;
-      });
+    try {
+      final nativeBridge = ref.read(nativeBridgeServiceProvider);
+      final enabled = await nativeBridge.isPeriodicLocationEnabled();
+      final interval = await nativeBridge.getLocationIntervalMinutes();
+      if (mounted) {
+        setState(() {
+          _periodicEnabled = enabled;
+          _intervalMinutes = interval;
+          _isLoadingLocationSettings = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoadingLocationSettings = false;
+        });
+      }
     }
   }
 
   Future<void> _togglePeriodic(bool value) async {
-    final nativeBridge = ref.read(nativeBridgeServiceProvider);
-    await nativeBridge.setPeriodicLocationEnabled(value);
-    if (mounted) {
-      setState(() {
-        _periodicEnabled = value;
-      });
-    }
+    try {
+      final nativeBridge = ref.read(nativeBridgeServiceProvider);
+      await nativeBridge.setPeriodicLocationEnabled(value);
+      if (mounted) {
+        setState(() {
+          _periodicEnabled = value;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _updateInterval(int minutes) async {
-    final nativeBridge = ref.read(nativeBridgeServiceProvider);
-    await nativeBridge.setLocationIntervalMinutes(minutes);
-    if (mounted) {
-      setState(() {
-        _intervalMinutes = minutes;
-      });
-    }
+    try {
+      final nativeBridge = ref.read(nativeBridgeServiceProvider);
+      await nativeBridge.setLocationIntervalMinutes(minutes);
+      if (mounted) {
+        setState(() {
+          _intervalMinutes = minutes;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -79,7 +91,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final bodyColor = theme.textTheme.bodyMedium?.color ?? AppColors.textBody;
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => context.pop(),
+        ),
         title: Text(isEn ? 'Settings & Profile' : 'Ajustes y Perfil'),
         backgroundColor: Colors.transparent,
         elevation: 0,

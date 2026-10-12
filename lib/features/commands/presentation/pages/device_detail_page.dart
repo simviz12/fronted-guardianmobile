@@ -144,7 +144,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: AppSpacing.spaceSm,
                 crossAxisSpacing: AppSpacing.spaceSm,
-                childAspectRatio: 1.15,
+                childAspectRatio: 0.95,
                 children: [
                   // 1. HACER SONAR (Active if target is PROTECTED)
                   _buildRingActionTile(
@@ -390,7 +390,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: theme.brightness == Brightness.dark ? Colors.white70 : AppColors.textMuted,
+                  color: theme.brightness == Brightness.dark ? Colors.white : AppColors.textHeadings,
                 ),
               ),
               const SizedBox(height: 4),
@@ -398,7 +398,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 subtitle,
                 style: TextStyle(
                   fontSize: 11,
-                  color: theme.brightness == Brightness.dark ? const Color(0xFF94A3B8) : AppColors.textMuted,
+                  color: theme.brightness == Brightness.dark ? const Color(0xFFE2E8F0) : AppColors.textMuted,
                   height: 1.25,
                 ),
               ),

@@ -189,6 +189,43 @@ class MainActivity : FlutterActivity() {
                     }.start()
                     result.success(true)
                 }
+                "getCurrentLocation" -> {
+                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).kotlinx.coroutines.launch {
+                        try {
+                            val loc = LocationHelper.getSingleHighAccuracyLocation(applicationContext, timeoutMs = 15000L)
+                            if (loc != null) {
+                                val iso = LocationHelper.formatIsoTimestamp(java.util.Date(loc.time))
+                                val success = LocationReporterClient.reportSingleLocation(
+                                    context = applicationContext,
+                                    latitude = loc.latitude,
+                                    longitude = loc.longitude,
+                                    accuracyMeters = loc.accuracy,
+                                    speedMps = if (loc.hasSpeed()) loc.speed else null,
+                                    recordedAtIso = iso,
+                                    source = "MANUAL"
+                                )
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                    result.success(
+                                        mapOf(
+                                            "latitude" to loc.latitude,
+                                            "longitude" to loc.longitude,
+                                            "accuracy" to loc.accuracy.toDouble(),
+                                            "reported" to success
+                                        )
+                                    )
+                                }
+                            } else {
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                    result.error("LOCATION_UNAVAILABLE", "No se pudo obtener la posición GPS", null)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                result.error("LOCATION_ERROR", e.message, null)
+                            }
+                        }
+                    }
+                }
                 else -> {
                     result.notImplemented()
                 }

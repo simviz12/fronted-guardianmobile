@@ -39,6 +39,8 @@ abstract class NativeBridgeService {
   Future<bool> setLocationIntervalMinutes(int minutes);
 
   Future<void> flushOfflineLocations();
+
+  Future<Map<String, dynamic>?> getCurrentLocation();
 }
 
 class NativeBridgeServiceImpl implements NativeBridgeService {
@@ -212,6 +214,19 @@ class NativeBridgeServiceImpl implements NativeBridgeService {
     try {
       await _channel.invokeMethod('flushOfflineLocations');
     } catch (_) {}
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getCurrentLocation() async {
+    try {
+      final res = await _channel.invokeMethod<Map<Object?, Object?>>('getCurrentLocation');
+      if (res != null) {
+        return Map<String, dynamic>.from(res);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 }
 
