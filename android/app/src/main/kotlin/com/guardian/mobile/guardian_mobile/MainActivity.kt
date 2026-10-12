@@ -9,6 +9,10 @@ import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.guardian.mobile/native_bridge"
@@ -190,7 +194,7 @@ class MainActivity : FlutterActivity() {
                     result.success(true)
                 }
                 "getCurrentLocation" -> {
-                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).kotlinx.coroutines.launch {
+                    CoroutineScope(Dispatchers.IO).launch {
                         try {
                             val loc = LocationHelper.getSingleHighAccuracyLocation(applicationContext, timeoutMs = 15000L)
                             if (loc != null) {
@@ -204,7 +208,7 @@ class MainActivity : FlutterActivity() {
                                     recordedAtIso = iso,
                                     source = "MANUAL"
                                 )
-                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                withContext(Dispatchers.Main) {
                                     result.success(
                                         mapOf(
                                             "latitude" to loc.latitude,
@@ -215,12 +219,12 @@ class MainActivity : FlutterActivity() {
                                     )
                                 }
                             } else {
-                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                withContext(Dispatchers.Main) {
                                     result.error("LOCATION_UNAVAILABLE", "No se pudo obtener la posición GPS", null)
                                 }
                             }
                         } catch (e: Exception) {
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            withContext(Dispatchers.Main) {
                                 result.error("LOCATION_ERROR", e.message, null)
                             }
                         }
