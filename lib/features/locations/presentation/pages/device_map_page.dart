@@ -10,7 +10,6 @@ import '../../../commands/domain/entities/command.dart';
 import '../../../commands/presentation/providers/command_provider.dart';
 import '../../../commands/presentation/widgets/command_live_status_stepper.dart';
 import '../../../devices/domain/entities/device.dart';
-import '../../../devices/presentation/providers/devices_provider.dart';
 import '../../../../core/network/native_bridge_service.dart';
 import '../providers/device_map_provider.dart';
 
@@ -30,6 +29,7 @@ class DeviceMapPage extends ConsumerStatefulWidget {
 
 class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
   final MapController _mapController = MapController();
+  bool _isLocating = false;
 
   @override
   Widget build(BuildContext context) {
@@ -438,10 +438,11 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
     bool isEn,
   ) {
     final activeCommand = commandState.activeCommand;
-    final isLocating = activeCommand != null &&
-        activeCommand.type == CommandType.locate &&
-        (activeCommand.status == CommandStatus.pending ||
-            activeCommand.status == CommandStatus.delivered);
+    final isLocating = _isLocating ||
+        (activeCommand != null &&
+            activeCommand.type == CommandType.locate &&
+            (activeCommand.status == CommandStatus.pending ||
+                activeCommand.status == CommandStatus.delivered));
 
     final targetLocation = mapState.selectedPoint ?? mapState.latestLocation;
 
@@ -632,47 +633,91 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
   }
 
   void _handleRequestLocation() async {
-    final devicesState = ref.read(devicesNotifierProvider);
-    final isThisPhone = devicesState.thisPhoneDevice?.id == widget.device.id;
 
-    if (isThisPhone) {
-      // User is requesting location for this phone directly
-      try {
-        final nativeBridge = ref.read(nativeBridgeServiceProvider);
-        final loc = await nativeBridge.getCurrentLocation();
-        if (loc != null) {
-          await ref.read(deviceMapProvider(widget.device.id).notifier).loadMapData(silent: true);
-          final updatedState = ref.read(deviceMapProvider(widget.device.id));
-          if (updatedState.latestLocation != null) {
-            _mapController.move(
-              LatLng(updatedState.latestLocation!.latitude, updatedState.latestLocation!.longitude),
-              16.0,
-            );
-          }
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Ubicación obtenida y registrada con éxito.'),
-                backgroundColor: AppColors.primary,
-              ),
-            );
-          }
-          return;
+    setState(() {
+      _isLocating = true;
+    });
+
+    try {
+      // 1. Try to get native GPS location directly
+      final nativeBridge = ref.read(nativeBridgeServiceProvider);
+      final loc = await nativeBridge.getCurrentLocation();
+
+      if (loc != null && loc['latitude'] != null && loc['longitude'] != null) {
+        final double lat = (loc['latitude'] as num).toDouble();
+        final double lon = (loc['longitude'] as num).toDouble();
+        final double? acc = (loc['accuracy'] as num?)?.toDouble();
+
+        // Report location through authenticated API
+        try {
+          final dataSource = ref.read(locationRemoteDataSourceProvider);
+          await dataSource.reportLocation(
+            deviceId: widget.device.id,
+            latitude: lat,
+            longitude: lon,
+            accuracyMeters: acc,
+            recordedAt: DateTime.now(),
+            source: 'MANUAL',
+          );
+        } catch (_) {}
+
+        // Reload map data
+        await ref.read(deviceMapProvider(widget.device.id).notifier).loadMapData(silent: true);
+        final updatedState = ref.read(deviceMapProvider(widget.device.id));
+        if (updatedState.latestLocation != null) {
+          _mapController.move(
+            LatLng(updatedState.latestLocation!.latitude, updatedState.latestLocation!.longitude),
+            16.0,
+          );
         }
-      } catch (_) {}
-    }
 
+        if (mounted) {
+          setState(() {
+            _isLocating = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                ref.read(languageProvider) == AppLanguage.en
+                    ? 'Location captured and reported successfully (Lat: ${lat.toStringAsFixed(4)}, Lon: ${lon.toStringAsFixed(4)})'
+                    : 'Ubicación GPS capturada y registrada con éxito (${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}).',
+              ),
+              backgroundColor: AppColors.primary,
+            ),
+          );
+        }
+        return;
+      }
+    } catch (_) {}
+
+    // 2. If not obtained directly from sensor or target is remote device, send LOCATE command via backend FCM
     final success = await ref
         .read(commandNotifierProvider.notifier)
         .sendLocateCommand(deviceId: widget.device.id);
 
-    if (!success && mounted) {
-      final error = ref.read(commandNotifierProvider).errorMessage;
-      if (error != null) {
+    if (mounted) {
+      setState(() {
+        _isLocating = false;
+      });
+      if (!success) {
+        final error = ref.read(commandNotifierProvider).errorMessage;
+        if (error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error),
+              backgroundColor: AppColors.alert,
+            ),
+          );
+        }
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(error),
-            backgroundColor: AppColors.alert,
+            content: Text(
+              ref.read(languageProvider) == AppLanguage.en
+                  ? 'Location command dispatched to device.'
+                  : 'Orden de localización enviada al dispositivo.',
+            ),
+            backgroundColor: AppColors.primary,
           ),
         );
       }

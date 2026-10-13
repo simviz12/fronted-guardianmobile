@@ -93,9 +93,11 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
                 deliveredAt: status == CommandStatus.delivered ? event.updatedAt : active.deliveredAt,
                 executedAt: status == CommandStatus.executed ? event.updatedAt : active.executedAt,
               );
+              final isDeliveredOrExecuted = status == CommandStatus.delivered || status == CommandStatus.executed;
               state = state.copyWith(
                 activeCommand: updated,
                 isPolling: !updated.isFinal,
+                clearError: isDeliveredOrExecuted,
               );
               if (updated.isFinal) {
                 _pollingTimer?.cancel();
@@ -333,7 +335,8 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         final getUseCase = _ref.read(getCommandUseCaseProvider);
         final latest = await getUseCase(commandId);
 
-        state = state.copyWith(activeCommand: latest, clearError: latest.status == CommandStatus.executed);
+        final isDeliveredOrExecuted = latest.status == CommandStatus.executed || latest.status == CommandStatus.delivered;
+        state = state.copyWith(activeCommand: latest, clearError: isDeliveredOrExecuted);
 
         if (latest.isFinal) {
           timer.cancel();

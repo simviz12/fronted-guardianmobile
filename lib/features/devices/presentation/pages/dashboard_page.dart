@@ -138,34 +138,108 @@ class DashboardPage extends ConsumerWidget {
             ref.read(themeModeProvider.notifier).toggleTheme();
           },
         ),
-        // Profile Avatar Button (Direct link to Settings & Profile)
+        // Profile Avatar Menu (Direct access to Settings & Profile + Quick Sign Out)
         Padding(
-          padding: const EdgeInsets.only(right: 12, left: 4),
-          child: InkWell(
-            onTap: () => context.push('/settings'),
-            borderRadius: BorderRadius.circular(20),
-            child: Tooltip(
-              message: 'Mi Perfil y Ajustes',
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: theme.colorScheme.primary, width: 1.5),
-                ),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: theme.colorScheme.primary,
-                  child: Text(
-                    initial,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+          padding: const EdgeInsets.only(right: 8, left: 2),
+          child: PopupMenuButton<String>(
+            tooltip: isEn ? 'User Profile & Options' : 'Perfil de Usuario y Opciones',
+            offset: const Offset(0, 48),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.md)),
+            icon: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: theme.colorScheme.primary, width: 1.5),
+              ),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: theme.colorScheme.primary,
+                child: Text(
+                  initial,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),
             ),
+            onSelected: (value) async {
+              if (value == 'settings') {
+                context.push('/settings');
+              } else if (value == 'logout') {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(isEn ? 'Sign Out?' : '¿Cerrar Sesión?'),
+                    content: Text(
+                      isEn
+                          ? 'Are you sure you want to log out of your Guardian account?'
+                          : '¿Estás seguro de que deseas cerrar sesión en este teléfono?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: Text(isEn ? 'Cancel' : 'Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.alert),
+                        child: Text(isEn ? 'Sign Out' : 'Cerrar Sesión'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  await ref.read(authNotifierProvider.notifier).logout();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
+                }
+              }
+            },
+            itemBuilder: (ctx) => [
+              PopupMenuItem<String>(
+                enabled: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName ?? (isEn ? 'User' : 'Usuario'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    const Text(
+                      'Guardian Mobile',
+                      style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem<String>(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    const Icon(Icons.settings_outlined, size: 20, color: AppColors.primary),
+                    const SizedBox(width: 10),
+                    Text(isEn ? 'Settings & Profile' : 'Ajustes y Perfil'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    const Icon(Icons.logout_rounded, size: 20, color: AppColors.alert),
+                    const SizedBox(width: 10),
+                    Text(
+                      isEn ? 'Sign Out' : 'Cerrar Sesión',
+                      style: const TextStyle(color: AppColors.alert, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ],

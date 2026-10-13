@@ -12,6 +12,16 @@ abstract class LocationRemoteDataSource {
   Future<DeviceLocationDto> getLatestLocation({
     required String deviceId,
   });
+
+  Future<void> reportLocation({
+    required String deviceId,
+    required double latitude,
+    required double longitude,
+    double? accuracyMeters,
+    double? speedMps,
+    required DateTime recordedAt,
+    String source = 'MANUAL',
+  });
 }
 
 class LocationRemoteDataSourceImpl implements LocationRemoteDataSource {
@@ -51,5 +61,30 @@ class LocationRemoteDataSourceImpl implements LocationRemoteDataSource {
   }) async {
     final response = await _client.dio.get('/devices/$deviceId/locations/latest');
     return DeviceLocationDto.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> reportLocation({
+    required String deviceId,
+    required double latitude,
+    required double longitude,
+    double? accuracyMeters,
+    double? speedMps,
+    required DateTime recordedAt,
+    String source = 'MANUAL',
+  }) async {
+    final payload = <String, dynamic>{
+      'latitude': latitude,
+      'longitude': longitude,
+      'recordedAt': recordedAt.toUtc().toIso8601String(),
+      'source': source,
+    };
+    if (accuracyMeters != null) payload['accuracyMeters'] = accuracyMeters;
+    if (speedMps != null) payload['speedMps'] = speedMps;
+
+    await _client.dio.post(
+      '/devices/$deviceId/locations',
+      data: payload,
+    );
   }
 }

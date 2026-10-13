@@ -29,6 +29,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(commandNotifierProvider.notifier).clearActiveCommand();
+      ref.read(commandNotifierProvider.notifier).clearError();
     });
   }
 
