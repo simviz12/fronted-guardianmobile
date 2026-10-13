@@ -216,7 +216,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             label: Text(isEn ? 'Dark' : 'Oscuro', style: const TextStyle(fontSize: 12)),
                           ),
                         ],
-                        selected: {currentTheme},
+                        selected: {currentTheme == ThemeMode.dark ? ThemeMode.dark : ThemeMode.light},
                         onSelectionChanged: (newSelection) {
                           ref.read(themeModeProvider.notifier).setTheme(newSelection.first);
                         },

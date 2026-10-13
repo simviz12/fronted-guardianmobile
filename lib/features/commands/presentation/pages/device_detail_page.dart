@@ -144,7 +144,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: AppSpacing.spaceSm,
                 crossAxisSpacing: AppSpacing.spaceSm,
-                childAspectRatio: 0.95,
+                childAspectRatio: 0.88,
                 children: [
                   // 1. HACER SONAR (Active if target is PROTECTED)
                   _buildRingActionTile(
@@ -519,7 +519,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   isEn ? 'Custom duration vibration (1-30 s)' : 'Vibración con duración ajustable (1-30 s)',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
+                    color: isDark ? Colors.white70 : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),
@@ -608,7 +608,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   isEn ? 'Display on-screen banner & contact dialer' : 'Muestra texto y botón de llamada en pantalla',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
+                    color: isDark ? Colors.white70 : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),
@@ -736,7 +736,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   isEn ? 'Instantly locks the screen remotely' : 'Bloquea la pantalla inmediatamente',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
+                    color: isDark ? Colors.white70 : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),
@@ -853,7 +853,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                   isEn ? 'View real-time map & location history' : 'Ver mapa y rastreo en tiempo real',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted,
+                    color: isDark ? Colors.white70 : AppColors.textMuted,
                     height: 1.25,
                   ),
                 ),
@@ -966,7 +966,7 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
                       : (isEn ? 'Emergency lock & tracking' : 'Bloqueo y rastreo de emergencia'),
                   style: TextStyle(
                     fontSize: 11,
-                    color: theftModeActive ? theftActiveText : (isDark ? const Color(0xFFCBD5E1) : AppColors.textMuted),
+                    color: theftModeActive ? theftActiveText : (isDark ? Colors.white70 : AppColors.textMuted),
                     height: 1.25,
                   ),
                 ),
@@ -988,39 +988,205 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     if (isWiped) {
-      return _buildDisabledActionTile(
-        title: isEn ? 'Remote Wipe' : 'Borrado Remoto',
-        subtitle: isEn
-            ? 'This device was already factory reset and erased'
-            : 'Este dispositivo ya fue restablecido y borrado de fábrica',
-        icon: Icons.delete_forever_rounded,
-        badgeLabel: isEn ? 'Device Erased' : 'Dispositivo Borrado',
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.spaceMd),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(color: theme.colorScheme.outline),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              child: Icon(
+                Icons.delete_forever_rounded,
+                color: isDark ? const Color(0xFF94A3B8) : AppColors.textMuted,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.spaceMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isEn ? 'Remote Wipe' : 'Borrado Remoto',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppColors.textHeadings,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isEn
+                        ? 'This device was already factory reset and erased'
+                        : 'Este dispositivo ya fue restablecido y borrado de fábrica',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white70 : AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.neutralBadge,
+                borderRadius: BorderRadius.circular(AppRadii.full),
+              ),
+              child: Text(
+                isEn ? 'Device Erased' : 'Dispositivo Borrado',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutralBadgeText,
+                ),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     if (!isProtectedMode) {
-      return _buildDisabledActionTile(
-        title: isEn ? 'Remote Wipe' : 'Borrado Remoto',
-        subtitle: isEn
-            ? 'Only available for Protected mode'
-            : 'Solo disponible para dispositivos en modo Protegido',
-        icon: Icons.delete_forever_rounded,
-        badgeLabel: isEn ? 'Not protected' : 'No protegido',
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.spaceMd),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(color: theme.colorScheme.outline),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              child: Icon(
+                Icons.delete_forever_rounded,
+                color: isDark ? const Color(0xFF94A3B8) : AppColors.textMuted,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.spaceMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isEn ? 'Remote Wipe' : 'Borrado Remoto',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppColors.textHeadings,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isEn
+                        ? 'Only available for Protected mode'
+                        : 'Solo disponible para dispositivos en modo Protegido',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white70 : AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.neutralBadge,
+                borderRadius: BorderRadius.circular(AppRadii.full),
+              ),
+              child: Text(
+                isEn ? 'Not protected' : 'No protegido',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutralBadgeText,
+                ),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     if (!device.adminEnabled || !device.wipeEnabled) {
-      return Tooltip(
-        message: isEn
-            ? 'Device does not have Device Admin permissions for remote wipe'
-            : 'El dispositivo no tiene permisos de Administrador de Dispositivos para borrado remoto',
-        child: _buildDisabledActionTile(
-          title: isEn ? 'Remote Wipe' : 'Borrado Remoto',
-          subtitle: isEn
-              ? 'Admin permissions required for reset'
-              : 'Sin permisos de Administrador para restablecimiento',
-          icon: Icons.delete_forever_rounded,
-          badgeLabel: isEn ? 'Admin required' : 'Admin requerido',
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.spaceMd),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(color: theme.colorScheme.outline),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              child: Icon(
+                Icons.delete_forever_rounded,
+                color: isDark ? const Color(0xFF94A3B8) : AppColors.textMuted,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.spaceMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isEn ? 'Remote Wipe (Destruction Zone)' : 'Borrado Remoto (Zona de Destrucción)',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppColors.textHeadings,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isEn
+                        ? 'Admin permissions required for factory reset'
+                        : 'Sin permisos de Administrador para restablecimiento',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white70 : AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.neutralBadge,
+                borderRadius: BorderRadius.circular(AppRadii.full),
+              ),
+              child: Text(
+                isEn ? 'Admin required' : 'Admin requerido',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutralBadgeText,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
