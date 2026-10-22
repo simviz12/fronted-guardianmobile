@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../domain/entities/server_status.dart';
 import '../providers/server_status_provider.dart';
+import '../../../../core/localization/language_provider.dart';
 
 class ServerStatusPage extends ConsumerWidget {
   const ServerStatusPage({super.key});
@@ -14,11 +15,12 @@ class ServerStatusPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statusAsync = ref.watch(serverStatusNotifierProvider);
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Diagnóstico de Conexión'),
+        title: Text(isEn ? 'Connection Diagnostics' : 'Diagnóstico de Conexión'),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -30,9 +32,9 @@ class ServerStatusPage extends ConsumerWidget {
               Expanded(
                 child: Center(
                   child: statusAsync.when(
-                    loading: () => _buildLoadingState(),
-                    error: (error, _) => _buildErrorState(context, ref, error),
-                    data: (status) => _buildSuccessState(context, status),
+                    loading: () => _buildLoadingState(isEn),
+                    error: (error, _) => _buildErrorState(context, ref, error, isEn),
+                    data: (status) => _buildSuccessState(context, status, isEn),
                   ),
                 ),
               ),
@@ -44,8 +46,8 @@ class ServerStatusPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Column(
+  Widget _buildLoadingState(bool isEn) {
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
@@ -58,7 +60,7 @@ class ServerStatusPage extends ConsumerWidget {
         ),
         SizedBox(height: AppSpacing.spaceLg),
         Text(
-          'Comprobando conexión con el servidor...',
+          isEn ? 'Checking server connection...' : 'Comprobando conexión con el servidor...',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -70,7 +72,7 @@ class ServerStatusPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSuccessState(BuildContext context, ServerStatus status) {
+  Widget _buildSuccessState(BuildContext context, ServerStatus status, bool isEn) {
     final formattedTime = status.time.toLocal().toString().split('.').first;
 
     return AppCard(
@@ -81,8 +83,8 @@ class ServerStatusPage extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const StatusChip(
-                label: 'Servidor conectado',
+              StatusChip(
+                label: isEn ? 'Server connected' : 'Servidor conectado',
                 type: StatusChipType.safe,
               ),
               Container(
@@ -104,21 +106,21 @@ class ServerStatusPage extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.spaceLg),
           Text(
-            'Sistema Operativo',
+            isEn ? 'Operating System' : 'Sistema Operativo',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: AppSpacing.spaceXs),
           Text(
-            'El backend responde correctamente y los servicios están sincronizados.',
+            isEn ? 'Backend is responding normally and services are synchronized.' : 'El backend responde correctamente y los servicios están sincronizados.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: AppSpacing.spaceMd),
           const Divider(color: AppColors.border),
           const SizedBox(height: AppSpacing.spaceMd),
-          _buildInfoRow('Servicio', status.service),
+          _buildInfoRow(isEn ? 'Service' : 'Servicio', status.service),
           const SizedBox(height: AppSpacing.spaceSm),
           _buildInfoRow(
-            'Base de datos',
+            isEn ? 'Database' : 'Base de datos',
             status.database.toUpperCase(),
             badge: StatusChip(
               label: status.database.toUpperCase(),
@@ -128,14 +130,14 @@ class ServerStatusPage extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.spaceSm),
-          _buildInfoRow('Hora del servidor', formattedTime),
+          _buildInfoRow(isEn ? 'Server time' : 'Hora del servidor', formattedTime),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState(BuildContext context, WidgetRef ref, Object error) {
-    String errorMessage = 'No se pudo comunicar con el servidor.';
+  Widget _buildErrorState(BuildContext context, WidgetRef ref, Object error, bool isEn) {
+    String errorMessage = isEn ? 'Could not communicate with server.' : 'No se pudo comunicar con el servidor.';
     String? errorCode;
 
     if (error is Failure) {
@@ -152,17 +154,17 @@ class ServerStatusPage extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(
+          Row(
             children: [
               StatusChip(
-                label: 'Sin conexión',
+                label: isEn ? 'Disconnected' : 'Sin conexión',
                 type: StatusChipType.danger,
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.spaceMd),
           Text(
-            'Error al conectar',
+            isEn ? 'Connection Error' : 'Error al conectar',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: AppColors.alertText,
                 ),
@@ -175,7 +177,7 @@ class ServerStatusPage extends ConsumerWidget {
           if (errorCode != null) ...[
             const SizedBox(height: AppSpacing.spaceSm),
             Text(
-              'Código de error: $errorCode',
+              isEn ? 'Error code: $errorCode' : 'Código de error: $errorCode',
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -185,7 +187,7 @@ class ServerStatusPage extends ConsumerWidget {
           ],
           const SizedBox(height: AppSpacing.spaceLg),
           PrimaryButton(
-            text: 'Reintentar',
+            text: isEn ? 'Retry' : 'Reintentar',
             icon: Icons.refresh,
             onPressed: () => ref.read(serverStatusNotifierProvider.notifier).retry(),
           ),

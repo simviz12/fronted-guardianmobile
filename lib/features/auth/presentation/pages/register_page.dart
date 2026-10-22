@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/localization/language_provider.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -45,12 +46,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
     final authState = ref.watch(authNotifierProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Registro de Usuario'),
+        title: Text(isEn ? 'User Registration' : 'Registro de Usuario'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -70,13 +72,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildRegisterHeader(),
+              _buildRegisterHeader(isEn),
               const SizedBox(height: AppSpacing.spaceMd),
               if (authState.errorMessage != null) ...[
                 _buildErrorBanner(authState.errorMessage!),
                 const SizedBox(height: AppSpacing.spaceMd),
               ],
-              _buildFormCard(authState.isLoading),
+              _buildFormCard(authState.isLoading, isEn),
               const SizedBox(height: AppSpacing.spaceLg),
             ],
           ),
@@ -85,17 +87,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
   }
 
-  Widget _buildRegisterHeader() {
+  Widget _buildRegisterHeader(bool isEn) {
     return Column(
       children: [
         Text(
-          'Crea tu Cuenta',
+          isEn ? 'Create your Account' : 'Crea tu Cuenta',
           style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.spaceXs),
-        const Text(
-          'Protege tus dispositivos de inmediato con telemetría en tiempo real',
+        Text(
+          isEn ? 'Protect your devices instantly with real-time telemetry' : 'Protege tus dispositivos de inmediato con telemetría en tiempo real',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,
@@ -141,7 +143,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
   }
 
-  Widget _buildFormCard(bool isLoading) {
+  Widget _buildFormCard(bool isLoading, bool isEn) {
     return AppCard(
       child: Form(
         key: _formKey,
@@ -150,12 +152,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           children: [
             AppTextField(
               controller: _nameController,
-              label: 'Nombre completo o identificador',
+              label: isEn ? 'Full name or identifier' : 'Nombre completo o identificador',
               hintText: 'Alex Developer',
               prefixIcon: Icons.person_outline_rounded,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El nombre es requerido';
+                  return isEn ? 'Name is required' : 'El nombre es requerido';
                 }
                 return null;
               },
@@ -163,17 +165,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             const SizedBox(height: AppSpacing.spaceMd),
             AppTextField(
               controller: _emailController,
-              label: 'Correo electrónico',
+              label: isEn ? 'Email address' : 'Correo electrónico',
               hintText: 'usuario@guardianmobile.com',
               prefixIcon: Icons.mail_outline_rounded,
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El correo es requerido';
+                  return isEn ? 'Email is required' : 'El correo es requerido';
                 }
                 final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
                 if (!emailRegex.hasMatch(value.trim())) {
-                  return 'Ingresa un correo electrónico válido';
+                  return isEn ? 'Enter a valid email address' : 'Ingresa un correo electrónico válido';
                 }
                 return null;
               },
@@ -181,8 +183,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             const SizedBox(height: AppSpacing.spaceMd),
             AppTextField(
               controller: _passwordController,
-              label: 'Contraseña maestra',
-              hintText: 'Mínimo 8 caracteres, 1 letra y 1 número',
+              label: isEn ? 'Master password' : 'Contraseña maestra',
+              hintText: isEn ? 'Min 8 characters, 1 letter, 1 number' : 'Mínimo 8 caracteres, 1 letra y 1 número',
               prefixIcon: Icons.lock_outline_rounded,
               obscureText: _obscurePassword,
               suffixIcon: IconButton(
@@ -201,15 +203,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'La contraseña es requerida';
+                  return isEn ? 'Password is required' : 'La contraseña es requerida';
                 }
                 if (value.length < 8) {
-                  return 'Debe tener al menos 8 caracteres';
+                  return isEn ? 'Must be at least 8 characters' : 'Debe tener al menos 8 caracteres';
                 }
                 final hasLetter = RegExp(r'[a-zA-Z]').hasMatch(value);
                 final hasDigit = RegExp(r'[0-9]').hasMatch(value);
                 if (!hasLetter || !hasDigit) {
-                  return 'Debe incluir al menos 1 letra y 1 número';
+                  return isEn ? 'Must include at least 1 letter and 1 number' : 'Debe incluir al menos 1 letra y 1 número';
                 }
                 return null;
               },
@@ -217,8 +219,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             const SizedBox(height: AppSpacing.spaceMd),
             AppTextField(
               controller: _confirmPasswordController,
-              label: 'Confirmar contraseña maestra',
-              hintText: 'Repite tu contraseña',
+              label: isEn ? 'Confirm master password' : 'Confirmar contraseña maestra',
+              hintText: isEn ? 'Repeat your password' : 'Repite tu contraseña',
               prefixIcon: Icons.lock_reset_rounded,
               obscureText: _obscureConfirmPassword,
               textInputAction: TextInputAction.done,
@@ -239,10 +241,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Confirma tu contraseña';
+                  return isEn ? 'Confirm your password' : 'Confirma tu contraseña';
                 }
                 if (value != _passwordController.text) {
-                  return 'Las contraseñas no coinciden';
+                  return isEn ? 'Passwords do not match' : 'Las contraseñas no coinciden';
                 }
                 return null;
               },
@@ -255,9 +257,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline,
                     size: 16,
                     color: AppColors.textMuted,
@@ -265,7 +267,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Requisitos: Mínimo 8 caracteres, 1 letra y 1 número.',
+                      isEn ? 'Requirements: Min 8 chars, 1 letter and 1 number.' : 'Requisitos: Mínimo 8 caracteres, 1 letra y 1 número.',
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textMuted,
@@ -277,7 +279,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             ),
             const SizedBox(height: AppSpacing.spaceLg),
             PrimaryButton(
-              text: 'Registrar Cuenta',
+              text: isEn ? 'Register Account' : 'Registrar Cuenta',
               icon: Icons.app_registration_rounded,
               isLoading: isLoading,
               onPressed: _submitRegister,
@@ -286,8 +288,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  '¿Ya tienes una cuenta? ',
+                Text(
+                  isEn ? 'Already have an account? ' : '¿Ya tienes una cuenta? ',
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.textBody,
@@ -298,8 +300,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ref.read(authNotifierProvider.notifier).clearError();
                     context.pop();
                   },
-                  child: const Text(
-                    'Inicia sesión',
+                  child: Text(
+                    isEn ? 'Sign in' : 'Inicia sesión',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,

@@ -8,6 +8,7 @@ import '../../../../core/theme/app_widgets.dart';
 import '../../../../core/network/fcm_notification_service.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_provider.dart';
+import '../../../../core/localization/language_provider.dart';
 
 class LinkDevicePage extends ConsumerStatefulWidget {
   const LinkDevicePage({super.key});
@@ -53,8 +54,8 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Dispositivo vinculado exitosamente.'),
+          SnackBar(
+            content: Text(ref.read(languageProvider) == AppLanguage.en ? 'Device linked successfully.' : 'Dispositivo vinculado exitosamente.'),
             backgroundColor: AppColors.primary,
           ),
         );
@@ -84,10 +85,11 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
   @override
   Widget build(BuildContext context) {
     final installInfoAsync = ref.watch(deviceInstallInfoProvider);
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vincular este Celular'),
+        title: Text(isEn ? 'Link this Phone' : 'Vincular este Celular'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -97,7 +99,7 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (err, _) => Center(
-            child: Text('Error al leer información: $err'),
+            child: Text(isEn ? 'Error reading info: $err' : 'Error al leer información: $err'),
           ),
           data: (info) {
             if (_nameController.text.isEmpty) {
@@ -152,7 +154,7 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'Nombre del dispositivo',
+                            isEn ? 'Device Name' : 'Nombre del dispositivo',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textHeadings,
@@ -161,22 +163,22 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                           const SizedBox(height: AppSpacing.spaceSm),
                           AppTextField(
                             controller: _nameController,
-                            label: 'Nombre identificador',
-                            hintText: 'Ej. Pixel 8 de Gabriel',
+                            label: isEn ? 'Identifier Name' : 'Nombre identificador',
+                            hintText: isEn ? 'e.g. Gabriel Pixel 8' : 'Ej. Pixel 8 de Gabriel',
                             prefixIcon: Icons.smartphone_rounded,
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {
-                                return 'El nombre es obligatorio';
+                                return isEn ? 'Name is required' : 'El nombre es obligatorio';
                               }
                               if (val.trim().length > 40) {
-                                return 'Máximo 40 caracteres';
+                                return isEn ? 'Maximum 40 characters' : 'Máximo 40 caracteres';
                               }
                               return null;
                             },
                           ),
                           const SizedBox(height: AppSpacing.spaceSm),
                           Text(
-                            'Modelo: ${info.model ?? 'Desconocido'} • SO: ${info.osVersion ?? 'N/A'} • App: ${info.appVersion ?? '1.0.0'}',
+                            isEn ? 'Model: ${info.model ?? "Unknown"} • OS: ${info.osVersion ?? "N/A"} • App: ${info.appVersion ?? "1.0.0"}' : 'Modelo: ${info.model ?? "Desconocido"} • SO: ${info.osVersion ?? "N/A"} • App: ${info.appVersion ?? "1.0.0"}',
                             style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textMuted,
@@ -187,7 +189,7 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                     ),
                     const SizedBox(height: AppSpacing.spaceLg),
                     Text(
-                      'Selecciona el rol de este celular',
+                      isEn ? 'Select role for this phone' : 'Selecciona el rol de este celular',
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -197,23 +199,23 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                     // Protected Choice Card
                     _buildModeOption(
                       mode: DeviceMode.protected,
-                      title: 'Dispositivo protegido',
+                      title: isEn ? 'Protected device' : 'Dispositivo protegido',
                       subtitle:
-                          'Este celular recibirá las órdenes: sonar, bloquear, ubicar… Diseñado para el equipo que deseas proteger ante robo.',
+                          isEn ? 'This phone will receive commands: ring, lock, locate… Designed for the device you want to protect.' : 'Este celular recibirá las órdenes: sonar, bloquear, ubicar… Diseñado para el equipo que deseas proteger ante robo.',
                       icon: Icons.shield_rounded,
                     ),
                     const SizedBox(height: AppSpacing.spaceMd),
                     // Controller Choice Card
                     _buildModeOption(
                       mode: DeviceMode.controller,
-                      title: 'Controlador',
+                      title: isEn ? 'Controller' : 'Controlador',
                       subtitle:
-                          'Desde aquí administrarás tus otros dispositivos. Podrás enviar alertas y rastrear los celulares protegidos.',
+                          isEn ? 'From here you manage your other devices, send alerts, and track protected phones.' : 'Desde aquí administrarás tus otros dispositivos. Podrás enviar alertas y rastrear los celulares protegidos.',
                       icon: Icons.admin_panel_settings_rounded,
                     ),
                     const SizedBox(height: AppSpacing.spaceXl),
                     PrimaryButton(
-                      text: 'Completar Vinculación',
+                      text: isEn ? 'Complete Pairing' : 'Completar Vinculación',
                       icon: Icons.link_rounded,
                       isLoading: _isSubmitting,
                       onPressed: _submitLink,

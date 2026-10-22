@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/localization/language_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -42,6 +43,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
     final authState = ref.watch(authNotifierProvider);
 
     return Scaffold(
@@ -55,18 +57,32 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: AppSpacing.spaceSm),
-              _buildTrustHeader(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => ref.read(languageProvider.notifier).toggleLanguage(),
+                    icon: const Icon(Icons.language_rounded, size: 16),
+                    label: Text(isEn ? 'ES' : 'EN'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.spaceXs),
+              _buildTrustHeader(isEn),
               const SizedBox(height: AppSpacing.spaceLg),
               if (authState.errorMessage != null) ...[
                 _buildErrorBanner(authState.errorMessage!),
                 const SizedBox(height: AppSpacing.spaceMd),
               ],
-              _buildFormCard(authState.isLoading),
+              _buildFormCard(authState.isLoading, isEn),
               const SizedBox(height: AppSpacing.spaceMd),
-              _buildProtectionBadge(),
+              _buildProtectionBadge(isEn),
               const SizedBox(height: AppSpacing.spaceLg),
-              _buildFooter(),
+              _buildFooter(isEn),
             ],
           ),
         ),
@@ -74,7 +90,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildTrustHeader() {
+  Widget _buildTrustHeader(bool isEn) {
     return Column(
       children: [
         Stack(
@@ -105,15 +121,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         const SizedBox(height: AppSpacing.spaceMd),
         Text(
-          'Acceso Seguro',
+          isEn ? 'Secure Access' : 'Acceso Seguro',
           style: Theme.of(context).textTheme.displayLarge?.copyWith(
                 fontSize: 24,
               ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.spaceXs),
-        const Text(
-          'Ingresa tus credenciales para gestionar y localizar tus dispositivos protegidos',
+        Text(
+          isEn ? 'Enter your credentials to manage and track your protected devices' : 'Ingresa tus credenciales para gestionar y localizar tus dispositivos protegidos',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,
@@ -159,7 +175,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildFormCard(bool isLoading) {
+  Widget _buildFormCard(bool isLoading, bool isEn) {
     return AppCard(
       child: Form(
         key: _formKey,
@@ -168,17 +184,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           children: [
             AppTextField(
               controller: _emailController,
-              label: 'Correo electrónico institucional o personal',
+              label: isEn ? 'Email address' : 'Correo electrónico institucional o personal',
               hintText: 'usuario@guardianmobile.com',
               prefixIcon: Icons.mail_outline_rounded,
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El correo es requerido';
+                  return isEn ? 'Email is required' : 'El correo es requerido';
                 }
                 final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
                 if (!emailRegex.hasMatch(value.trim())) {
-                  return 'Ingresa un correo electrónico válido';
+                  return isEn ? 'Enter a valid email address' : 'Ingresa un correo electrónico válido';
                 }
                 return null;
               },
@@ -186,7 +202,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             const SizedBox(height: AppSpacing.spaceMd),
             AppTextField(
               controller: _passwordController,
-              label: 'Contraseña maestra',
+              label: isEn ? 'Master password' : 'Contraseña maestra',
               hintText: '••••••••••••',
               prefixIcon: Icons.key_outlined,
               obscureText: _obscurePassword,
@@ -208,14 +224,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'La contraseña es requerida';
+                  return isEn ? 'Password is required' : 'La contraseña es requerida';
                 }
                 return null;
               },
             ),
             const SizedBox(height: AppSpacing.spaceLg),
             PrimaryButton(
-              text: 'Iniciar Sesión Segura',
+              text: isEn ? 'Secure Sign In' : 'Iniciar Sesión Segura',
               icon: Icons.verified_user_outlined,
               isLoading: isLoading,
               onPressed: _submitLogin,
@@ -224,8 +240,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  '¿No tienes una cuenta? ',
+                Text(
+                  isEn ? "Don't have an account? " : '¿No tienes una cuenta? ',
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.textBody,
@@ -236,8 +252,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ref.read(authNotifierProvider.notifier).clearError();
                     context.push('/register');
                   },
-                  child: const Text(
-                    'Crear cuenta',
+                  child: Text(
+                    isEn ? 'Create account' : 'Crear cuenta',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -253,7 +269,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildProtectionBadge() {
+  Widget _buildProtectionBadge(bool isEn) {
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -261,17 +277,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           color: AppColors.surfaceContainerLow,
           borderRadius: BorderRadius.circular(AppRadii.full),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.shield_rounded,
               color: AppColors.primary,
               size: 16,
             ),
-            SizedBox(width: 6),
+            const SizedBox(width: 6),
             Text(
-              'Canal seguro de autenticación remota',
+              isEn ? 'Secure remote authentication channel' : 'Canal seguro de autenticación remota',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -284,12 +300,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(bool isEn) {
     return Column(
       children: [
         GestureDetector(
           onTap: () => context.push('/server-status'),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
@@ -299,7 +315,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               SizedBox(width: 6),
               Text(
-                'Estado del servidor (Diagnóstico)',
+                isEn ? 'Server Status (Diagnostics)' : 'Estado del servidor (Diagnóstico)',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -311,8 +327,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
         const SizedBox(height: AppSpacing.spaceXs),
-        const Text(
-          'Protegido con cifrado punto a punto AES-256',
+        Text(
+          isEn ? 'Protected with end-to-end AES-256 encryption' : 'Protegido con cifrado punto a punto AES-256',
           style: TextStyle(
             fontSize: 11,
             color: AppColors.textMuted,

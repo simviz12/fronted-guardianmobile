@@ -6,6 +6,7 @@ import '../../../../core/network/native_bridge_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/localization/language_provider.dart';
 
 class ProtectedSetupPage extends ConsumerStatefulWidget {
   const ProtectedSetupPage({super.key});
@@ -100,6 +101,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
 
   @override
   Widget build(BuildContext context) {
+    final isEn = ref.watch(languageProvider) == AppLanguage.en;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -131,12 +133,12 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                       child: const Icon(Icons.shield_rounded, color: Colors.white, size: 26),
                     ),
                     const SizedBox(width: AppSpacing.spaceMd),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Modo Protegido Activo',
+                            isEn ? 'Protected Mode Active' : 'Modo Protegido Activo',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -145,7 +147,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Para que este celular suene y ejecute órdenes incluso bloqueado o con la pantalla apagada, concede los siguientes permisos:',
+                            isEn ? 'To allow this phone to ring and execute commands while locked or with the screen off, grant the following permissions:' : 'Para que este celular suene y ejecute órdenes incluso bloqueado o con la pantalla apagada, concede los siguientes permisos:',
                             style: TextStyle(fontSize: 12, color: AppColors.textBody),
                           ),
                         ],
@@ -165,9 +167,9 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                       children: [
                         const Icon(Icons.notifications_active_rounded, color: AppColors.primary),
                         const SizedBox(width: AppSpacing.spaceSm),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Permiso de Notificaciones',
+                            isEn ? 'Notification Permission' : 'Permiso de Notificaciones',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -176,21 +178,21 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                           ),
                         ),
                         if (_notificationGranted)
-                          const StatusChip(label: 'Concedido', type: StatusChipType.safe)
+                          StatusChip(label: isEn ? 'Granted' : 'Concedido', type: StatusChipType.safe)
                         else
-                          const StatusChip(label: 'Pendiente', type: StatusChipType.warning),
+                          StatusChip(label: isEn ? 'Pending' : 'Pendiente', type: StatusChipType.warning),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
-                    const Text(
-                      'Requerido en Android para mostrar la alerta en primer plano y permitirte detener la alarma cuando tú lo decidas.',
+                    Text(
+                      isEn ? 'Required on Android to display alerts in the foreground and let you dismiss alarms.' : 'Requerido en Android para mostrar la alerta en primer plano y permitirte detener la alarma cuando tú lo decidas.',
                       style: TextStyle(fontSize: 12, color: AppColors.textBody),
                     ),
                     const SizedBox(height: AppSpacing.spaceSm),
                     if (!_notificationGranted)
                       OutlinedButton(
                         onPressed: _requestNotification,
-                        child: const Text('Conceder Notificaciones'),
+                        child: Text(isEn ? 'Grant Notifications' : 'Conceder Notificaciones'),
                       ),
                   ],
                 ),
@@ -206,9 +208,9 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                       children: [
                         const Icon(Icons.battery_charging_full_rounded, color: AppColors.primary),
                         const SizedBox(width: AppSpacing.spaceSm),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Sin Restricción de Batería',
+                            isEn ? 'Unrestricted Battery' : 'Sin Restricción de Batería',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -217,14 +219,14 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                           ),
                         ),
                         if (_batteryExempted)
-                          const StatusChip(label: 'Listo', type: StatusChipType.safe)
+                          StatusChip(label: isEn ? 'Ready' : 'Listo', type: StatusChipType.safe)
                         else
-                          const StatusChip(label: 'Recomendado', type: StatusChipType.neutral),
+                          StatusChip(label: isEn ? 'Recommended' : 'Recomendado', type: StatusChipType.neutral),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
-                    const Text(
-                      'Evita que el sistema operativo suspenda el servicio de alarma cuando el teléfono lleve varias horas sin usarse.\nEn Xiaomi/HyperOS, selecciona la opción "Sin restricciones" en el Ahorro de batería de la app.',
+                    Text(
+                      isEn ? 'Prevents the OS from putting the alarm service to sleep after hours of inactivity.\nOn Xiaomi/HyperOS, select "No restrictions" in Battery Saver.' : 'Evita que el sistema operativo suspenda el servicio de alarma cuando el teléfono lleve varias horas sin usarse.\nEn Xiaomi/HyperOS, selecciona la opción "Sin restricciones" en el Ahorro de batería de la app.',
                       style: TextStyle(fontSize: 12, color: AppColors.textBody),
                     ),
                     const SizedBox(height: AppSpacing.spaceSm),
@@ -234,11 +236,11 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                       children: [
                         OutlinedButton(
                           onPressed: _requestBatteryOptimization,
-                          child: const Text('1. Solicitar Exención Directa'),
+                          child: Text(isEn ? '1. Request Exemption' : '1. Solicitar Exención Directa'),
                         ),
                         OutlinedButton(
                           onPressed: _openSettings,
-                          child: const Text('2. Ajustes de la App (Xiaomi)'),
+                          child: Text(isEn ? '2. App Settings' : '2. Ajustes de la App (Xiaomi)'),
                         ),
                       ],
                     ),
@@ -269,7 +271,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                         if (_adminEnabled)
                           const StatusChip(label: 'Activado', type: StatusChipType.safe)
                         else
-                          const StatusChip(label: 'Pendiente', type: StatusChipType.warning),
+                          StatusChip(label: isEn ? 'Pending' : 'Pendiente', type: StatusChipType.warning),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
@@ -333,7 +335,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                         else if (_hasForegroundLocation)
                           const StatusChip(label: 'Parcial', type: StatusChipType.warning)
                         else
-                          const StatusChip(label: 'Pendiente', type: StatusChipType.warning),
+                          StatusChip(label: isEn ? 'Pending' : 'Pendiente', type: StatusChipType.warning),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
@@ -379,16 +381,16 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                         if (!_hasForegroundLocation)
                           OutlinedButton(
                             onPressed: _requestForegroundLocation,
-                            child: const Text('1. Permitir Ubicación Precisa'),
+                            child: Text(isEn ? '1. Allow Precise Location' : '1. Permitir Ubicación Precisa'),
                           ),
                         if (_hasForegroundLocation && !_hasBackgroundLocation)
                           OutlinedButton(
                             onPressed: _requestBackgroundLocation,
-                            child: const Text('2. Permitir Todo el Tiempo'),
+                            child: Text(isEn ? '2. Allow All The Time' : '2. Permitir Todo el Tiempo'),
                           ),
                         OutlinedButton(
                           onPressed: _openSettings,
-                          child: const Text('Ajustes del Sistema'),
+                          child: Text(isEn ? 'System Settings' : 'Ajustes del Sistema'),
                         ),
                       ],
                     ),
@@ -398,7 +400,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
 
               const SizedBox(height: AppSpacing.spaceLg),
               PrimaryButton(
-                text: 'Continuar al Panel',
+                text: isEn ? 'Continue to Dashboard' : 'Continuar al Panel',
                 icon: Icons.check_circle_outline_rounded,
                 onPressed: () => context.go('/home'),
               ),
