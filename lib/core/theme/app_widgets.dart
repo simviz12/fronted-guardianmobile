@@ -7,6 +7,7 @@ class AppCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final Color? backgroundColor;
   final Border? border;
+  final VoidCallback? onTap;
 
   const AppCard({
     super.key,
@@ -14,38 +15,43 @@ class AppCard extends StatelessWidget {
     this.padding,
     this.backgroundColor,
     this.border,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
-    final defaultBorder = isDark ? const Color(0xFF334155) : AppColors.border;
+    final defaultBg = isDark ? AppColors.darkSurface : AppColors.surface;
+    final defaultBorder = isDark ? AppColors.darkBorder : AppColors.border;
 
-    return Container(
+    Widget container = Container(
       padding: padding ?? const EdgeInsets.all(AppSpacing.spaceMd),
       decoration: BoxDecoration(
         color: backgroundColor ?? defaultBg,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
-        border: border ?? Border.all(color: defaultBorder, width: 1),
+        borderRadius: BorderRadius.circular(AppRadii.xl),
+        border: border ?? Border.all(color: defaultBorder, width: 1.2),
         boxShadow: isDark
             ? []
             : const [
                 BoxShadow(
                   color: Color.fromRGBO(15, 23, 42, 0.04),
-                  offset: Offset(0, 1),
-                  blurRadius: 3,
-                ),
-                BoxShadow(
-                  color: Color.fromRGBO(15, 23, 42, 0.03),
-                  offset: Offset(0, 1),
-                  blurRadius: 2,
-                  spreadRadius: -1,
+                  offset: Offset(0, 2),
+                  blurRadius: 8,
                 ),
               ],
       ),
       child: child,
     );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.xl),
+        child: container,
+      );
+    }
+
+    return container;
   }
 }
 
@@ -54,6 +60,8 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final IconData? icon;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   const PrimaryButton({
     super.key,
@@ -61,17 +69,23 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.icon,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bg = backgroundColor ?? theme.colorScheme.primary;
+    final fg = foregroundColor ?? Colors.white;
+
     return SizedBox(
       height: 48,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
+          backgroundColor: bg,
+          foregroundColor: fg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.md),
           ),
@@ -94,7 +108,14 @@ class PrimaryButton extends StatelessWidget {
                     Icon(icon, size: 18),
                     const SizedBox(width: AppSpacing.spaceSm),
                   ],
-                  Text(text),
+                  Text(
+                    text,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: fg,
+                    ),
+                  ),
                 ],
               ),
       ),
@@ -147,7 +168,14 @@ class DangerButton extends StatelessWidget {
                     Icon(icon, size: 18),
                     const SizedBox(width: AppSpacing.spaceSm),
                   ],
-                  Text(text),
+                  Text(
+                    text,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
       ),
@@ -169,30 +197,31 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     Color bg;
     Color text;
     Color dot;
 
     switch (type) {
       case StatusChipType.safe:
-        bg = AppColors.safeSubtle;
-        text = AppColors.safeText;
+        bg = isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : AppColors.safeSubtle;
+        text = isDark ? const Color(0xFF6EE7B7) : AppColors.safeText;
         dot = AppColors.safe;
         break;
       case StatusChipType.warning:
-        bg = AppColors.warningSubtle;
-        text = AppColors.warningText;
+        bg = isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : AppColors.warningSubtle;
+        text = isDark ? const Color(0xFFFDE68A) : AppColors.warningText;
         dot = AppColors.warning;
         break;
       case StatusChipType.danger:
-        bg = AppColors.alertContainer;
-        text = AppColors.alertText;
+        bg = isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : AppColors.alertContainer;
+        text = isDark ? const Color(0xFFFCA5A5) : AppColors.alertText;
         dot = AppColors.alert;
         break;
       case StatusChipType.neutral:
-        bg = AppColors.neutralBadge;
-        text = AppColors.neutralBadgeText;
-        dot = AppColors.neutralBadgeText;
+        bg = isDark ? AppColors.darkNeutralBadge : AppColors.neutralBadge;
+        text = isDark ? AppColors.darkNeutralBadgeText : AppColors.neutralBadgeText;
+        dot = text;
         break;
     }
 
@@ -201,7 +230,7 @@ class StatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(AppRadii.full),
-        border: Border.all(color: dot.withValues(alpha: 0.2), width: 1),
+        border: Border.all(color: dot.withValues(alpha: 0.25), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -219,8 +248,8 @@ class StatusChip extends StatelessWidget {
             label,
             style: TextStyle(
               color: text,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

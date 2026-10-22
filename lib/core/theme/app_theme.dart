@@ -18,75 +18,75 @@ class AppTheme {
   static ThemeData _buildTheme({required Brightness brightness}) {
     final isDark = brightness == Brightness.dark;
 
-    // Deep modern dark background (OLED / Midnight Slate)
-    final bgColor = isDark ? const Color(0xFF0B0F19) : AppColors.background;
-    final surfaceColor = isDark ? const Color(0xFF161F30) : AppColors.surface;
-    final surfaceContainerLow = isDark ? const Color(0xFF111827) : AppColors.surfaceContainerLow;
-    final textHeadColor = isDark ? const Color(0xFFF9FAFB) : AppColors.textHeadings;
-    final textBodyColor = isDark ? const Color(0xFFD1D5DB) : AppColors.textBody;
-    final textMutedColor = isDark ? const Color(0xFF9CA3AF) : AppColors.textMuted;
-    final borderColor = isDark ? const Color(0xFF2D3748) : AppColors.border;
+    // High contrast black & white design
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
+    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.surface;
+    final surfaceContainerLow = isDark ? AppColors.darkSurfaceContainerLow : AppColors.surfaceContainerLow;
+    final textHeadColor = isDark ? AppColors.darkTextHeadings : AppColors.textHeadings;
+    final textBodyColor = isDark ? AppColors.darkTextBody : AppColors.textBody;
+    final textMutedColor = isDark ? AppColors.darkTextMuted : AppColors.textMuted;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.border;
 
-    final primaryColor = isDark ? const Color(0xFF10B981) : AppColors.primary;
-    final primaryContainer = isDark ? const Color(0xFF064E3B) : AppColors.primaryContainer;
+    final primaryColor = isDark ? AppColors.primaryLight : AppColors.primary;
+    final primaryContainer = isDark ? const Color(0xFF064E3B) : AppColors.primarySubtle;
 
     final textTheme = const TextTheme().copyWith(
       displayLarge: TextStyle(
         fontFamily: defaultFont,
         fontSize: 28,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
         height: 36 / 28,
-        letterSpacing: -0.28,
+        letterSpacing: -0.5,
         color: textHeadColor,
       ),
       headlineMedium: TextStyle(
         fontFamily: defaultFont,
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         height: 28 / 20,
         color: textHeadColor,
       ),
       headlineSmall: TextStyle(
         fontFamily: defaultFont,
         fontSize: 16,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         height: 24 / 16,
         color: textHeadColor,
       ),
       bodyLarge: TextStyle(
         fontFamily: defaultFont,
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        height: 24 / 16,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        height: 22 / 15,
         color: textBodyColor,
       ),
       bodyMedium: TextStyle(
         fontFamily: defaultFont,
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: FontWeight.w400,
-        height: 20 / 14,
+        height: 18 / 13,
         color: textBodyColor,
       ),
       bodySmall: TextStyle(
         fontFamily: defaultFont,
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: FontWeight.w400,
-        height: 18 / 13,
+        height: 16 / 12,
         color: textMutedColor,
       ),
       labelLarge: TextStyle(
         fontFamily: defaultFont,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        height: 20 / 14,
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        height: 18 / 13,
         color: textHeadColor,
       ),
       labelSmall: TextStyle(
         fontFamily: defaultFont,
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: FontWeight.w600,
-        height: 16 / 12,
-        letterSpacing: 0.12,
+        height: 14 / 11,
+        letterSpacing: 0.2,
         color: textMutedColor,
       ),
     );
@@ -100,10 +100,10 @@ class AppTheme {
         primary: primaryColor,
         onPrimary: Colors.white,
         primaryContainer: primaryContainer,
-        onPrimaryContainer: Colors.white,
-        secondary: isDark ? const Color(0xFF94A3B8) : const Color(0xFF516071),
+        onPrimaryContainer: isDark ? Colors.white : AppColors.primaryDark,
+        secondary: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
         onSecondary: Colors.white,
-        error: isDark ? const Color(0xFFF87171) : AppColors.alert,
+        error: isDark ? const Color(0xFFEF4444) : AppColors.alert,
         onError: Colors.white,
         surface: surfaceColor,
         onSurface: textHeadColor,
@@ -115,8 +115,8 @@ class AppTheme {
         color: surfaceColor,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-          side: BorderSide(color: borderColor, width: 1),
+          borderRadius: BorderRadius.circular(AppRadii.xl),
+          side: BorderSide(color: borderColor, width: 1.2),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -146,7 +146,7 @@ class AppTheme {
           textStyle: const TextStyle(
             fontFamily: defaultFont,
             fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
           elevation: 0,
         ),
@@ -159,8 +159,8 @@ class AppTheme {
         iconTheme: IconThemeData(color: textHeadColor),
         titleTextStyle: TextStyle(
           fontFamily: defaultFont,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
           color: textHeadColor,
         ),
       ),
@@ -184,7 +184,7 @@ class AppTheme {
         ),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF1F2937),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
         contentTextStyle: const TextStyle(color: Colors.white, fontSize: 13),
         behavior: SnackBarBehavior.floating,
       ),

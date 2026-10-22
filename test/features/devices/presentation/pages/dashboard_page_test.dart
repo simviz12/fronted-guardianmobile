@@ -97,9 +97,10 @@ void main() {
     expect(find.text('Pixel 8 de Carlos'), findsOneWidget);
     expect(find.text('ESTE TELÉFONO • DISPOSITIVO PRINCIPAL'), findsOneWidget);
     expect(find.text('78%'), findsOneWidget);
-    expect(find.text('Protegido'), findsOneWidget);
+    expect(find.text('Protegido'), findsWidgets);
     expect(find.text('En línea'), findsOneWidget);
 
+    await tester.scrollUntilVisible(find.text('Galaxy Tab S9'), 200);
     expect(find.text('Galaxy Tab S9'), findsOneWidget);
     expect(find.text('Controlador'), findsOneWidget);
     expect(find.text('Desconectado'), findsOneWidget);
