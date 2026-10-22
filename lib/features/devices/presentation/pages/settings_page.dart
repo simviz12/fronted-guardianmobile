@@ -329,7 +329,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             Row(
                               children: [
                                 Text(
-                                  isEn ? 'Two-Factor Authentication (2FA)' : 'Autenticación en 2 Pasos (2FA)',
+                                  isEn ? 'Two-Factor (2FA)' : '2 Pasos (2FA)',
                                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                                 ),
                                 const SizedBox(width: 8),
@@ -344,7 +344,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   child: Text(
                                     (user?.twoFactorEnabled ?? false)
                                         ? (isEn ? 'ACTIVE' : 'ACTIVO')
-                                        : (isEn ? 'INACTIVE' : 'INACTIVO'),
+                                        : (isEn ? 'OFF' : 'OFF'),
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -373,13 +373,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           child: Text(isEn ? 'Disable' : 'Desactivar'),
                         )
                       else
-                        ElevatedButton(
+                        OutlinedButton(
                           onPressed: () => context.push('/2fa-setup'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                            minimumSize: const Size(60, 32),
                           ),
-                          child: Text(isEn ? 'Enable' : 'Activar'),
+                          child: Text(isEn ? 'Enable' : 'Activar', style: const TextStyle(fontSize: 12)),
                         ),
                     ],
                   ),

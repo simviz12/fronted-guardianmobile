@@ -62,7 +62,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
       centerTitle: false,
-      titleSpacing: AppSpacing.marginMobile,
+      titleSpacing: 8,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -111,7 +111,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 ],
               ),
               Text(
-                isEn ? 'DEVICES & SECURITY' : 'DISPOSITIVOS & SEGURIDAD',
+                isEn ? 'SECURITY' : 'SEGURIDAD',
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
@@ -1431,3 +1431,4 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     return isEn ? '${diff.inDays}d ago' : 'Hace ${diff.inDays} d';
   }
 }
+
