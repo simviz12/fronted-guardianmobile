@@ -189,31 +189,41 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            currentTheme == ThemeMode.dark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                            size: 20,
-                            color: AppColors.textMuted,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            isEn ? 'Theme (Dark / Light)' : 'Tema (Oscuro / Claro)',
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                        ],
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              currentTheme == ThemeMode.dark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                              size: 20,
+                              color: AppColors.textMuted,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                isEn ? 'Theme' : 'Tema',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       SegmentedButton<ThemeMode>(
+                        style: const ButtonStyle(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
                         segments: [
                           ButtonSegment<ThemeMode>(
                             value: ThemeMode.light,
-                            icon: const Icon(Icons.wb_sunny_outlined, size: 16),
-                            label: Text(isEn ? 'Light' : 'Claro', style: const TextStyle(fontSize: 12)),
+                            icon: const Icon(Icons.wb_sunny_outlined, size: 15),
+                            label: Text(isEn ? 'Light' : 'Claro', style: const TextStyle(fontSize: 11)),
                           ),
                           ButtonSegment<ThemeMode>(
                             value: ThemeMode.dark,
-                            icon: const Icon(Icons.nightlight_round, size: 16),
-                            label: Text(isEn ? 'Dark' : 'Oscuro', style: const TextStyle(fontSize: 12)),
+                            icon: const Icon(Icons.nightlight_round, size: 15),
+                            label: Text(isEn ? 'Dark' : 'Oscuro', style: const TextStyle(fontSize: 11)),
                           ),
                         ],
                         selected: {currentTheme == ThemeMode.dark ? ThemeMode.dark : ThemeMode.light},
