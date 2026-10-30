@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
-import '../../../../core/config/api_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
@@ -43,140 +41,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
-  Future<void> _showServerDialog(BuildContext context) async {
-    final controller = TextEditingController(text: ApiConfig.baseUrl);
-    String testStatus = '';
-
-    await showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            return AlertDialog(
-              backgroundColor: AppColors.surface,
-              title: const Row(
-                children: [
-                  Icon(Icons.dns_rounded, color: AppColors.primary),
-                  SizedBox(width: 8),
-                  Text('Servidor / Backend', style: TextStyle(fontSize: 18, color: AppColors.textHeadings)),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Configura la URL del backend para conectar tu app con la base de datos y comandos.',
-                      style: TextStyle(fontSize: 13, color: AppColors.textMuted),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: controller,
-                      style: const TextStyle(color: AppColors.textHeadings, fontSize: 13),
-                      decoration: const InputDecoration(
-                        labelText: 'URL de la API',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Accesos rápidos:',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textMuted),
-                    ),
-                    const SizedBox(height: 6),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        setDialogState(() {
-                          controller.text = ApiConfig.defaultUrl;
-                          testStatus = '';
-                        });
-                      },
-                      icon: const Icon(Icons.cloud_outlined, size: 16),
-                      label: const Text('Túnel Seguro (Global)', style: TextStyle(fontSize: 12)),
-                    ),
-                    const SizedBox(height: 6),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        setDialogState(() {
-                          controller.text = 'http://192.168.0.14:3001';
-                          testStatus = '';
-                        });
-                      },
-                      icon: const Icon(Icons.wifi_rounded, size: 16),
-                      label: const Text('Wi-Fi Local (192.168.0.14:3001)', style: TextStyle(fontSize: 12)),
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceContainer),
-                      onPressed: () async {
-                        setDialogState(() => testStatus = 'Probando...');
-                        try {
-                          final testDio = Dio(BaseOptions(
-                            baseUrl: controller.text.trim(),
-                            connectTimeout: const Duration(seconds: 4),
-                            receiveTimeout: const Duration(seconds: 4),
-                          ));
-                          final res = await testDio.get('/health');
-                          if (res.statusCode == 200) {
-                            setDialogState(() => testStatus = '¡Conexión Exitosa! (Online)');
-                          } else {
-                            setDialogState(() => testStatus = 'Error de respuesta: HTTP ${res.statusCode}');
-                          }
-                        } catch (e) {
-                          setDialogState(() => testStatus = 'Fallo de conexión al servidor');
-                        }
-                      },
-                      icon: const Icon(Icons.check_circle_outline, size: 16),
-                      label: const Text('Probar conexión', style: TextStyle(fontSize: 12)),
-                    ),
-                    if (testStatus.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        testStatus,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: testStatus.contains('Exitosa') ? Colors.green : Colors.amber,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancelar'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final newUrl = controller.text.trim();
-                    if (newUrl.isNotEmpty) {
-                      await ApiConfig.setBaseUrl(newUrl);
-                      if (context.mounted) {
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Servidor actualizado: $newUrl'),
-                            backgroundColor: AppColors.primary,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Guardar'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isEn = ref.watch(languageProvider) == AppLanguage.en;
@@ -193,28 +57,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton.icon(
-                    onPressed: () => _showServerDialog(context),
-                    icon: const Icon(Icons.dns_rounded, size: 16),
-                    label: const Text('Servidor / API'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => ref.read(languageProvider.notifier).toggleLanguage(),
+                  icon: const Icon(Icons.language_rounded, size: 16),
+                  label: Text(isEn ? 'ES' : 'EN'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
-                  TextButton.icon(
-                    onPressed: () => ref.read(languageProvider.notifier).toggleLanguage(),
-                    icon: const Icon(Icons.language_rounded, size: 16),
-                    label: Text(isEn ? 'ES' : 'EN'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                  ),
-                ],
+                ),
               ),
               const SizedBox(height: AppSpacing.spaceXs),
               _buildTrustHeader(isEn),
@@ -446,40 +299,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildFooter(bool isEn) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: () => context.push('/server-status'),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.dns_outlined,
-                size: 14,
-                color: AppColors.textMuted,
-              ),
-              SizedBox(width: 6),
-              Text(
-                isEn ? 'Server Status (Diagnostics)' : 'Estado del servidor (Diagnóstico)',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textMuted,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ],
-          ),
+    return Center(
+      child: Text(
+        isEn ? 'Protected with end-to-end AES-256 encryption' : 'Protegido con cifrado punto a punto AES-256',
+        style: const TextStyle(
+          fontSize: 11,
+          color: AppColors.textMuted,
         ),
-        const SizedBox(height: AppSpacing.spaceXs),
-        Text(
-          isEn ? 'Protected with end-to-end AES-256 encryption' : 'Protegido con cifrado punto a punto AES-256',
-          style: TextStyle(
-            fontSize: 11,
-            color: AppColors.textMuted,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

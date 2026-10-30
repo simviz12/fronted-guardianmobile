@@ -398,7 +398,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     bool isEn,
     bool isDark,
   ) {
-    final theme = Theme.of(context);
     final countLabel = totalCount == 1
         ? (isEn ? '1 device under monitoring' : '1 dispositivo bajo vigilancia')
         : (isEn ? '$totalCount devices under monitoring' : '$totalCount dispositivos bajo vigilancia...');
@@ -462,22 +461,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   ),
                 ),
               ],
-            ),
-          ),
-          OutlinedButton.icon(
-            onPressed: () {
-              context.push('/server-status');
-            },
-            icon: const Icon(Icons.sync_rounded, size: 14),
-            label: Text(
-              isEn ? 'Audit Network' : 'Auditar Red',
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-            ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-              side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.4)),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.full)),
             ),
           ),
         ],
@@ -630,7 +613,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        (device.isCharging ?? false) ? (isEn ? '~Full in 45m' : '~4h restantes para 100%') : (isEn ? 'Optimal health' : 'Salud óptima'),
+                        (device.isCharging ?? false) ? (isEn ? '~Full in 45m' : '~4h restantes para 100%') : (isEn ? 'Battery stable' : 'Batería estable'),
                         style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
                       ),
                     ],

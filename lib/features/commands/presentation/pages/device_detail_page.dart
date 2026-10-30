@@ -49,13 +49,6 @@ class _DeviceDetailPageState extends ConsumerState<DeviceDetailPage> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.medical_services_outlined, color: AppColors.primary),
-            tooltip: isEn ? 'Connectivity Diagnostics' : 'Diagnóstico de Conectividad',
-            onPressed: () {
-              context.push('/device-diagnostics', extra: widget.device);
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.map_rounded, color: AppColors.primary),
             tooltip: isEn ? 'View Tracking Map' : 'Ver Mapa de Rastreo',
             onPressed: () {

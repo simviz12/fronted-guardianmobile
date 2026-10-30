@@ -36,11 +36,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   void _navigateBack() {
     ref.read(authNotifierProvider.notifier).clearError();
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go('/login');
-    }
+    context.go('/login');
   }
 
   void _submitRegister() {

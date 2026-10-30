@@ -91,11 +91,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final bodyColor = theme.textTheme.bodyMedium?.color ?? AppColors.textBody;
 
     void navigateBack() {
-      if (context.canPop()) {
-        context.pop();
-      } else {
-        context.go('/home');
-      }
+      context.go('/home');
     }
 
     return PopScope(
@@ -724,38 +720,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.spaceMd),
-
-            // Diagnostic link
-            AppCard(
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(AppRadii.md),
-                  ),
-                  child: const Icon(
-                    Icons.dns_outlined,
-                    color: AppColors.primary,
-                  ),
-                ),
-                title: Text(
-                  isEn ? 'Server Diagnostics' : 'Diagnóstico del Servidor',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: headingColor,
-                  ),
-                ),
-                subtitle: Text(
-                  isEn ? 'Verify connection status & database' : 'Verifica el estado de conexión y base de datos',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => context.push('/server-status'),
               ),
             ),
             const SizedBox(height: AppSpacing.spaceMd),
