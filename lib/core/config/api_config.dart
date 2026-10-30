@@ -5,7 +5,7 @@ class ApiConfig {
 
   static const String _defaultUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://matthew-beneficial-euros-separately.trycloudflare.com',
+    defaultValue: 'https://mobile-backendd.onrender.com',
   );
 
   static const String keyCustomBaseUrl = 'custom_api_base_url';
@@ -19,7 +19,7 @@ class ApiConfig {
       final prefs = await SharedPreferences.getInstance();
       final savedUrl = prefs.getString(keyCustomBaseUrl);
       if (savedUrl != null && savedUrl.trim().isNotEmpty) {
-        if (savedUrl.contains('trycloudflare.com') || savedUrl.contains('lhr.life') && savedUrl != _defaultUrl) {
+        if (savedUrl.contains('trycloudflare') || savedUrl.contains('lhr.life') || savedUrl.contains('192.168.')) {
           _activeBaseUrl = _defaultUrl;
           await prefs.remove(keyCustomBaseUrl);
         } else {
