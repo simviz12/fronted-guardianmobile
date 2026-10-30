@@ -1,0 +1,8 @@
+# Plantilla de configuración de firma para release de Guardian Mobile
+# Copia este archivo a android/key.properties y completa con tus credenciales seguras.
+# NUNCA subas android/key.properties al control de versiones.
+
+storePassword=tu_password_del_keystore
+keyPassword=tu_password_del_alias
+keyAlias=guardian_release_key
+storeFile=../guardian-release.jks

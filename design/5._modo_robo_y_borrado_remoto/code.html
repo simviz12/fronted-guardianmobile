@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100%;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-surface": "#0b1c30", "on-secondary-fixed": "#0d1d2b", "tertiary-fixed-dim": "#ffb3ad", "on-tertiary": "#ffffff", "primary-container": "#00855c", "surface-variant": "#d3e4fe", "inverse-on-surface": "#eaf1ff", "on-primary-container": "#f5fff7", "outline": "#6d7a72", "on-secondary": "#ffffff", "on-error": "#ffffff", "surface": "#f8f9ff", "tertiary-container": "#da3437", "on-background": "#0b1c30", "primary-fixed": "#82f9c2", "outline-variant": "#bccac0", "surface-bright": "#f8f9ff", "secondary-fixed": "#d4e4f8", "on-primary": "#ffffff", "on-tertiary-fixed": "#410004", "on-secondary-container": "#576677", "error-container": "#ffdad6", "tertiary": "#b61722", "surface-container-high": "#dce9ff", "on-error-container": "#93000a", "primary": "#006948", "surface-tint": "#006c4a", "on-tertiary-container": "#fffbff", "surface-dim": "#cbdbf5", "surface-container-lowest": "#ffffff", "primary-fixed-dim": "#65dca8", "secondary-fixed-dim": "#b8c8db", "secondary": "#516071", "on-secondary-fixed-variant": "#394858", "tertiary-fixed": "#ffdad7", "surface-container-highest": "#d3e4fe", "inverse-surface": "#213145", "on-primary-fixed": "#002114", "inverse-primary": "#65dca8", "secondary-container": "#d4e4f8", "on-tertiary-fixed-variant": "#930013", "on-primary-fixed-variant": "#005237", "surface-container-low": "#eff4ff", "error": "#ba1a1a", "on-surface-variant": "#3d4a42", "background": "#f8f9ff", "surface-container": "#e5eeff" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-sm": "0.5rem", "margin-mobile": "1rem", "gutter": "1.5rem", "gutter-mobile": "1rem", "space-xl": "2rem", "margin": "2rem", "space-xs": "0.25rem", "space-lg": "1.5rem", "space-2xl": "3rem", "space-md": "1rem" }, fontFamily: { "headline-xl": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "headline-xl-mobile": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "caption-technical": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"] }, fontSize: { "headline-xl": ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }], "headline-sm": ["16px", { lineHeight: "24px", fontWeight: "600" }], "label-md": ["14px", { lineHeight: "20px", fontWeight: "600" }], "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }], "body-sm": ["13px", { lineHeight: "18px", fontWeight: "400" }], "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }], "headline-md": ["20px", { lineHeight: "28px", fontWeight: "600" }], "headline-xl-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "700" }], "label-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.01em", fontWeight: "600" }], "caption-technical": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "500" }], "headline-lg-mobile": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600" }], "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.015em", fontWeight: "600" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-body-md text-on-surface-variant flex flex-col min-h-screen antialiased"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.03)] pt-safe"><div class="h-16 px-margin-mobile flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs min-w-0 flex-1"><button aria-label="Volver" class="w-11 h-11 -ml-2 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container active:bg-surface-container-high transition-colors flex-shrink-0" onclick="history.back()"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><img alt="Guardian Mobile Logo" class="h-7 w-auto object-contain flex-shrink-0 hidden sm:block" src="https://lh3.googleusercontent.com/aida/AEtjO1WWgSEOh9op6GkIMKPdkw__PFMUd7hrFbhc4ndtriNhyoMpRF4PcLwJEPxaOb5JNUj_xaELj_CT2sJoq1RhI0LIPxNCIEH4vfa9CYswxxjZ27mpr4o5aEPdk5FfW_11jdwuDvF8kURK1uF7Wmm5PeFj1RWZwIRHIHTBdpcqJFm0uOsSbTrXuScC4xRJm6evg2EXqfSMGWSWjgutnwHZkFD-oUTVrXT2xnGMWPhWEHR83erXBAxPpYb8"/><div class="flex flex-col min-w-0"><h1 class="font-headline-sm text-headline-sm text-on-surface truncate">Protocolo De Extravio</h1><span class="font-caption-technical text-caption-technical text-outline truncate">Guardian Security Core</span></div></div><div class="flex items-center gap-space-xs flex-shrink-0"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 w-full pt-16 pb-safe bg-surface min-h-screen flex flex-col"><div class="flex flex-col w-full">
+<div class="px-margin-mobile pt-space-md pb-space-2xl space-y-space-md">
+<!-- Banner Superior de Máxima Alerta -->
+<section class="bg-error-container text-on-error-container rounded-xl p-space-md shadow-sm relative overflow-hidden">
+<div class="absolute -right-6 -bottom-6 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[130px]" style="font-variation-settings: 'FILL' 1;">flip_camera_ios</span>
+</div>
+<div class="flex items-start gap-space-sm relative z-10">
+<div class="w-10 h-10 rounded-full bg-error text-on-error flex items-center justify-center flex-shrink-0 shadow-sm animate-pulse">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-caption-technical text-caption-technical uppercase tracking-wider text-error font-semibold">Estado Crítico Activo</span>
+<h2 class="font-headline-sm text-headline-sm text-on-error-container font-bold leading-tight mt-0.5">MODO ROBO / EXTRAVÍO ACTIVADO</h2>
+<p class="font-body-sm text-body-sm text-on-error-container/90 mt-1 leading-snug">
+            El dispositivo ha sido bloqueado remotamente. El rastreo de emergencia está transmitiendo cada 30 segundos.
+          </p>
+</div>
+</div>
+</section>
+<!-- Radar Telemetría & Mapa Rápido -->
+<section class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-error animate-ping"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-error -ml-3.5"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Telemetría en Vivo</span>
+</div>
+<span class="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded-full font-caption-technical text-caption-technical">GPS ±4m</span>
+</div>
+<!-- Mapa de Emergencia con data-location -->
+<div class="relative w-full h-44 rounded-lg overflow-hidden bg-surface-container" data-location="Paseo de la Reforma, Cuauhtemoc, Ciudad de Mexico" style="">
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/80 via-transparent to-transparent z-10 flex flex-col justify-end p-space-sm pointer-events-none">
+<div class="flex items-center justify-between text-on-primary">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="material-symbols-outlined text-[18px] text-tertiary-fixed">location_on</span>
+<span class="font-body-sm text-body-sm truncate font-medium">Reforma 222, CDMX • Lat 19.4294</span>
+</div>
+<span class="font-caption-technical text-caption-technical bg-on-surface/60 px-2 py-0.5 rounded backdrop-blur-sm">Hace 12s</span>
+</div>
+</div>
+</div>
+<!-- Tarjetas de Estado y Sensores -->
+<div class="space-y-space-xs">
+<div class="bg-surface-container-low rounded-lg p-space-sm flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-tertiary-container/15 text-tertiary-container flex items-center justify-center flex-shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">no_sim</span>
+</div>
+<div class="min-w-0 flex-1">
+<p class="font-label-sm text-label-sm text-tertiary-container font-semibold">SIM Card retirada / Sin datos habituales</p>
+<p class="font-caption-technical text-caption-technical text-on-surface-variant">Conectado a torre celular de emergencia SOS (GSM 2G/LTE Fallback)</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-xs">
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between">
+<div class="flex items-center gap-1.5 text-on-surface-variant mb-1">
+<span class="material-symbols-outlined text-[16px] text-tertiary">battery_alert</span>
+<span class="font-caption-technical text-caption-technical">Batería Crítica</span>
+</div>
+<p class="font-headline-sm text-headline-sm text-on-surface font-bold">19%</p>
+<span class="font-caption-technical text-caption-technical text-secondary">Ahorro extremo forzado</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between">
+<div class="flex items-center gap-1.5 text-on-surface-variant mb-1">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+<span class="font-caption-technical text-caption-technical">Incidente Legal</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-mono font-bold tracking-tight truncate">#GRD-8942-CDMX</p>
+<span class="font-caption-technical text-caption-technical text-outline truncate">Fiscalía/SSC Notificada</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Simulación de Pantalla Bloqueada del Teléfono -->
+<section class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-secondary">lock</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Pantalla Bloqueada Activa</h3>
+</div>
+<span class="font-caption-technical text-caption-technical text-primary font-semibold bg-primary-fixed/30 px-2 py-0.5 rounded">En emisión</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        Texto desplegado a brillo máximo en la pantalla frontal del dispositivo reportado:
+      </p>
+<div class="bg-inverse-surface text-inverse-on-surface rounded-xl p-space-md relative overflow-hidden shadow-inner">
+<div class="flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-tertiary-fixed text-[28px]">report_problem</span>
+</div>
+<p class="font-label-md text-label-md text-center text-tertiary-fixed font-bold tracking-wide uppercase mb-1">
+          Dispositivo Reportado como Extraviado
+        </p>
+<p class="font-body-sm text-body-sm text-center text-inverse-on-surface/90 font-medium leading-relaxed">
+          “ESTE DISPOSITIVO HA SIDO REPORTADO COMO EXTRAVIADO. Favor de comunicarse inmediatamente al <span class="font-bold underline text-on-tertiary underline-offset-2">+52 55 1234 5678</span> para su devolución con gratificación.”
+        </p>
+<div class="mt-3 flex items-center justify-center gap-1 font-caption-technical text-caption-technical text-surface-variant/80">
+<span class="material-symbols-outlined text-[13px]">volume_up</span>
+<span>Alarma acústica lista para detonación remota</span>
+</div>
+</div>
+</section>
+<!-- Controles Rápidos Secundarios -->
+<section class="grid grid-cols-2 gap-space-sm">
+<button class="h-12 px-space-sm rounded-xl bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[20px] text-secondary">ring_volume</span>
+<span class="truncate">Sonar Sirena (SOS)</span>
+</button>
+<button class="h-12 px-space-sm rounded-xl bg-surface-container-highest hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[20px] text-secondary">share_location</span>
+<span class="truncate">Compartir con Policía</span>
+</button>
+</section>
+<!-- Sección Aislada de Máxima Seguridad (WIPE) -->
+<section class="bg-error-container/40 rounded-xl p-space-md shadow-sm space-y-space-sm mt-space-lg">
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-[22px]">delete_forever</span>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-error-container">Zona de Destrucción Irreversible</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-error-container/90">
+        Si el dispositivo está en manos no autorizadas y contiene credenciales corporativas o personales críticas, procede a la destrucción remota.
+      </p>
+<button class="w-full min-h-[48px] py-3 px-space-md rounded-xl bg-error text-on-error font-label-md text-label-md flex items-center justify-center gap-space-xs shadow-md hover:bg-tertiary transition-transform active:scale-[0.98]" id="open-wipe-modal" type="button">
+<span class="material-symbols-outlined text-[20px]">skull</span>
+<span>INICIAR BORRADO REMOTO TOTAL (WIPE)</span>
+</button>
+</section>
+</div>
+<!-- Modal de Doble Confirmación Superpuesto (Accessible, toggled or displayed directly) -->
+<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-margin-mobile bg-on-surface/60 backdrop-blur-sm transition-opacity duration-200" id="wipe-modal">
+<div class="w-full max-w-lg bg-surface-container-lowest rounded-2xl shadow-xl p-space-lg space-y-space-md overflow-hidden relative">
+<!-- Encabezado de Advertencia -->
+<div class="flex items-start gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-error-container text-error flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<span class="font-caption-technical text-caption-technical text-error uppercase font-bold tracking-wider">Protocolo Cero Retorno</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold leading-tight">ADVERTENCIA: se borrarán todos los datos</h2>
+</div>
+</div>
+<!-- Mensaje Explícito -->
+<div class="bg-surface-container-low rounded-xl p-space-sm space-y-2">
+<p class="font-body-md text-body-md text-on-surface font-medium leading-snug">
+          Esta acción eliminará de forma irreversible fotos, cuentas bancarias, credenciales y documentos. El dispositivo volverá al estado de fábrica y ya no podrá ser rastreado.
+        </p>
+<p class="font-label-md text-label-md text-error font-bold">
+          ¿Confirmar el borrado total definitivo?
+        </p>
+</div>
+<!-- Verificación por Input de Texto -->
+<div class="space-y-1.5">
+<label class="block font-label-sm text-label-sm text-on-surface-variant font-semibold" for="confirm-wipe-input">
+          Escribe <span class="text-error font-mono font-bold">CONFIRMAR</span> para autorizar la orden criptográfica:
+        </label>
+<div class="relative">
+<input autocapitalize="characters" autocomplete="off" autocorrect="off" class="w-full h-12 px-space-md rounded-xl bg-surface-container-high text-on-surface font-mono font-bold tracking-wider placeholder:text-outline/60 outline-none focus:bg-surface-container-lowest transition-colors" id="confirm-wipe-input" placeholder="CONFIRMAR" type="text"/>
+</div>
+</div>
+<!-- Acciones del Modal -->
+<div class="flex flex-col gap-space-xs pt-1">
+<button class="w-full min-h-[48px] py-3 px-space-md rounded-xl bg-error text-on-error font-label-md text-label-md flex items-center justify-center gap-space-xs transition-all opacity-40 cursor-not-allowed" disabled="" id="submit-wipe-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">delete_forever</span>
+<span>Sí, borrar permanentemente</span>
+</button>
+<button class="w-full min-h-[48px] py-3 px-space-md rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center transition-colors active:scale-[0.99]" id="cancel-wipe-btn" type="button">
+          Cancelar y mantener rastreo
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const modal = document.getElementById('wipe-modal');
+    const openBtn = document.getElementById('open-wipe-modal');
+    const cancelBtn = document.getElementById('cancel-wipe-btn');
+    const input = document.getElementById('confirm-wipe-input');
+    const submitBtn = document.getElementById('submit-wipe-btn');
+
+    if (openBtn && modal) {
+      openBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        input.value = '';
+        updateSubmitState();
+        input.focus();
+      });
+    }
+
+    if (cancelBtn && modal) {
+      cancelBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+    }
+
+    function updateSubmitState() {
+      if (!input || !submitBtn) return;
+      const isMatch = input.value.trim().toUpperCase() === 'CONFIRMAR';
+      submitBtn.disabled = !isMatch;
+      if (isMatch) {
+        submitBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+        submitBtn.classList.add('active:scale-[0.98]', 'shadow-md');
+      } else {
+        submitBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        submitBtn.classList.remove('active:scale-[0.98]', 'shadow-md');
+      }
+    }
+
+    if (input) {
+      input.addEventListener('input', updateSubmitState);
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', () => {
+        if (!submitBtn.disabled) {
+          submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">sync</span><span>Enviando señal de autodestrucción...</span>';
+          setTimeout(() => {
+            alert('Orden de borrado seguro transmitida exitosamente. El dispositivo se desconectará en breve.');
+            if (modal) modal.classList.add('hidden');
+          }, 1200);
+        }
+      });
+    }
+  })();
+</script></main></body></html>
