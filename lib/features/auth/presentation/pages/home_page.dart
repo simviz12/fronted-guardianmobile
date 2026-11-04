@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -16,7 +16,7 @@ class HomePage extends ConsumerWidget {
     final email = user?.email ?? '';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       appBar: AppBar(
         title: const Text('Guardian Mobile'),
         centerTitle: true,
@@ -54,13 +54,13 @@ class HomePage extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: AppSpacing.spaceMd),
-                    const Divider(color: AppColors.border),
+                    Divider(color: context.gm.border),
                     const SizedBox(height: AppSpacing.spaceMd),
-                    const Text(
+                    Text(
                       'Esta pantalla provisional será reemplazada por el dashboard en la Parte 2.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textMuted,
+                        color: context.gm.inkMuted,
                       ),
                     ),
                   ],

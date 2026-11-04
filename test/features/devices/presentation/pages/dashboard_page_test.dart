@@ -83,8 +83,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sin dispositivos vinculados'), findsOneWidget);
-    expect(find.text('Vincular este Celular'), findsOneWidget);
-    expect(find.text('Vincular Celular'), findsOneWidget);
+    expect(find.text('Escudo aún no activo'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Vincular este celular'), findsOneWidget);
   });
 
   testWidgets('DashboardPage shows this phone card and list of other devices with exact telemetries', (tester) async {
@@ -92,19 +92,24 @@ void main() {
     when(() => mockDeviceRepository.getThisPhoneDeviceId()).thenAnswer((_) async => 'dev-phone-1');
 
     await tester.pumpWidget(buildDashboardPage());
-    await tester.pumpAndSettle();
+    // Live indicators pulse forever, so pumpAndSettle would never return:
+    // pump past the entrance + battery count-up animations instead.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
 
     expect(find.text('Pixel 8 de Carlos'), findsOneWidget);
-    expect(find.text('ESTE TELÉFONO • DISPOSITIVO PRINCIPAL'), findsOneWidget);
+    expect(find.text('Este teléfono · Android 14'), findsOneWidget);
     expect(find.text('78%'), findsOneWidget);
+    expect(find.text('Cargando'), findsOneWidget); // isCharging: true
     expect(find.text('Protegido'), findsWidgets);
-    expect(find.text('En línea'), findsOneWidget);
+    expect(find.textContaining('En línea'), findsOneWidget);
+    expect(find.text('Escudo activo'), findsOneWidget);
 
     await tester.scrollUntilVisible(find.text('Galaxy Tab S9'), 200);
     expect(find.text('Galaxy Tab S9'), findsOneWidget);
     expect(find.text('Controlador'), findsOneWidget);
+    // Offline, never seen, null battery → just "Desconectado" (no battery %).
     expect(find.text('Desconectado'), findsOneWidget);
-    expect(find.text('Sin datos'), findsNWidgets(1)); // Galaxy Tab has null battery
   });
 
   testWidgets('DashboardPage shows error state with retry button on network failure', (tester) async {

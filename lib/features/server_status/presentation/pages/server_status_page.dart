@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/api_config.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../domain/entities/server_status.dart';
 import '../providers/server_status_provider.dart';
 import '../../../../core/localization/language_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class ServerStatusPage extends ConsumerWidget {
   const ServerStatusPage({super.key});
@@ -18,7 +18,7 @@ class ServerStatusPage extends ConsumerWidget {
     final isEn = ref.watch(languageProvider) == AppLanguage.en;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       appBar: AppBar(
         title: Text(isEn ? 'Connection Diagnostics' : 'Diagnóstico de Conexión'),
         centerTitle: true,
@@ -32,7 +32,7 @@ class ServerStatusPage extends ConsumerWidget {
               Expanded(
                 child: Center(
                   child: statusAsync.when(
-                    loading: () => _buildLoadingState(isEn),
+                    loading: () => _buildLoadingState(context, isEn),
                     error: (error, _) => _buildErrorState(context, ref, error, isEn),
                     data: (status) => _buildSuccessState(context, status, isEn),
                   ),
@@ -46,7 +46,7 @@ class ServerStatusPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadingState(bool isEn) {
+  Widget _buildLoadingState(BuildContext context, bool isEn) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -54,7 +54,7 @@ class ServerStatusPage extends ConsumerWidget {
           width: 48,
           height: 48,
           child: CircularProgressIndicator(
-            color: AppColors.primary,
+            color: context.gm.brand,
             strokeWidth: 3,
           ),
         ),
@@ -65,7 +65,7 @@ class ServerStatusPage extends ConsumerWidget {
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w500,
-            color: AppColors.textBody,
+            color: context.gm.ink,
           ),
         ),
       ],
@@ -90,15 +90,15 @@ class ServerStatusPage extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.neutralBadge,
+                  color: context.gm.surfaceSunken,
                   borderRadius: BorderRadius.circular(AppRadii.full),
                 ),
                 child: Text(
                   'v${status.version}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.neutralBadgeText,
+                    color: context.gm.inkMuted,
                   ),
                 ),
               ),
@@ -115,11 +115,11 @@ class ServerStatusPage extends ConsumerWidget {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: AppSpacing.spaceMd),
-          const Divider(color: AppColors.border),
+          Divider(color: context.gm.border),
           const SizedBox(height: AppSpacing.spaceMd),
-          _buildInfoRow(isEn ? 'Service' : 'Servicio', status.service),
+          _buildInfoRow(context, isEn ? 'Service' : 'Servicio', status.service),
           const SizedBox(height: AppSpacing.spaceSm),
-          _buildInfoRow(
+          _buildInfoRow(context, 
             isEn ? 'Database' : 'Base de datos',
             status.database.toUpperCase(),
             badge: StatusChip(
@@ -130,7 +130,7 @@ class ServerStatusPage extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.spaceSm),
-          _buildInfoRow(isEn ? 'Server time' : 'Hora del servidor', formattedTime),
+          _buildInfoRow(context, isEn ? 'Server time' : 'Hora del servidor', formattedTime),
         ],
       ),
     );
@@ -148,8 +148,8 @@ class ServerStatusPage extends ConsumerWidget {
     }
 
     return AppCard(
-      backgroundColor: AppColors.surface,
-      border: Border.all(color: AppColors.alert.withValues(alpha: 0.3), width: 1.5),
+      backgroundColor: context.gm.surface,
+      border: Border.all(color: context.gm.danger.withValues(alpha: 0.3), width: 1.5),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -166,7 +166,7 @@ class ServerStatusPage extends ConsumerWidget {
           Text(
             isEn ? 'Connection Error' : 'Error al conectar',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.alertText,
+                  color: context.gm.dangerInk,
                 ),
           ),
           const SizedBox(height: AppSpacing.spaceSm),
@@ -178,10 +178,10 @@ class ServerStatusPage extends ConsumerWidget {
             const SizedBox(height: AppSpacing.spaceSm),
             Text(
               isEn ? 'Error code: $errorCode' : 'Código de error: $errorCode',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textMuted,
+                color: context.gm.inkMuted,
               ),
             ),
           ],
@@ -196,24 +196,24 @@ class ServerStatusPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {Widget? badge}) {
+  Widget _buildInfoRow(BuildContext context, String label, String value, {Widget? badge}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: AppColors.textMuted,
+            color: context.gm.inkMuted,
             fontWeight: FontWeight.w500,
           ),
         ),
         badge ??
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textHeadings,
+                color: context.gm.ink,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -225,25 +225,25 @@ class ServerStatusPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceSm),
       decoration: BoxDecoration(
-        color: AppColors.neutralBadge,
+        color: context.gm.surfaceSunken,
         borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.dns_outlined,
             size: 16,
-            color: AppColors.neutralBadgeText,
+            color: context.gm.inkMuted,
           ),
           const SizedBox(width: AppSpacing.spaceSm),
           Flexible(
             child: Text(
               'Base URL: ${ApiConfig.baseUrl}',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.neutralBadgeText,
+                color: context.gm.inkMuted,
                 fontWeight: FontWeight.w500,
               ),
               overflow: TextOverflow.ellipsis,

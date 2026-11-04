@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class SendMessageBottomSheet extends StatefulWidget {
   final void Function(String text, String? contactPhone) onSend;
@@ -58,29 +58,29 @@ class _SendMessageBottomSheetState extends State<SendMessageBottomSheet> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: AppSpacing.spaceSm),
                   decoration: BoxDecoration(
-                    color: AppColors.neutralBadge,
+                    color: context.gm.surfaceSunken,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.message_rounded, color: AppColors.primary),
+                  Icon(Icons.message_rounded, color: context.gm.brand),
                   SizedBox(width: AppSpacing.spaceSm),
                   Text(
                     'Mostrar mensaje en pantalla',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textHeadings,
+                      color: context.gm.ink,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'El mensaje aparecerá a pantalla completa en el dispositivo protegido, incluso si está bloqueado.',
-                style: TextStyle(fontSize: 12, color: AppColors.textBody),
+                style: TextStyle(fontSize: 12, color: context.gm.ink),
               ),
               const SizedBox(height: AppSpacing.spaceMd),
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
@@ -9,6 +8,7 @@ import '../../../../core/network/fcm_notification_service.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_provider.dart';
 import '../../../../core/localization/language_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class LinkDevicePage extends ConsumerStatefulWidget {
   const LinkDevicePage({super.key});
@@ -56,7 +56,7 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ref.read(languageProvider) == AppLanguage.en ? 'Device linked successfully.' : 'Dispositivo vinculado exitosamente.'),
-            backgroundColor: AppColors.primary,
+            backgroundColor: context.gm.brand,
           ),
         );
         if (_selectedMode == DeviceMode.protected) {
@@ -67,8 +67,9 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
       }
     } catch (e) {
       if (mounted) {
-        String msg = 'No se pudo vincular el dispositivo.';
         final str = e.toString();
+        debugPrint('[LinkDevice] Link failed: $str');
+        String msg = 'No se pudo vincular el dispositivo.\n$str';
         if (str.contains('NetworkFailure')) {
           msg = 'No hay conexión con el servidor.';
         } else if (str.contains('VALIDATION_ERROR')) {
@@ -95,8 +96,8 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
       ),
       body: SafeArea(
         child: installInfoAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+          loading: () => Center(
+            child: CircularProgressIndicator(color: context.gm.brand),
           ),
           error: (err, _) => Center(
             child: Text(isEn ? 'Error reading info: $err' : 'Error al leer información: $err'),
@@ -120,25 +121,25 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                       Container(
                         padding: const EdgeInsets.all(AppSpacing.spaceMd),
                         decoration: BoxDecoration(
-                          color: AppColors.alertContainer,
+                          color: context.gm.dangerSoft,
                           borderRadius: BorderRadius.circular(AppRadii.md),
                           border: Border.all(
-                            color: AppColors.alert.withValues(alpha: 0.3),
+                            color: context.gm.danger.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.error_outline_rounded,
-                              color: AppColors.alertText,
+                              color: context.gm.dangerInk,
                               size: 20,
                             ),
                             const SizedBox(width: AppSpacing.spaceSm),
                             Expanded(
                               child: Text(
                                 _errorMessage!,
-                                style: const TextStyle(
-                                  color: AppColors.alertText,
+                                style: TextStyle(
+                                  color: context.gm.dangerInk,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -157,7 +158,7 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                             isEn ? 'Device Name' : 'Nombre del dispositivo',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.textHeadings,
+                                  color: context.gm.ink,
                                 ),
                           ),
                           const SizedBox(height: AppSpacing.spaceSm),
@@ -179,9 +180,9 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                           const SizedBox(height: AppSpacing.spaceSm),
                           Text(
                             isEn ? 'Model: ${info.model ?? "Unknown"} • OS: ${info.osVersion ?? "N/A"} • App: ${info.appVersion ?? "1.0.0"}' : 'Modelo: ${info.model ?? "Desconocido"} • SO: ${info.osVersion ?? "N/A"} • App: ${info.appVersion ?? "1.0.0"}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textMuted,
+                              color: context.gm.inkMuted,
                             ),
                           ),
                         ],
@@ -249,17 +250,17 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
         padding: const EdgeInsets.all(AppSpacing.spaceMd),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryContainer.withValues(alpha: 0.1)
-              : AppColors.surface,
+              ? context.gm.brand.withValues(alpha: 0.1)
+              : context.gm.surface,
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected ? context.gm.brand : context.gm.border,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.12),
+                    color: context.gm.brand.withValues(alpha: 0.12),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   )
@@ -273,13 +274,13 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
               padding: const EdgeInsets.all(AppSpacing.spaceSm),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary
-                    : AppColors.surfaceContainerLow,
+                    ? context.gm.brand
+                    : context.gm.surfaceSunken,
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? Colors.white : AppColors.textHeadings,
+                color: isSelected ? context.gm.onBrand : context.gm.ink,
                 size: 24,
               ),
             ),
@@ -297,8 +298,8 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: isSelected
-                                ? AppColors.primary
-                                : AppColors.textHeadings,
+                                ? context.gm.brand
+                                : context.gm.ink,
                           ),
                         ),
                       ),
@@ -306,7 +307,7 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                         isSelected
                             ? Icons.radio_button_checked_rounded
                             : Icons.radio_button_unchecked_rounded,
-                        color: isSelected ? AppColors.primary : AppColors.textMuted,
+                        color: isSelected ? context.gm.brand : context.gm.inkMuted,
                         size: 22,
                       ),
                     ],
@@ -314,9 +315,9 @@ class _LinkDevicePageState extends ConsumerState<LinkDevicePage> {
                   const SizedBox(height: AppSpacing.spaceXs),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textBody,
+                      color: context.gm.ink,
                       height: 1.35,
                     ),
                   ),

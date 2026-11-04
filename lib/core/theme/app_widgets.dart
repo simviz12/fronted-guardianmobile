@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
 
-/// Scales its child down slightly while pressed: tactile "native" feedback.
+import '../motion/guardian_motion.dart';
+import '../theme/app_spacing.dart';
+import '../widgets/guardian_widgets.dart';
+import 'guardian_theme.dart';
+import 'guardian_tokens.dart';
+
+// Shared widgets used across every screen. Public API is unchanged; the
+// visuals and motion now come from the Guardian Mobile design system
+// (guardian_tokens / guardian_motion / guardian_widgets).
+
+/// Scales its child down slightly while pressed and springs back on release.
 class PressableScale extends StatefulWidget {
   final Widget child;
   final bool enabled;
@@ -36,20 +44,26 @@ class _PressableScaleState extends State<PressableScale> {
       onPointerCancel: (_) => _set(false),
       child: AnimatedScale(
         scale: _pressed ? widget.pressedScale : 1.0,
-        duration: const Duration(milliseconds: 110),
-        curve: Curves.easeOut,
+        duration: GMotion.d(context, _pressed ? GMotion.instant : GMotion.slow),
+        curve: _pressed ? GMotion.standard : GMotion.spring,
         child: widget.child,
       ),
     );
   }
 }
 
+/// Design-system card. Fades and rises in on first build; tappable cards
+/// press-scale with a spring and paint their ripple on top.
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final Color? backgroundColor;
   final Border? border;
   final VoidCallback? onTap;
+
+  /// Entrance animation delay slot (0 = immediately). Pass the item index in
+  /// lists for a staggered entrance.
+  final int enterIndex;
 
   const AppCard({
     super.key,
@@ -58,45 +72,36 @@ class AppCard extends StatelessWidget {
     this.backgroundColor,
     this.border,
     this.onTap,
+    this.enterIndex = 0,
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.gm;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultBg = isDark ? AppColors.darkSurface : AppColors.surface;
-    final defaultBorder = isDark ? AppColors.darkBorder : AppColors.border;
-    final radius = BorderRadius.circular(AppRadii.xl);
+    final radius = GRadius.rLg;
 
     final decoration = BoxDecoration(
-      color: backgroundColor ?? defaultBg,
+      color: backgroundColor ?? c.surface,
       borderRadius: radius,
-      border: border ?? Border.all(color: defaultBorder, width: 1),
+      border: border ?? Border.all(color: c.border),
       boxShadow: isDark
           ? const []
-          : const [
-              BoxShadow(
-                color: Color.fromRGBO(11, 28, 48, 0.05),
-                offset: Offset(0, 1),
-                blurRadius: 2,
-              ),
-              BoxShadow(
-                color: Color.fromRGBO(11, 28, 48, 0.06),
-                offset: Offset(0, 8),
-                blurRadius: 24,
-                spreadRadius: -6,
-              ),
+          : [
+              BoxShadow(color: Colors.black.withValues(alpha: .04), blurRadius: 2, offset: const Offset(0, 1)),
             ],
     );
 
     final content = Padding(
-      padding: padding ?? const EdgeInsets.all(AppSpacing.spaceMd),
+      padding: padding ?? const EdgeInsets.all(GSpace.s4),
       child: child,
     );
 
+    final Widget card;
     if (onTap == null) {
       // Transparent Material above the decoration so ListTiles/Switches inside
       // the card paint their ink splashes on top instead of behind it.
-      return DecoratedBox(
+      card = DecoratedBox(
         decoration: decoration,
         child: Material(
           type: MaterialType.transparency,
@@ -105,26 +110,26 @@ class AppCard extends StatelessWidget {
           child: content,
         ),
       );
-    }
-
-    // Ink + Material so the ripple is painted ON the card, not hidden behind it.
-    return PressableScale(
-      pressedScale: 0.985,
-      child: Material(
-        type: MaterialType.transparency,
-        child: Ink(
-          decoration: decoration,
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.selectionClick();
-              onTap!();
-            },
-            borderRadius: radius,
-            child: content,
+    } else {
+      card = PressableScale(
+        child: Material(
+          type: MaterialType.transparency,
+          child: Ink(
+            decoration: decoration,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onTap!();
+              },
+              borderRadius: radius,
+              child: content,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    return StaggeredIn(index: enterIndex, child: card);
   }
 }
 
@@ -144,7 +149,11 @@ class _ButtonContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 180),
+      duration: GMotion.d(context, GMotion.fast),
+      transitionBuilder: (child, a) => FadeTransition(
+        opacity: a,
+        child: ScaleTransition(scale: Tween(begin: .85, end: 1.0).animate(a), child: child),
+      ),
       child: isLoading
           ? SizedBox(
               key: const ValueKey('loading'),
@@ -162,22 +171,65 @@ class _ButtonContent extends StatelessWidget {
               children: [
                 if (icon != null) ...[
                   Icon(icon, size: 18, color: color),
-                  const SizedBox(width: AppSpacing.spaceSm),
+                  const SizedBox(width: GSpace.s2),
                 ],
                 Flexible(
                   child: Text(
                     text,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                      color: color,
-                    ),
+                    style: context.text.labelLarge?.copyWith(fontSize: 15, color: color),
                   ),
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _GButton extends StatelessWidget {
+  const _GButton({
+    required this.text,
+    required this.onPressed,
+    required this.isLoading,
+    required this.icon,
+    required this.bg,
+    required this.fg,
+    required this.haptic,
+  });
+
+  final String text;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final IconData? icon;
+  final Color bg, fg;
+  final VoidCallback haptic;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = !isLoading && onPressed != null;
+    return PressableScale(
+      enabled: enabled,
+      child: SizedBox(
+        height: 52,
+        child: FilledButton(
+          onPressed: enabled
+              ? () {
+                  haptic();
+                  onPressed!();
+                }
+              : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: bg,
+            foregroundColor: fg,
+            disabledBackgroundColor: bg.withValues(alpha: isLoading ? 0.85 : 0.4),
+            disabledForegroundColor: fg,
+            shape: RoundedRectangleBorder(borderRadius: GRadius.rMd),
+            animationDuration: GMotion.fast,
+          ),
+          child: _ButtonContent(text: text, icon: icon, isLoading: isLoading, color: fg),
+        ),
+      ),
     );
   }
 }
@@ -201,38 +253,15 @@ class PrimaryButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final bg = backgroundColor ?? theme.colorScheme.primary;
-    final fg = foregroundColor ?? theme.colorScheme.onPrimary;
-    final enabled = !isLoading && onPressed != null;
-
-    return PressableScale(
-      enabled: enabled,
-      child: SizedBox(
-        height: 52,
-        child: ElevatedButton(
-          onPressed: enabled
-              ? () {
-                  HapticFeedback.lightImpact();
-                  onPressed!();
-                }
-              : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: bg,
-            foregroundColor: fg,
-            disabledBackgroundColor: bg.withValues(alpha: isLoading ? 0.85 : 0.4),
-            disabledForegroundColor: fg,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadii.lg),
-            ),
-            elevation: 0,
-          ),
-          child: _ButtonContent(text: text, icon: icon, isLoading: isLoading, color: fg),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => _GButton(
+        text: text,
+        onPressed: onPressed,
+        isLoading: isLoading,
+        icon: icon,
+        bg: backgroundColor ?? context.gm.brand,
+        fg: foregroundColor ?? context.gm.onBrand,
+        haptic: HapticFeedback.lightImpact,
+      );
 }
 
 class DangerButton extends StatelessWidget {
@@ -250,121 +279,42 @@ class DangerButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final enabled = !isLoading && onPressed != null;
-    return PressableScale(
-      enabled: enabled,
-      child: SizedBox(
-        height: 52,
-        child: ElevatedButton(
-          onPressed: enabled
-              ? () {
-                  HapticFeedback.mediumImpact();
-                  onPressed!();
-                }
-              : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.alert,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: AppColors.alert.withValues(alpha: isLoading ? 0.85 : 0.4),
-            disabledForegroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadii.lg),
-            ),
-            elevation: 0,
-          ),
-          child: _ButtonContent(
-            text: text,
-            icon: icon,
-            isLoading: isLoading,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => _GButton(
+        text: text,
+        onPressed: onPressed,
+        isLoading: isLoading,
+        icon: icon,
+        bg: context.gm.danger,
+        fg: context.gm.onDanger,
+        haptic: HapticFeedback.mediumImpact,
+      );
 }
 
 enum StatusChipType { safe, warning, danger, neutral }
 
+/// Status pill in the design-system style. Pass [live] for a pulsing dot
+/// (use sparingly: only for genuinely live state).
 class StatusChip extends StatelessWidget {
   final String label;
   final StatusChipType type;
+  final bool live;
 
   const StatusChip({
     super.key,
     required this.label,
     this.type = StatusChipType.safe,
+    this.live = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bg;
-    Color text;
-    Color dot;
-
-    switch (type) {
-      case StatusChipType.safe:
-        bg = isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : AppColors.safeSubtle;
-        text = isDark ? const Color(0xFF6EE7B7) : AppColors.safeText;
-        dot = AppColors.safe;
-        break;
-      case StatusChipType.warning:
-        bg = isDark ? const Color(0xFF78350F).withValues(alpha: 0.4) : AppColors.warningSubtle;
-        text = isDark ? const Color(0xFFFDE68A) : AppColors.warningText;
-        dot = AppColors.warning;
-        break;
-      case StatusChipType.danger:
-        bg = isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.4) : AppColors.alertContainer;
-        text = isDark ? const Color(0xFFFCA5A5) : AppColors.alertText;
-        dot = AppColors.alert;
-        break;
-      case StatusChipType.neutral:
-        bg = isDark ? AppColors.darkNeutralBadge : AppColors.neutralBadge;
-        text = isDark ? AppColors.darkNeutralBadgeText : AppColors.neutralBadgeText;
-        dot = text;
-        break;
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppRadii.full),
-        border: Border.all(color: dot.withValues(alpha: 0.25), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: dot,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(color: dot.withValues(alpha: 0.5), blurRadius: 4),
-              ],
-            ),
-          ),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: text,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    final tone = switch (type) {
+      StatusChipType.safe => GTone.ok,
+      StatusChipType.warning => GTone.warn,
+      StatusChipType.danger => GTone.danger,
+      StatusChipType.neutral => GTone.neutral,
+    };
+    return StatusBadge(label, tone: tone, live: live);
   }
 }
 
@@ -399,14 +349,14 @@ class _AppSkeletonState extends State<AppSkeleton> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? AppColors.darkSurfaceContainer : AppColors.surfaceContainer;
-    final highlight = isDark ? const Color(0xFF2A3550) : const Color(0xFFF4F7FC);
+    final c = context.gm;
+    final base = c.surfaceSunken;
+    final highlight = c.surface;
 
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        final t = _controller.value * 3 - 1;
+        final t = GMotion.reduced(context) ? 0.5 : _controller.value * 3 - 1;
         return Container(
           width: widget.width,
           height: widget.height,
@@ -437,12 +387,13 @@ class AppSkeletonList extends StatelessWidget {
       children: List.generate(
         itemCount,
         (index) => Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.spaceMd),
+          padding: const EdgeInsets.only(bottom: GSpace.s3),
           child: AppCard(
+            enterIndex: index,
             child: Row(
               children: [
-                const AppSkeleton(width: 44, height: 44, radius: AppRadii.md),
-                const SizedBox(width: AppSpacing.spaceMd),
+                const AppSkeleton(width: 44, height: 44, radius: GRadius.md),
+                const SizedBox(width: GSpace.s4),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,47 +434,40 @@ class AppEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final accent = accentColor ?? theme.colorScheme.primary;
+    final c = context.gm;
+    final accent = accentColor;
+    final danger = accent != null && accent.toARGB32() == c.danger.toARGB32();
+
+    final parts = <Widget>[
+      accent == null || danger
+          ? IconBox(icon, size: 72, danger: danger)
+          : Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(color: accent.withValues(alpha: .12), borderRadius: GRadius.rLg),
+              child: Icon(icon, size: 36, color: accent),
+            ),
+      Padding(
+        padding: const EdgeInsets.only(top: GSpace.s4),
+        child: Text(title, textAlign: TextAlign.center, style: context.text.headlineSmall),
+      ),
+      if (message != null)
+        Padding(
+          padding: const EdgeInsets.only(top: GSpace.s2),
+          child: Text(message!, textAlign: TextAlign.center, style: context.text.bodyMedium),
+        ),
+      if (actionLabel != null && onAction != null)
+        Padding(
+          padding: const EdgeInsets.only(top: GSpace.s6),
+          child: SizedBox(width: 220, child: PrimaryButton(text: actionLabel!, onPressed: onAction)),
+        ),
+    ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.spaceLg, vertical: AppSpacing.spaceXl),
+      padding: const EdgeInsets.symmetric(horizontal: GSpace.s6, vertical: GSpace.s8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 34, color: accent),
-          ),
-          const SizedBox(height: AppSpacing.spaceMd),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall,
-          ),
-          if (message != null) ...[
-            const SizedBox(height: AppSpacing.spaceSm),
-            Text(
-              message!,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: AppSpacing.spaceLg),
-            SizedBox(
-              width: 220,
-              child: PrimaryButton(text: actionLabel!, onPressed: onAction),
-            ),
-          ],
-        ],
+        children: [for (var i = 0; i < parts.length; i++) StaggeredIn(index: i, child: parts[i])],
       ),
     );
   }

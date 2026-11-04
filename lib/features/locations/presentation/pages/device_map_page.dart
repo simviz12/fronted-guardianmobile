@@ -3,7 +3,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../commands/domain/entities/command.dart';
 import '../../../commands/presentation/providers/command_provider.dart';
@@ -12,6 +11,7 @@ import '../../../devices/domain/entities/device.dart';
 import '../../../../core/network/native_bridge_service.dart';
 import '../providers/device_map_provider.dart';
 import '../../../../core/localization/language_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class DeviceMapPage extends ConsumerStatefulWidget {
   final Device device;
@@ -82,7 +82,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppColors.textHeadings,
+                            color: context.gm.ink,
                           ),
                         ),
                       ),
@@ -170,7 +170,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: isSelected ? theme.colorScheme.primary : (isDark ? Colors.white70 : AppColors.textMuted),
+                            color: isSelected ? theme.colorScheme.primary : (context.gm.inkMuted),
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
@@ -203,7 +203,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                             width: 26,
                             height: 26,
                             decoration: BoxDecoration(
-                              color: isDark ? AppColors.darkSurface : Colors.white,
+                              color: isDark ? context.gm.surface : Colors.white,
                               shape: BoxShape.circle,
                               boxShadow: const [
                                 BoxShadow(
@@ -301,8 +301,8 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
     bool isEn,
     bool isDark,
   ) {
-    final cardBg = isDark ? AppColors.darkSurface : Colors.white;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.border;
+    final cardBg = isDark ? context.gm.surface : Colors.white;
+    final borderColor = isDark ? context.gm.border : context.gm.border;
 
     return Row(
       children: [
@@ -321,18 +321,18 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.primary),
+                Icon(Icons.calendar_today_rounded, size: 14, color: context.gm.brand),
                 const SizedBox(width: 6),
                 Text(
                   isEn ? 'Today, 24 Oct 2026' : 'Hoy, 24 Oct 2026',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : AppColors.textHeadings,
+                    color: context.gm.ink,
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_drop_down_rounded, size: 18, color: AppColors.textMuted),
+                Icon(Icons.arrow_drop_down_rounded, size: 18, color: context.gm.inkMuted),
               ],
             ),
           ),
@@ -354,18 +354,18 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.access_time_rounded, size: 14, color: AppColors.primary),
+                Icon(Icons.access_time_rounded, size: 14, color: context.gm.brand),
                 const SizedBox(width: 6),
                 Text(
                   isEn ? 'Last 6 hours' : 'Últimas 6 h',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : AppColors.textHeadings,
+                    color: context.gm.ink,
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_drop_down_rounded, size: 18, color: AppColors.textMuted),
+                Icon(Icons.arrow_drop_down_rounded, size: 18, color: context.gm.inkMuted),
               ],
             ),
           ),
@@ -384,9 +384,9 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
       width: 42,
       height: 42,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: isDark ? context.gm.surface : Colors.white,
         shape: BoxShape.circle,
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+        border: Border.all(color: isDark ? context.gm.border : context.gm.border),
         boxShadow: const [
           BoxShadow(
             color: Color.fromRGBO(0, 0, 0, 0.12),
@@ -419,8 +419,8 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                 activeCommand.status == CommandStatus.delivered));
 
     final theme = Theme.of(context);
-    final cardBg = isDark ? AppColors.darkSurface : Colors.white;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.border;
+    final cardBg = isDark ? context.gm.surface : Colors.white;
+    final borderColor = isDark ? context.gm.border : context.gm.border;
     final targetLocation = mapState.selectedPoint ?? mapState.latestLocation;
 
     return Container(
@@ -457,7 +457,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
               width: 38,
               height: 4,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                color: context.gm.borderStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -511,14 +511,14 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : AppColors.textHeadings,
+                      color: context.gm.ink,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFE6F7F0),
+                      color: context.gm.brandSoft,
                       borderRadius: BorderRadius.circular(AppRadii.full),
                     ),
                     child: Text(
@@ -563,7 +563,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : AppColors.textHeadings,
+                color: context.gm.ink,
               ),
             ),
             const SizedBox(height: 2),
@@ -577,13 +577,13 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                     color: theme.colorScheme.primary,
                   ),
                 ),
-                const Text(' • ', style: TextStyle(color: AppColors.textMuted)),
+                Text(' • ', style: TextStyle(color: context.gm.inkMuted)),
                 Expanded(
                   child: Text(
                     isEn
                         ? 'Device: ${widget.device.name} • Synchronized'
                         : 'Dispositivo: ${widget.device.name} • Sincronizado',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -594,7 +594,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
               isEn
                   ? 'Device: ${widget.device.name} • Synchronized 1 min ago'
                   : 'Dispositivo: ${widget.device.name} • Sincronizado hace 1 min',
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
             ),
           ],
           const SizedBox(height: 12),
@@ -607,7 +607,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                   isEn
                       ? 'No location records found for this period.'
                       : 'Aún no hay ubicaciones registradas para este periodo.',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                  style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
                 ),
               ),
             )
@@ -617,7 +617,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
               _buildTimelineStopItem(
                 context,
                 icon: i == 0 ? Icons.my_location_rounded : Icons.location_on_rounded,
-                iconColor: i == 0 ? AppColors.primary : AppColors.infoBlue,
+                iconColor: i == 0 ? context.gm.brand : context.gm.info,
                 title: 'Lat: ${mapState.history[i].latitude.toStringAsFixed(5)}, Lon: ${mapState.history[i].longitude.toStringAsFixed(5)}',
                 subtitle: mapState.history[i].speedMps != null && mapState.history[i].speedMps! > 1
                     ? (isEn ? 'In motion (${(mapState.history[i].speedMps! * 3.6).toStringAsFixed(0)} km/h)' : 'En movimiento (${(mapState.history[i].speedMps! * 3.6).toStringAsFixed(0)} km/h)')
@@ -636,21 +636,21 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF131D2E) : const Color(0xFFF0FDF4),
+              color: context.gm.brandSoft,
               borderRadius: BorderRadius.circular(AppRadii.lg),
               border: Border.all(
-                color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFBBF7D0),
+                color: context.gm.brand.withValues(alpha: .35),
               ),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
+                  decoration: BoxDecoration(
+                    color: context.gm.brand,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.verified_user_rounded, color: Colors.white, size: 16),
+                  child: Icon(Icons.verified_user_rounded, color: context.gm.onBrand, size: 16),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -662,14 +662,14 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppColors.textHeadings,
+                          color: context.gm.ink,
                         ),
                       ),
                       Text(
                         isEn
                             ? 'SHA-256 cryptographically verified for police & legal authorities'
                             : 'Válido ante el Ministerio Público y Autoridades Judiciales',
-                        style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                        style: TextStyle(fontSize: 10, color: context.gm.inkMuted),
                       ),
                     ],
                   ),
@@ -693,7 +693,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: context.gm.onBrand,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.md)),
                     elevation: 0,
@@ -713,7 +713,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                 icon: const Icon(Icons.download_rounded, size: 20),
                 tooltip: isEn ? 'Export Police Report' : 'Exportar reporte para denuncia',
                 style: IconButton.styleFrom(
-                  backgroundColor: isDark ? AppColors.darkSurfaceContainerLow : const Color(0xFFF1F5F9),
+                  backgroundColor: context.gm.surfaceSunken,
                   foregroundColor: theme.colorScheme.primary,
                 ),
               ),
@@ -765,7 +765,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : AppColors.textHeadings,
+                          color: context.gm.ink,
                         ),
                       ),
                     ),
@@ -781,7 +781,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                 ),
                 Text(
                   subtitle,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
                 ),
                 const SizedBox(height: 2),
                 Row(
@@ -789,18 +789,18 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                        color: context.gm.surfaceSunken,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         accuracy,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.primary),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: context.gm.brand),
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(battery, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                    Text(battery, style: TextStyle(fontSize: 10, color: context.gm.inkMuted)),
                     const SizedBox(width: 6),
-                    Text('• $status', style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                    Text('• $status', style: TextStyle(fontSize: 10, color: context.gm.inkMuted)),
                   ],
                 ),
               ],
@@ -824,11 +824,11 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFE6F7F0))
-              : (isDark ? AppColors.darkSurfaceContainerLow : const Color(0xFFF1F5F9)),
+              ? context.gm.brandSoft
+              : (context.gm.surfaceSunken),
           borderRadius: BorderRadius.circular(AppRadii.full),
           border: Border.all(
-            color: isSelected ? AppColors.primary : (isDark ? AppColors.darkBorder : AppColors.border),
+            color: isSelected ? context.gm.brand : (isDark ? context.gm.border : context.gm.border),
           ),
         ),
         child: Text(
@@ -836,7 +836,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? AppColors.primary : (isDark ? Colors.white70 : AppColors.textMuted),
+            color: isSelected ? context.gm.brand : (context.gm.inkMuted),
           ),
         ),
       ),
@@ -890,7 +890,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                     ? 'Location captured and reported successfully (Lat: ${lat.toStringAsFixed(4)}, Lon: ${lon.toStringAsFixed(4)})'
                     : 'Ubicación GPS capturada y registrada con éxito (${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}).',
               ),
-              backgroundColor: AppColors.primary,
+              backgroundColor: context.gm.brand,
             ),
           );
         }
@@ -912,7 +912,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(error),
-              backgroundColor: AppColors.alert,
+              backgroundColor: context.gm.danger,
             ),
           );
         }
@@ -924,7 +924,7 @@ class _DeviceMapPageState extends ConsumerState<DeviceMapPage> {
                   ? 'Location command dispatched to device.'
                   : 'Orden de localización enviada al dispositivo.',
             ),
-            backgroundColor: AppColors.primary,
+            backgroundColor: context.gm.brand,
           ),
         );
       }

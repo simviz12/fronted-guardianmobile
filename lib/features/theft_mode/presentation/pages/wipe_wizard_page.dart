@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/widgets/guardian_widgets.dart';
 import '../../../../core/localization/language_provider.dart';
 import '../../../devices/domain/entities/device.dart';
 import '../providers/wipe_wizard_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class WipeWizardPage extends ConsumerStatefulWidget {
   final Device device;
@@ -75,19 +76,19 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                 child: Container(
                   padding: const EdgeInsets.all(AppSpacing.spaceSm),
                   decoration: BoxDecoration(
-                    color: AppColors.alertContainer,
+                    color: context.gm.dangerSoft,
                     borderRadius: BorderRadius.circular(AppRadii.md),
-                    border: Border.all(color: AppColors.alert.withValues(alpha: 0.3)),
+                    border: Border.all(color: context.gm.danger.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline_rounded, color: AppColors.alert, size: 20),
+                      Icon(Icons.error_outline_rounded, color: context.gm.danger, size: 20),
                       const SizedBox(width: AppSpacing.spaceSm),
                       Expanded(
                         child: Text(
                           wizardState.errorMessage!,
-                          style: const TextStyle(
-                            color: AppColors.alertText,
+                          style: TextStyle(
+                            color: context.gm.dangerInk,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -127,19 +128,19 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
             children: [
               Text(
                 'PASO $currentStep DE 4',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
-                  color: AppColors.alert,
+                  color: context.gm.danger,
                 ),
               ),
               Text(
                 _getStepTitle(currentStep),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textHeadings,
+                  color: context.gm.ink,
                 ),
               ),
             ],
@@ -154,7 +155,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                   margin: EdgeInsets.only(right: index < 3 ? 6.0 : 0.0),
                   height: 4,
                   decoration: BoxDecoration(
-                    color: isPassed ? AppColors.alert : AppColors.surfaceContainerLow,
+                    color: isPassed ? context.gm.danger : context.gm.surfaceSunken,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -208,23 +209,23 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.spaceMd),
           decoration: BoxDecoration(
-            color: AppColors.alertContainer,
+            color: context.gm.dangerSoft,
             borderRadius: BorderRadius.circular(AppRadii.xl),
-            border: Border.all(color: AppColors.alert.withValues(alpha: 0.3)),
+            border: Border.all(color: context.gm.danger.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
               Container(
                 width: 48,
                 height: 48,
-                decoration: const BoxDecoration(
-                  color: AppColors.alert,
+                decoration: BoxDecoration(
+                  color: context.gm.danger,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.warning_rounded, color: Colors.white, size: 28),
+                child: Icon(Icons.warning_rounded, color: context.gm.onDanger, size: 28),
               ),
               const SizedBox(width: AppSpacing.spaceMd),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -233,7 +234,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.alertText,
+                        color: context.gm.dangerInk,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -243,7 +244,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textHeadings,
+                        color: context.gm.ink,
                       ),
                     ),
                   ],
@@ -253,18 +254,18 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
           ),
         ),
         const SizedBox(height: AppSpacing.spaceLg),
-        const Text(
+        Text(
           '¿Qué sucederá exactamente al ejecutar esta orden?',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: AppColors.textHeadings,
+            color: context.gm.ink,
           ),
         ),
         const SizedBox(height: AppSpacing.spaceSm),
-        const Text(
+        Text(
           'Al enviar la orden de autodestrucción criptográfica, el dispositivo recibirá la señal y borrará permanentemente todo su almacenamiento:',
-          style: TextStyle(fontSize: 13, color: AppColors.textBody, height: 1.4),
+          style: TextStyle(fontSize: 13, color: context.gm.ink, height: 1.4),
         ),
         const SizedBox(height: AppSpacing.spaceMd),
         _buildConsequenceTile(
@@ -302,14 +303,14 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceSm),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
+        color: context.gm.surfaceSunken,
         borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: context.gm.border.withValues(alpha: 0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.alert, size: 22),
+          Icon(icon, color: context.gm.danger, size: 22),
           const SizedBox(width: AppSpacing.spaceSm),
           Expanded(
             child: Column(
@@ -317,16 +318,16 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: context.gm.ink,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
+                  style: TextStyle(fontSize: 11, color: context.gm.inkMuted, height: 1.3),
                 ),
               ],
             ),
@@ -343,29 +344,29 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'Confirmación de Seguridad',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.gm.ink),
         ),
         const SizedBox(height: 4),
-        const Text(
+        Text(
           'Debes marcar cada una de las siguientes casillas para demostrar que comprendes el alcance de esta operación:',
-          style: TextStyle(fontSize: 13, color: AppColors.textBody, height: 1.4),
+          style: TextStyle(fontSize: 13, color: context.gm.ink, height: 1.4),
         ),
         const SizedBox(height: AppSpacing.spaceLg),
 
         CheckboxListTile(
           value: state.checklistConsequences,
           onChanged: notifier.toggleChecklistConsequences,
-          activeColor: AppColors.alert,
+          activeColor: context.gm.danger,
           contentPadding: EdgeInsets.zero,
-          title: const Text(
+          title: Text(
             'Entiendo que se borrarán todos los datos',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.gm.ink),
           ),
-          subtitle: const Text(
+          subtitle: Text(
             'Comprendo que la pérdida de fotos, mensajes y documentos es permanente y no se puede deshacer.',
-            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+            style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
           ),
           controlAffinity: ListTileControlAffinity.leading,
         ),
@@ -374,15 +375,15 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
         CheckboxListTile(
           value: state.checklistOtherMethods,
           onChanged: notifier.toggleChecklistOtherMethods,
-          activeColor: AppColors.alert,
+          activeColor: context.gm.danger,
           contentPadding: EdgeInsets.zero,
-          title: const Text(
+          title: Text(
             'Ya intenté recuperarlo de otras formas',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.gm.ink),
           ),
-          subtitle: const Text(
+          subtitle: Text(
             'He intentado localizarlo, llamar al teléfono o enviar un mensaje en pantalla sin éxito.',
-            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+            style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
           ),
           controlAffinity: ListTileControlAffinity.leading,
         ),
@@ -391,15 +392,15 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
         CheckboxListTile(
           value: state.checklistCorrectDevice,
           onChanged: notifier.toggleChecklistCorrectDevice,
-          activeColor: AppColors.alert,
+          activeColor: context.gm.danger,
           contentPadding: EdgeInsets.zero,
           title: Text(
             'Es el dispositivo correcto: $targetDeviceName',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.gm.ink),
           ),
           subtitle: Text(
             'Confirmo que el identificador ${widget.device.id.substring(0, 8)}... corresponde al teléfono que deseo borrar.',
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+            style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
           ),
           controlAffinity: ListTileControlAffinity.leading,
         ),
@@ -412,45 +413,45 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'Confirmación por Texto',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.gm.ink),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Para prevenir borrados involuntarios o accidentales, escribe con exactitud la palabra clave en mayúsculas:',
-          style: TextStyle(fontSize: 13, color: AppColors.textBody, height: 1.4),
+          style: TextStyle(fontSize: 13, color: context.gm.ink, height: 1.4),
         ),
         const SizedBox(height: AppSpacing.spaceLg),
 
         Container(
           padding: const EdgeInsets.all(AppSpacing.spaceMd),
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLow,
+            color: context.gm.surfaceSunken,
             borderRadius: BorderRadius.circular(AppRadii.lg),
-            border: Border.all(color: AppColors.alert.withValues(alpha: 0.3)),
+            border: Border.all(color: context.gm.danger.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Escribe exactamente:',
-                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
               ),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.alertContainer,
+                  color: context.gm.dangerSoft,
                   borderRadius: BorderRadius.circular(AppRadii.sm),
                 ),
-                child: const Text(
+                child: Text(
                   'BORRAR',
                   style: TextStyle(
                     fontFamily: 'monospace',
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.alert,
+                    color: context.gm.danger,
                     letterSpacing: 2.0,
                   ),
                 ),
@@ -470,11 +471,11 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                   hintText: 'BORRAR',
                   hintStyle: TextStyle(
                     fontFamily: 'monospace',
-                    color: AppColors.textMuted.withValues(alpha: 0.5),
+                    color: context.gm.inkMuted.withValues(alpha: 0.5),
                   ),
-                  prefixIcon: const Icon(Icons.edit_note_rounded, color: AppColors.alert),
+                  prefixIcon: Icon(Icons.edit_note_rounded, color: context.gm.danger),
                   suffixIcon: state.isConfirmationValid
-                      ? const Icon(Icons.check_circle_rounded, color: AppColors.safe)
+                      ? Icon(Icons.check_circle_rounded, color: context.gm.brand)
                       : null,
                 ),
                 onChanged: (val) {
@@ -493,66 +494,66 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'Autorización Criptográfica',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.gm.ink),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Re-autenticación obligatoria: ingresa la contraseña de tu cuenta de Guardian Mobile para firmar la orden.',
-          style: TextStyle(fontSize: 13, color: AppColors.textBody, height: 1.4),
+          style: TextStyle(fontSize: 13, color: context.gm.ink, height: 1.4),
         ),
         const SizedBox(height: AppSpacing.spaceLg),
 
         Container(
           padding: const EdgeInsets.all(AppSpacing.spaceMd),
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLow,
+            color: context.gm.surfaceSunken,
             borderRadius: BorderRadius.circular(AppRadii.lg),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+            border: Border.all(color: context.gm.border.withValues(alpha: 0.5)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Contraseña de tu cuenta',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.gm.ink),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
                 autofocus: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Ingresa tu contraseña',
-                  prefixIcon: Icon(Icons.lock_outline_rounded, color: AppColors.primary),
+                  prefixIcon: Icon(Icons.lock_outline_rounded, color: context.gm.brand),
                 ),
                 onChanged: (val) {
                   notifier.setPasswordInput(val);
                 },
               ),
               const SizedBox(height: AppSpacing.spaceSm),
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.shield_outlined, size: 16, color: AppColors.alert),
+                  Icon(Icons.shield_outlined, size: 16, color: context.gm.danger),
                   SizedBox(width: 6),
                   Text(
                     'Seguridad: límite de 3 intentos por hora.',
-                    style: TextStyle(fontSize: 11, color: AppColors.alert, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 11, color: context.gm.danger, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.spaceMd),
-              const Text(
+              Text(
                 'Código de Verificación 2FA (si está activo)',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.gm.ink),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _twoFactorController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Código TOTP o de respaldo',
-                  prefixIcon: Icon(Icons.pin_outlined, color: AppColors.primary),
+                  prefixIcon: Icon(Icons.pin_outlined, color: context.gm.brand),
                 ),
                 onChanged: (val) {
                   notifier.setTwoFactorCodeInput(val);
@@ -583,8 +584,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     if (isStep4) canProceed = state.isPasswordValid && !state.isSubmitting;
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final footerBg = isDark ? const Color(0xFF1E293B) : AppColors.surface;
+    final footerBg = context.gm.surface;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceMd),
@@ -603,6 +603,13 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
               icon: Icons.arrow_forward_rounded,
               onPressed: canProceed ? () => notifier.nextStep() : null,
             )
+          else if (canProceed)
+            // Irreversible: require a deliberate long press (design system).
+            HoldToConfirmButton(
+              label: isEn ? 'Hold to permanently wipe' : 'Mantén presionado para borrar',
+              hold: const Duration(milliseconds: 2200),
+              onConfirmed: () => notifier.executeWipe(),
+            )
           else
             DangerButton(
               text: state.isSubmitting
@@ -610,14 +617,14 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                   : (isEn ? 'Permanently wipe device' : 'Borrar dispositivo definitivamente'),
               icon: Icons.delete_forever_rounded,
               isLoading: state.isSubmitting,
-              onPressed: canProceed ? () => notifier.executeWipe() : null,
+              onPressed: null,
             ),
           const SizedBox(height: AppSpacing.spaceSm),
           TextButton(
             onPressed: () => context.pop(),
             child: Text(
               isEn ? 'Cancel and maintain tracking' : 'Cancelar y mantener rastreo',
-              style: const TextStyle(color: AppColors.textMuted),
+              style: TextStyle(color: context.gm.inkMuted),
             ),
           ),
         ],
@@ -630,7 +637,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     final isOfflineDone = state.progressStep == WipeProgressStep.offlineCompleted;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       appBar: AppBar(
         title: const Text('Ejecutando Borrado'),
         backgroundColor: Colors.transparent,
@@ -649,12 +656,12 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: isOfflineDone ? AppColors.alert : AppColors.alertContainer,
+                    color: isOfflineDone ? context.gm.danger : context.gm.dangerSoft,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     isOfflineDone ? Icons.check_rounded : Icons.delete_forever_rounded,
-                    color: isOfflineDone ? Colors.white : AppColors.alert,
+                    color: isOfflineDone ? context.gm.onDanger : context.gm.danger,
                     size: 48,
                   ),
                 ),
@@ -665,10 +672,10 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                     ? 'Borrado Iniciado en Dispositivo'
                     : 'Transmitiendo Orden Criptográfica',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textHeadings,
+                  color: context.gm.ink,
                 ),
               ),
               const SizedBox(height: AppSpacing.spaceSm),
@@ -677,7 +684,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
                     ? 'El dispositivo ya no responde: el borrado se inició y se desconectó de la red.'
                     : 'Esperando confirmación del dispositivo protegido vía canal seguro.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: AppColors.textBody, height: 1.4),
+                style: TextStyle(fontSize: 14, color: context.gm.ink, height: 1.4),
               ),
               const SizedBox(height: AppSpacing.spaceXl),
 
@@ -728,21 +735,21 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.spaceMd, vertical: AppSpacing.spaceSm),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
+        color: context.gm.surfaceSunken,
         borderRadius: BorderRadius.circular(AppRadii.md),
       ),
       child: Row(
         children: [
           if (isCompleted)
-            const Icon(Icons.check_circle_rounded, color: AppColors.safe, size: 20)
+            Icon(Icons.check_circle_rounded, color: context.gm.brand, size: 20)
           else if (isCurrent)
-            const SizedBox(
+            SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.alert),
+              child: CircularProgressIndicator(strokeWidth: 2, color: context.gm.danger),
             )
           else
-            const Icon(Icons.radio_button_unchecked_rounded, color: AppColors.textMuted, size: 20),
+            Icon(Icons.radio_button_unchecked_rounded, color: context.gm.inkMuted, size: 20),
           const SizedBox(width: AppSpacing.spaceSm),
           Expanded(
             child: Text(
@@ -750,7 +757,7 @@ class _WipeWizardPageState extends ConsumerState<WipeWizardPage> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isCompleted || isCurrent ? FontWeight.bold : FontWeight.normal,
-                color: isCompleted || isCurrent ? AppColors.textHeadings : AppColors.textMuted,
+                color: isCompleted || isCurrent ? context.gm.ink : context.gm.inkMuted,
               ),
             ),
           ),

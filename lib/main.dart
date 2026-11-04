@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -11,6 +11,7 @@ import 'core/network/native_bridge_service.dart';
 import 'core/realtime/realtime_service.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/guardian_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/ui/app_toast.dart';
 
@@ -91,8 +92,8 @@ class _GuardianMobileAppState extends ConsumerState<GuardianMobileApp>
     return MaterialApp.router(
       title: 'Guardian Mobile',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: GuardianTheme.light(),
+      darkTheme: GuardianTheme.dark(),
       themeMode: themeMode,
       themeAnimationDuration: const Duration(milliseconds: 300),
       themeAnimationCurve: Curves.easeOutCubic,

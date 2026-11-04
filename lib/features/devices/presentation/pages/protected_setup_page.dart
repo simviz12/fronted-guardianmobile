@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/fcm_notification_service.dart';
 import '../../../../core/network/native_bridge_service.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../../../core/localization/language_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class ProtectedSetupPage extends ConsumerStatefulWidget {
   const ProtectedSetupPage({super.key});
@@ -103,7 +103,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
   Widget build(BuildContext context) {
     final isEn = ref.watch(languageProvider) == AppLanguage.en;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       appBar: AppBar(
         title: const Text('Configuración de Protección'),
         backgroundColor: Colors.transparent,
@@ -118,19 +118,19 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
               Container(
                 padding: const EdgeInsets.all(AppSpacing.spaceMd),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer.withValues(alpha: 0.1),
+                  color: context.gm.brand.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppRadii.lg),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  border: Border.all(color: context.gm.brand.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
+                      decoration: BoxDecoration(
+                        color: context.gm.brand,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.shield_rounded, color: Colors.white, size: 26),
+                      child: Icon(Icons.shield_rounded, color: context.gm.onBrand, size: 26),
                     ),
                     const SizedBox(width: AppSpacing.spaceMd),
                     Expanded(
@@ -142,13 +142,13 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textHeadings,
+                              color: context.gm.ink,
                             ),
                           ),
                           SizedBox(height: 2),
                           Text(
                             isEn ? 'To allow this phone to ring and execute commands while locked or with the screen off, grant the following permissions:' : 'Para que este celular suene y ejecute órdenes incluso bloqueado o con la pantalla apagada, concede los siguientes permisos:',
-                            style: TextStyle(fontSize: 12, color: AppColors.textBody),
+                            style: TextStyle(fontSize: 12, color: context.gm.ink),
                           ),
                         ],
                       ),
@@ -165,7 +165,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.notifications_active_rounded, color: AppColors.primary),
+                        Icon(Icons.notifications_active_rounded, color: context.gm.brand),
                         const SizedBox(width: AppSpacing.spaceSm),
                         Expanded(
                           child: Text(
@@ -173,7 +173,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textHeadings,
+                              color: context.gm.ink,
                             ),
                           ),
                         ),
@@ -186,7 +186,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                     const SizedBox(height: AppSpacing.spaceXs),
                     Text(
                       isEn ? 'Required on Android to display alerts in the foreground and let you dismiss alarms.' : 'Requerido en Android para mostrar la alerta en primer plano y permitirte detener la alarma cuando tú lo decidas.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textBody),
+                      style: TextStyle(fontSize: 12, color: context.gm.ink),
                     ),
                     const SizedBox(height: AppSpacing.spaceSm),
                     if (!_notificationGranted)
@@ -206,7 +206,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.battery_charging_full_rounded, color: AppColors.primary),
+                        Icon(Icons.battery_charging_full_rounded, color: context.gm.brand),
                         const SizedBox(width: AppSpacing.spaceSm),
                         Expanded(
                           child: Text(
@@ -214,7 +214,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textHeadings,
+                              color: context.gm.ink,
                             ),
                           ),
                         ),
@@ -227,7 +227,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                     const SizedBox(height: AppSpacing.spaceXs),
                     Text(
                       isEn ? 'Prevents the OS from putting the alarm service to sleep after hours of inactivity.\nOn Xiaomi/HyperOS, select "No restrictions" in Battery Saver.' : 'Evita que el sistema operativo suspenda el servicio de alarma cuando el teléfono lleve varias horas sin usarse.\nEn Xiaomi/HyperOS, selecciona la opción "Sin restricciones" en el Ahorro de batería de la app.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textBody),
+                      style: TextStyle(fontSize: 12, color: context.gm.ink),
                     ),
                     const SizedBox(height: AppSpacing.spaceSm),
                     Wrap(
@@ -256,15 +256,15 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.lock_person_rounded, color: AppColors.primary),
+                        Icon(Icons.lock_person_rounded, color: context.gm.brand),
                         const SizedBox(width: AppSpacing.spaceSm),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'Protección de Bloqueo',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textHeadings,
+                              color: context.gm.ink,
                             ),
                           ),
                         ),
@@ -275,25 +275,25 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                       ],
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
-                    const Text(
+                    Text(
                       'Permite apagar y forzar el bloqueo de la pantalla, así como ejecutar el restablecimiento de fábrica (borrado remoto total) en caso de robo o pérdida irreparable.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textBody),
+                      style: TextStyle(fontSize: 12, color: context.gm.ink),
                     ),
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
+                        color: context.gm.surfaceSunken,
                         borderRadius: BorderRadius.circular(AppRadii.sm),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+                          Icon(Icons.info_outline_rounded, size: 16, color: context.gm.brand),
                           SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               'Nota: El bloqueo exige el PIN o patrón actual del teléfono. Si no tienes pantalla de bloqueo configurada, no habrá protección.',
-                              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
                             ),
                           ),
                         ],
@@ -318,15 +318,15 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.location_on_rounded, color: AppColors.primary),
+                        Icon(Icons.location_on_rounded, color: context.gm.brand),
                         const SizedBox(width: AppSpacing.spaceSm),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'Permiso de Ubicación',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textHeadings,
+                              color: context.gm.ink,
                             ),
                           ),
                         ),
@@ -339,28 +339,28 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                       ],
                     ),
                     const SizedBox(height: AppSpacing.spaceXs),
-                    const Text(
+                    Text(
                       'Requerido para encontrar tu teléfono si se pierde o te lo roban. Primero se solicita acceso a ubicación en primer plano y luego en segundo plano ("todo el tiempo").',
-                      style: TextStyle(fontSize: 12, color: AppColors.textBody),
+                      style: TextStyle(fontSize: 12, color: context.gm.ink),
                     ),
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
+                        color: context.gm.surfaceSunken,
                         borderRadius: BorderRadius.circular(AppRadii.sm),
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.shield_rounded, size: 16, color: AppColors.primary),
+                              Icon(Icons.shield_rounded, size: 16, color: context.gm.brand),
                               SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   '¿Por qué en segundo plano?',
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textHeadings),
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.gm.ink),
                                 ),
                               ),
                             ],
@@ -368,7 +368,7 @@ class _ProtectedSetupPageState extends ConsumerState<ProtectedSetupPage> with Wi
                           SizedBox(height: 2),
                           Text(
                             'Permite reportar la ubicación periódicamente y recibir la orden remota "Localizar" incluso con el celular bloqueado o con la app cerrada.',
-                            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
                           ),
                         ],
                       ),

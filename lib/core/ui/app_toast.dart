@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/app_colors.dart';
+import '../../core/theme/guardian_theme.dart';
 
 /// Root messenger so toasts can be shown from anywhere (providers,
 /// interceptors) without a BuildContext.
@@ -27,12 +27,13 @@ class AppToast {
   }) {
     final messenger = rootScaffoldMessengerKey.currentState;
     if (messenger == null) return;
+    final context = messenger.context;
 
     final (IconData icon, Color accent) = switch (kind) {
-      ToastKind.success => (Icons.check_circle_rounded, AppColors.safe),
-      ToastKind.error => (Icons.error_rounded, AppColors.alert),
-      ToastKind.warning => (Icons.warning_amber_rounded, AppColors.warning),
-      ToastKind.info => (Icons.info_rounded, AppColors.infoBlue),
+      ToastKind.success => (Icons.check_circle_rounded, context.gm.brand),
+      ToastKind.error => (Icons.error_rounded, context.gm.danger),
+      ToastKind.warning => (Icons.warning_amber_rounded, context.gm.warning),
+      ToastKind.info => (Icons.info_rounded, context.gm.info),
     };
 
     if (kind == ToastKind.error) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/command.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class CommandLiveStatusStepper extends StatelessWidget {
   final Command command;
@@ -35,10 +35,10 @@ class CommandLiveStatusStepper extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceMd),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
+        color: context.gm.surfaceSunken,
         borderRadius: BorderRadius.circular(AppRadii.lg),
         border: Border.all(
-          color: isFailed || isExpired ? AppColors.alert : AppColors.primary,
+          color: isFailed || isExpired ? context.gm.danger : context.gm.brand,
           width: 1.5,
         ),
       ),
@@ -53,7 +53,7 @@ class CommandLiveStatusStepper extends StatelessWidget {
                     : (isFailed || isExpired
                         ? Icons.error_outline_rounded
                         : Icons.sync_rounded),
-                color: isFailed || isExpired ? AppColors.alert : AppColors.primary,
+                color: isFailed || isExpired ? context.gm.danger : context.gm.brand,
                 size: 22,
               ),
               const SizedBox(width: AppSpacing.spaceSm),
@@ -63,7 +63,7 @@ class CommandLiveStatusStepper extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: isFailed || isExpired ? AppColors.alert : AppColors.primary,
+                    color: isFailed || isExpired ? context.gm.danger : context.gm.brand,
                   ),
                 ),
               ),
@@ -74,21 +74,21 @@ class CommandLiveStatusStepper extends StatelessWidget {
           // Stepper bar
           Row(
             children: [
-              _buildStepItem(
+              _buildStepItem(context, 
                 index: 0,
                 label: 'Enviado',
                 isCompleted: currentStep >= 1,
                 isActive: currentStep == 1,
               ),
-              _buildConnector(isCompleted: currentStep >= 2),
-              _buildStepItem(
+              _buildConnector(context, isCompleted: currentStep >= 2),
+              _buildStepItem(context, 
                 index: 1,
                 label: 'Recibido',
                 isCompleted: currentStep >= 2,
                 isActive: currentStep == 2,
               ),
-              _buildConnector(isCompleted: currentStep >= 3),
-              _buildStepItem(
+              _buildConnector(context, isCompleted: currentStep >= 3),
+              _buildStepItem(context, 
                 index: 2,
                 label: isFailed
                     ? 'Falló'
@@ -114,9 +114,9 @@ class CommandLiveStatusStepper extends StatelessWidget {
             const SizedBox(height: AppSpacing.spaceSm),
             Text(
               'Motivo: ${command.failureReason}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.alertText,
+                color: context.gm.dangerInk,
               ),
             ),
           ],
@@ -149,18 +149,18 @@ class CommandLiveStatusStepper extends StatelessWidget {
     }
   }
 
-  Widget _buildStepItem({
+  Widget _buildStepItem(BuildContext context, {
     required int index,
     required String label,
     required bool isCompleted,
     required bool isActive,
     bool isError = false,
   }) {
-    Color color = AppColors.textMuted;
+    Color color = context.gm.inkMuted;
     if (isError) {
-      color = AppColors.alert;
+      color = context.gm.danger;
     } else if (isCompleted) {
-      color = AppColors.primary;
+      color = context.gm.brand;
     }
 
     return Column(
@@ -169,7 +169,7 @@ class CommandLiveStatusStepper extends StatelessWidget {
           width: 24,
           height: 24,
           decoration: BoxDecoration(
-            color: isCompleted ? color : Colors.white,
+            color: isCompleted ? color : context.gm.surface,
             shape: BoxShape.circle,
             border: Border.all(color: color, width: 2),
           ),
@@ -177,7 +177,7 @@ class CommandLiveStatusStepper extends StatelessWidget {
             child: isCompleted
                 ? Icon(
                     isError ? Icons.close_rounded : Icons.check_rounded,
-                    color: Colors.white,
+                    color: context.gm.surface,
                     size: 14,
                   )
                 : Text(
@@ -196,19 +196,19 @@ class CommandLiveStatusStepper extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight: isActive || isCompleted ? FontWeight.bold : FontWeight.normal,
-            color: isError ? AppColors.alert : (isCompleted ? AppColors.textHeadings : AppColors.textMuted),
+            color: isError ? context.gm.danger : (isCompleted ? context.gm.ink : context.gm.inkMuted),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildConnector({required bool isCompleted}) {
+  Widget _buildConnector(BuildContext context, {required bool isCompleted}) {
     return Expanded(
       child: Container(
         height: 2,
         margin: const EdgeInsets.only(bottom: 16),
-        color: isCompleted ? AppColors.primary : AppColors.border,
+        color: isCompleted ? context.gm.brand : context.gm.border,
       ),
     );
   }

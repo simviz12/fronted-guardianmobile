@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -23,7 +23,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -31,19 +31,19 @@ class _SplashPageState extends ConsumerState<SplashPage> {
             Container(
               width: 72,
               height: 72,
-              decoration: const BoxDecoration(
-                color: AppColors.surfaceContainerLow,
+              decoration: BoxDecoration(
+                color: context.gm.surfaceSunken,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.shield_rounded,
                 size: 36,
-                color: AppColors.primary,
+                color: context.gm.brand,
               ),
             ),
             const SizedBox(height: AppSpacing.spaceLg),
-            const CircularProgressIndicator(
-              color: AppColors.primary,
+            CircularProgressIndicator(
+              color: context.gm.brand,
               strokeWidth: 3,
             ),
           ],

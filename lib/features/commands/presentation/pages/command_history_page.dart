@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../../devices/domain/entities/device.dart';
 import '../../domain/entities/command.dart';
 import '../providers/command_history_provider.dart';
 import '../../../../core/localization/language_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class CommandHistoryPage extends ConsumerStatefulWidget {
   final Device device;
@@ -101,7 +101,7 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
                 ],
               ),
             ),
-            const Divider(height: 1, color: AppColors.border),
+            Divider(height: 1, color: context.gm.border),
 
             // Content
             Expanded(
@@ -121,9 +121,9 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      selectedColor: AppColors.primarySubtle,
+      selectedColor: context.gm.brandSoft,
       labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : AppColors.textBody,
+        color: isSelected ? context.gm.brand : context.gm.ink,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         fontSize: 13,
       ),
@@ -143,12 +143,12 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.alert),
+              Icon(Icons.error_outline_rounded, size: 48, color: context.gm.danger),
               const SizedBox(height: AppSpacing.spaceMd),
               Text(
                 state.errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: AppColors.textBody),
+                style: TextStyle(fontSize: 14, color: context.gm.ink),
               ),
               const SizedBox(height: AppSpacing.spaceMd),
               OutlinedButton.icon(
@@ -173,11 +173,11 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
+                decoration: BoxDecoration(
+                  color: context.gm.surfaceSunken,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.history_rounded, size: 40, color: AppColors.primary),
+                child: Icon(Icons.history_rounded, size: 40, color: context.gm.brand),
               ),
               const SizedBox(height: AppSpacing.spaceMd),
               Text(
@@ -185,14 +185,14 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textHeadings,
+                  color: context.gm.ink,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 isEn ? 'You have not issued any commands for this device yet.' : 'Aún no has emitido ningún comando para este dispositivo.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 13, color: context.gm.inkMuted),
               ),
             ],
           ),
@@ -234,10 +234,10 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
+                  color: context.gm.surfaceSunken,
                   borderRadius: BorderRadius.circular(AppRadii.md),
                 ),
-                child: Icon(_getCommandIcon(command.type), color: AppColors.primary, size: 20),
+                child: Icon(_getCommandIcon(command.type), color: context.gm.brand, size: 20),
               ),
               const SizedBox(width: AppSpacing.spaceSm),
               Expanded(
@@ -246,16 +246,16 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
                   children: [
                     Text(
                       _getCommandTitle(command.type, isEn),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textHeadings,
+                        color: context.gm.ink,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       _formatRelativeTime(command.issuedAt, isEn),
-                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                      style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
                     ),
                   ],
                 ),
@@ -266,13 +266,13 @@ class _CommandHistoryPageState extends ConsumerState<CommandHistoryPage> {
           const SizedBox(height: AppSpacing.spaceSm),
           Text(
             _getCommandDescription(command, isEn),
-            style: const TextStyle(fontSize: 13, color: AppColors.textBody),
+            style: TextStyle(fontSize: 13, color: context.gm.ink),
           ),
           if (command.failureReason != null) ...[
             const SizedBox(height: AppSpacing.spaceXs),
             Text(
               isEn ? 'Failure reason: ${command.failureReason}' : 'Motivo de fallo: ${command.failureReason}',
-              style: const TextStyle(fontSize: 12, color: AppColors.alertText),
+              style: TextStyle(fontSize: 12, color: context.gm.dangerInk),
             ),
           ],
         ],

@@ -12,7 +12,9 @@ abstract class FcmNotificationService {
 }
 
 class FcmNotificationServiceImpl implements FcmNotificationService {
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  // Lazy: FirebaseMessaging.instance throws when Firebase isn't initialized
+  // (e.g. no google-services.json). Every use below is inside a try/catch.
+  FirebaseMessaging get _messaging => FirebaseMessaging.instance;
 
   @override
   Future<void> initialize(WidgetRef ref) async {

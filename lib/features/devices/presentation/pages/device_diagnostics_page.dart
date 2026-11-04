@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../../../core/localization/language_provider.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_provider.dart';
 import '../../data/models/device_diagnostics_dto.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class DeviceDiagnosticsPage extends ConsumerWidget {
   final Device device;
@@ -25,7 +25,7 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+            icon: Icon(Icons.refresh_rounded, color: context.gm.brand),
             tooltip: isEn ? 'Refresh diagnostics' : 'Actualizar diagnóstico',
             onPressed: () => ref.refresh(deviceDiagnosticsProvider(device.id)),
           ),
@@ -33,8 +33,8 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
       ),
       body: SafeArea(
         child: diagnosticsAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+          loading: () => Center(
+            child: CircularProgressIndicator(color: context.gm.brand),
           ),
           error: (err, _) => Padding(
             padding: const EdgeInsets.all(AppSpacing.marginMobile),
@@ -42,12 +42,12 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.alert),
+                  Icon(Icons.error_outline_rounded, size: 48, color: context.gm.danger),
                   const SizedBox(height: AppSpacing.spaceMd),
                   Text(
                     'No se pudo obtener el diagnóstico del dispositivo:\n$err',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.alertText),
+                    style: TextStyle(color: context.gm.dangerInk),
                   ),
                   const SizedBox(height: AppSpacing.spaceLg),
                   PrimaryButton(
@@ -81,24 +81,24 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.spaceMd),
             decoration: BoxDecoration(
-              color: AppColors.alertContainer,
+              color: context.gm.dangerSoft,
               borderRadius: BorderRadius.circular(AppRadii.lg),
-              border: Border.all(color: AppColors.alert.withValues(alpha: 0.3)),
+              border: Border.all(color: context.gm.danger.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded, color: AppColors.alert, size: 24),
+                    Icon(Icons.warning_amber_rounded, color: context.gm.danger, size: 24),
                     const SizedBox(width: AppSpacing.spaceSm),
                     Expanded(
                       child: Text(
                         'Problemas Detectados (${diag.problems.length})',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.alertText,
+                          color: context.gm.dangerInk,
                         ),
                       ),
                     ),
@@ -110,11 +110,11 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('• ', style: TextStyle(color: AppColors.alertText, fontWeight: FontWeight.bold)),
+                          Text('• ', style: TextStyle(color: context.gm.dangerInk, fontWeight: FontWeight.bold)),
                           Expanded(
                             child: Text(
                               _translateProblem(p),
-                              style: const TextStyle(color: AppColors.alertText, fontSize: 13),
+                              style: TextStyle(color: context.gm.dangerInk, fontSize: 13),
                             ),
                           ),
                         ],
@@ -128,21 +128,21 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.spaceMd),
             decoration: BoxDecoration(
-              color: AppColors.safeSubtle,
+              color: context.gm.brandSoft,
               borderRadius: BorderRadius.circular(AppRadii.lg),
-              border: Border.all(color: AppColors.safe.withValues(alpha: 0.3)),
+              border: Border.all(color: context.gm.brand.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle_rounded, color: AppColors.safe, size: 24),
+                Icon(Icons.check_circle_rounded, color: context.gm.brand, size: 24),
                 const SizedBox(width: AppSpacing.spaceSm),
-                const Expanded(
+                Expanded(
                   child: Text(
                     '¡Excelente! Todos los sistemas y permisos están activos.',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.safeText,
+                      color: context.gm.brandInk,
                     ),
                   ),
                 ),
@@ -157,12 +157,12 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'CONECTIVIDAD Y TOKENS',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textMuted,
+                  color: context.gm.inkMuted,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -213,12 +213,12 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'ESTADO DE PERMISOS NATIVOS',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textMuted,
+                    color: context.gm.inkMuted,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -279,7 +279,7 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
       children: [
         Icon(
           active ? Icons.check_circle_rounded : Icons.cancel_rounded,
-          color: active ? AppColors.safe : AppColors.alert,
+          color: active ? context.gm.brand : context.gm.danger,
           size: 20,
         ),
         const SizedBox(width: AppSpacing.spaceSm),
@@ -297,7 +297,7 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
               ),
               Text(
                 explanation,
-                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
               ),
             ],
           ),
@@ -313,7 +313,7 @@ class DeviceDiagnosticsPage extends ConsumerWidget {
   }) {
     final theme = Theme.of(context);
     final headingColor = theme.colorScheme.onSurface;
-    final bodyColor = theme.textTheme.bodyMedium?.color ?? AppColors.textBody;
+    final bodyColor = theme.textTheme.bodyMedium?.color ?? context.gm.ink;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

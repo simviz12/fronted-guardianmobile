@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../providers/two_factor_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class TwoFactorSetupPage extends ConsumerStatefulWidget {
   const TwoFactorSetupPage({super.key});
@@ -39,7 +39,7 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
     final state = ref.watch(twoFactorSetupProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       appBar: AppBar(
         title: const Text('Activar Autenticación en Dos Pasos'),
         backgroundColor: Colors.transparent,
@@ -87,10 +87,10 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
           const SizedBox(height: AppSpacing.spaceMd),
 
           if (state.isLoading || state.step == TwoFactorSetupStep.loading)
-            const Center(
+            Center(
               child: Padding(
                 padding: EdgeInsets.all(AppSpacing.spaceLg),
-                child: CircularProgressIndicator(color: AppColors.primary),
+                child: CircularProgressIndicator(color: context.gm.brand),
               ),
             )
           else if (state.otpauthUrl != null) ...[
@@ -119,9 +119,9 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '¿No puedes escanear? Ingresa el código manualmente:',
-                    style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                    style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
                   ),
                   const SizedBox(height: AppSpacing.spaceXs),
                   Row(
@@ -131,11 +131,11 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
                           _secretVisible
                               ? (state.secret ?? '')
                               : '•' * (state.secret?.length ?? 0),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'monospace',
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                            color: context.gm.brand,
                             letterSpacing: 2,
                           ),
                         ),
@@ -146,14 +146,14 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
                           size: 20,
-                          color: AppColors.textMuted,
+                          color: context.gm.inkMuted,
                         ),
                         onPressed: () =>
                             setState(() => _secretVisible = !_secretVisible),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.copy_outlined,
-                            size: 20, color: AppColors.textMuted),
+                        icon: Icon(Icons.copy_outlined,
+                            size: 20, color: context.gm.inkMuted),
                         onPressed: () {
                           Clipboard.setData(
                               ClipboardData(text: state.secret ?? ''));
@@ -196,12 +196,12 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
                     Container(
                       padding: const EdgeInsets.all(AppSpacing.spaceSm),
                       decoration: BoxDecoration(
-                        color: AppColors.alertContainer,
+                        color: context.gm.dangerSoft,
                         borderRadius: BorderRadius.circular(AppRadii.md),
                       ),
                       child: Text(
                         state.errorMessage!,
-                        style: const TextStyle(color: AppColors.alertText, fontSize: 12),
+                        style: TextStyle(color: context.gm.dangerInk, fontSize: 12),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.spaceSm),
@@ -230,12 +230,12 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
             Container(
               padding: const EdgeInsets.all(AppSpacing.spaceMd),
               decoration: BoxDecoration(
-                color: AppColors.alertContainer,
+                color: context.gm.dangerSoft,
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
               child: Text(
                 state.errorMessage!,
-                style: const TextStyle(color: AppColors.alertText, fontSize: 13),
+                style: TextStyle(color: context.gm.dangerInk, fontSize: 13),
               ),
             ),
           ],
@@ -253,20 +253,20 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.spaceMd),
             decoration: BoxDecoration(
-              color: AppColors.warningSubtle,
+              color: context.gm.warningSoft,
               borderRadius: BorderRadius.circular(AppRadii.md),
-              border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+              border: Border.all(color: context.gm.warning.withValues(alpha: 0.3)),
             ),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.warning_amber_rounded, color: AppColors.warningText, size: 22),
+                Icon(Icons.warning_amber_rounded, color: context.gm.warningInk, size: 22),
                 SizedBox(width: AppSpacing.spaceSm),
                 Expanded(
                   child: Text(
                     '¡Guarda estos códigos en un lugar seguro! Se muestran UNA SOLA VEZ. Úsalos si pierdes acceso a tu aplicación de autenticación.',
                     style: TextStyle(
-                      color: AppColors.warningText,
+                      color: context.gm.warningInk,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       height: 1.4,
@@ -277,12 +277,12 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
             ),
           ),
           const SizedBox(height: AppSpacing.spaceLg),
-          const Text(
+          Text(
             '🔐 Códigos de Respaldo (10)',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColors.textHeadings,
+              color: context.gm.ink,
             ),
           ),
           const SizedBox(height: AppSpacing.spaceMd),
@@ -297,9 +297,9 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
                             width: 22,
                             child: Text(
                               '${entry.key + 1}.',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textMuted,
+                                color: context.gm.inkMuted,
                               ),
                             ),
                           ),
@@ -307,11 +307,11 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
                           Expanded(
                             child: Text(
                               entry.value,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'monospace',
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textHeadings,
+                                color: context.gm.ink,
                                 letterSpacing: 1,
                               ),
                             ),
@@ -360,15 +360,15 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
         Container(
           width: 28,
           height: 28,
-          decoration: const BoxDecoration(
-            color: AppColors.primary,
+          decoration: BoxDecoration(
+            color: context.gm.brand,
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
               step,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: context.gm.onBrand,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -382,18 +382,18 @@ class _TwoFactorSetupPageState extends ConsumerState<TwoFactorSetupPage> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textHeadings,
+                  color: context.gm.ink,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textBody,
+                  color: context.gm.ink,
                   height: 1.4,
                 ),
               ),

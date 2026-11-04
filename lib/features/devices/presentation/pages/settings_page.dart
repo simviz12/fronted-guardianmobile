@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/native_bridge_service.dart';
 import '../../../../core/config/api_config.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -11,6 +10,7 @@ import '../../../../core/localization/language_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/providers/two_factor_provider.dart';
 import '../providers/devices_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -88,7 +88,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final isEn = currentLang == AppLanguage.en;
     final theme = Theme.of(context);
     final headingColor = theme.colorScheme.onSurface;
-    final bodyColor = theme.textTheme.bodyMedium?.color ?? AppColors.textBody;
+    final bodyColor = theme.textTheme.bodyMedium?.color ?? context.gm.ink;
 
     void navigateBack() {
       context.go('/home');
@@ -128,12 +128,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLow,
+                          color: context.gm.surfaceSunken,
                           borderRadius: BorderRadius.circular(AppRadii.md),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.palette_outlined,
-                          color: AppColors.primary,
+                          color: context.gm.brand,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.spaceSm),
@@ -152,7 +152,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               isEn
                                   ? 'Configure theme mode and UI language'
                                   : 'Configura el modo oscuro/claro y el idioma',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
                             ),
                           ],
                         ),
@@ -167,7 +167,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.language_rounded, size: 20, color: AppColors.textMuted),
+                          Icon(Icons.language_rounded, size: 20, color: context.gm.inkMuted),
                           const SizedBox(width: 8),
                           Text(
                             isEn ? 'Language / Idioma' : 'Idioma / Language',
@@ -205,7 +205,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             Icon(
                               currentTheme == ThemeMode.dark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                               size: 20,
-                              color: AppColors.textMuted,
+                              color: context.gm.inkMuted,
                             ),
                             const SizedBox(width: 8),
                             Flexible(
@@ -254,15 +254,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: context.gm.brand,
                     child: Text(
                       (user?.displayName.isNotEmpty ?? false)
                           ? user!.displayName[0].toUpperCase()
                           : 'U',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: context.gm.onBrand,
                       ),
                     ),
                   ),
@@ -305,12 +305,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLow,
+                          color: context.gm.surfaceSunken,
                           borderRadius: BorderRadius.circular(AppRadii.md),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.security_rounded,
-                          color: AppColors.primary,
+                          color: context.gm.brand,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.spaceSm),
@@ -329,7 +329,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               isEn
                                   ? '2FA (TOTP), master password & active sessions'
                                   : '2FA (TOTP), contraseñas y sesiones activas',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
                             ),
                           ],
                         ),
@@ -357,8 +357,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: (user?.twoFactorEnabled ?? false)
-                                        ? AppColors.safeSubtle
-                                        : AppColors.surfaceContainerLow,
+                                        ? context.gm.brandSoft
+                                        : context.gm.surfaceSunken,
                                     borderRadius: BorderRadius.circular(AppRadii.full),
                                   ),
                                   child: Text(
@@ -369,8 +369,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: (user?.twoFactorEnabled ?? false)
-                                          ? AppColors.safeText
-                                          : AppColors.textMuted,
+                                          ? context.gm.brandInk
+                                          : context.gm.inkMuted,
                                     ),
                                   ),
                                 ),
@@ -381,7 +381,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               isEn
                                   ? 'Protects critical actions like wipe and deactivating theft mode'
                                   : 'Protege acciones sensibles como el borrado y desactivación de robo',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
                             ),
                           ],
                         ),
@@ -389,14 +389,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       if (user?.twoFactorEnabled ?? false)
                         TextButton(
                           onPressed: () => _showDisable2FaDialog(),
-                          style: TextButton.styleFrom(foregroundColor: AppColors.alert),
+                          style: TextButton.styleFrom(foregroundColor: context.gm.danger),
                           child: Text(isEn ? 'Disable' : 'Desactivar'),
                         )
                       else
                         OutlinedButton(
                           onPressed: () => context.push('/2fa-setup'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
+                            foregroundColor: context.gm.brand,
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                             minimumSize: const Size(60, 32),
                           ),
@@ -410,7 +410,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     dense: true,
-                    leading: const Icon(Icons.password_rounded, size: 20, color: AppColors.textMuted),
+                    leading: Icon(Icons.password_rounded, size: 20, color: context.gm.inkMuted),
                     title: Text(
                       isEn ? 'Change Master Password' : 'Cambiar Contraseña Maestra',
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
@@ -458,7 +458,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   ),
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, true),
-                                    style: TextButton.styleFrom(foregroundColor: AppColors.alert),
+                                    style: TextButton.styleFrom(foregroundColor: context.gm.danger),
                                     child: Text(isEn ? 'Close all' : 'Cerrar todas'),
                                   ),
                                 ],
@@ -469,7 +469,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               if (context.mounted) context.go('/login');
                             }
                           },
-                          child: Text(isEn ? 'Close all' : 'Cerrar todas', style: const TextStyle(fontSize: 12, color: AppColors.alert)),
+                          child: Text(isEn ? 'Close all' : 'Cerrar todas', style: TextStyle(fontSize: 12, color: context.gm.danger)),
                         ),
                     ],
                   ),
@@ -479,19 +479,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   else if (sessionsState.sessions.isEmpty)
                     Text(
                       isEn ? 'No other active sessions recorded.' : 'No hay otras sesiones activas registradas.',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                      style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
                     )
                   else
                     ...sessionsState.sessions.map((sess) => Container(
                           margin: const EdgeInsets.only(bottom: 6),
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceContainerLow,
+                            color: context.gm.surfaceSunken,
                             borderRadius: BorderRadius.circular(AppRadii.sm),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.devices_other_rounded, size: 18, color: AppColors.primary),
+                              Icon(Icons.devices_other_rounded, size: 18, color: context.gm.brand),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Column(
@@ -505,13 +505,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                     ),
                                     Text(
                                       'ID: ${sess.id.length > 8 ? sess.id.substring(0, 8) : sess.id}...',
-                                      style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                                      style: TextStyle(fontSize: 10, color: context.gm.inkMuted),
                                     ),
                                   ],
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.alert),
+                                icon: Icon(Icons.close_rounded, size: 16, color: context.gm.danger),
                                 onPressed: () => ref.read(sessionsProvider.notifier).revoke(sess.id),
                               ),
                             ],
@@ -532,12 +532,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLow,
+                          color: context.gm.surfaceSunken,
                           borderRadius: BorderRadius.circular(AppRadii.md),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.radar_rounded,
-                          color: AppColors.primary,
+                          color: context.gm.brand,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.spaceSm),
@@ -556,7 +556,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               isEn
                                   ? 'Background service with active foreground notification'
                                   : 'Servicio en segundo plano con notificación activa',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              style: TextStyle(fontSize: 11, color: context.gm.inkMuted),
                             ),
                           ],
                         ),
@@ -564,7 +564,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       if (!_isLoadingLocationSettings)
                         Switch(
                           value: _periodicEnabled,
-                          activeThumbColor: AppColors.primary,
+                          activeThumbColor: context.gm.brand,
                           onChanged: _togglePeriodic,
                         ),
                     ],
@@ -580,10 +580,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ),
                         Text(
                           isEn ? 'Every $_intervalMinutes min' : 'Cada $_intervalMinutes min',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                            color: context.gm.brand,
                           ),
                         ),
                       ],
@@ -594,7 +594,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       max: 60,
                       divisions: 11,
                       label: '$_intervalMinutes min',
-                      activeColor: AppColors.primary,
+                      activeColor: context.gm.brand,
                       onChanged: (val) {
                         setState(() {
                           _intervalMinutes = val.round();
@@ -608,7 +608,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       isEn
                           ? 'Uses balanced power accuracy to save battery. The notification remains in status bar per Android system policy.'
                           : 'Usa precisión balanceada para ahorrar batería. La notificación "Guardian protege este teléfono" permanecerá visible en la barra de estado según las políticas del sistema.',
-                      style: const TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
+                      style: TextStyle(fontSize: 11, color: context.gm.inkMuted, height: 1.3),
                     ),
                   ],
                 ],
@@ -623,12 +623,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
+                    color: context.gm.surfaceSunken,
                     borderRadius: BorderRadius.circular(AppRadii.md),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.lock_person_outlined,
-                    color: AppColors.primary,
+                    color: context.gm.brand,
                   ),
                 ),
                 title: Text(
@@ -660,12 +660,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLow,
+                          color: context.gm.surfaceSunken,
                           borderRadius: BorderRadius.circular(AppRadii.md),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.settings_ethernet_rounded,
-                          color: AppColors.primary,
+                          color: context.gm.brand,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.spaceSm),
@@ -684,7 +684,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               isEn
                                   ? 'Base URL for commands, daemon & sync'
                                   : 'URL base para órdenes, daemon y sincronización',
-                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                              style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
                             ),
                           ],
                         ),
@@ -695,7 +695,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerLow,
+                      color: context.gm.surfaceSunken,
                       borderRadius: BorderRadius.circular(AppRadii.sm),
                     ),
                     child: Row(
@@ -704,11 +704,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         Expanded(
                           child: Text(
                             ApiConfig.baseUrl,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'monospace',
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
-                              color: AppColors.primary,
+                              color: context.gm.brand,
                             ),
                           ),
                         ),
@@ -731,12 +731,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
+                    color: context.gm.surfaceSunken,
                     borderRadius: BorderRadius.circular(AppRadii.md),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.privacy_tip_outlined,
-                    color: AppColors.primary,
+                    color: context.gm.brand,
                   ),
                 ),
                 title: Text(
@@ -757,12 +757,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const SizedBox(height: AppSpacing.spaceSm),
 
             // App version info
-            const Center(
+            Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Text(
                   'Guardian Mobile v1.0.0 (Release 10)',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                  style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
                 ),
               ),
             ),
@@ -790,7 +790,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.alert,
+                          foregroundColor: context.gm.danger,
                         ),
                         child: Text(isEn ? 'Sign Out' : 'Cerrar Sesión'),
                       ),
@@ -846,7 +846,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.alert, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: context.gm.danger, foregroundColor: context.gm.onDanger),
             child: const Text('Desactivar'),
           ),
         ],
@@ -862,7 +862,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ok ? '2FA desactivado correctamente.' : 'Error al desactivar 2FA.'),
-            backgroundColor: ok ? AppColors.safe : AppColors.alert,
+            backgroundColor: ok ? context.gm.brand : context.gm.danger,
           ),
         );
       }
@@ -912,7 +912,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ScaffoldMessenger.of(ctx).showSnackBar(
                   SnackBar(
                     content: Text(ok ? 'Contraseña actualizada. Vuelve a iniciar sesión.' : 'Error al cambiar contraseña.'),
-                    backgroundColor: ok ? AppColors.safe : AppColors.alert,
+                    backgroundColor: ok ? ctx.gm.brand : ctx.gm.danger,
                   ),
                 );
                 if (ok) {
@@ -988,7 +988,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         messenger.showSnackBar(
           SnackBar(
             content: Text('Servidor actualizado a $newUrl'),
-            backgroundColor: AppColors.primary,
+            backgroundColor: context.gm.brand,
           ),
         );
       }

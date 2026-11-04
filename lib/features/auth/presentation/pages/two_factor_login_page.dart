@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class TwoFactorLoginPage extends ConsumerStatefulWidget {
   const TwoFactorLoginPage({super.key});
@@ -38,7 +38,7 @@ class _TwoFactorLoginPageState extends ConsumerState<TwoFactorLoginPage> {
     final authState = ref.watch(authNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -64,14 +64,14 @@ class _TwoFactorLoginPageState extends ConsumerState<TwoFactorLoginPage> {
                 child: Container(
                   width: 72,
                   height: 72,
-                  decoration: const BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
+                  decoration: BoxDecoration(
+                    color: context.gm.surfaceSunken,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.lock_clock_rounded,
                     size: 36,
-                    color: AppColors.primary,
+                    color: context.gm.brand,
                   ),
                 ),
               ),
@@ -81,7 +81,7 @@ class _TwoFactorLoginPageState extends ConsumerState<TwoFactorLoginPage> {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textHeadings,
+                      color: context.gm.ink,
                     ),
               ),
               const SizedBox(height: AppSpacing.spaceXs),
@@ -90,9 +90,9 @@ class _TwoFactorLoginPageState extends ConsumerState<TwoFactorLoginPage> {
                     ? 'Ingresa uno de tus códigos de respaldo de 16 caracteres.'
                     : 'Ingresa el código de 6 dígitos de tu aplicación de autenticación (Google Authenticator, Authy, etc.).',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textBody,
+                  color: context.gm.ink,
                   height: 1.4,
                 ),
               ),
@@ -103,21 +103,21 @@ class _TwoFactorLoginPageState extends ConsumerState<TwoFactorLoginPage> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.spaceMd),
                   decoration: BoxDecoration(
-                    color: AppColors.alertContainer,
+                    color: context.gm.dangerSoft,
                     borderRadius: BorderRadius.circular(AppRadii.md),
-                    border: Border.all(color: AppColors.alert.withValues(alpha: 0.3)),
+                    border: Border.all(color: context.gm.danger.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.error_outline_rounded,
-                          color: AppColors.alertText, size: 20),
+                      Icon(Icons.error_outline_rounded,
+                          color: context.gm.dangerInk, size: 20),
                       const SizedBox(width: AppSpacing.spaceSm),
                       Expanded(
                         child: Text(
                           authState.errorMessage!,
-                          style: const TextStyle(
-                            color: AppColors.alertText,
+                          style: TextStyle(
+                            color: context.gm.dangerInk,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -173,10 +173,10 @@ class _TwoFactorLoginPageState extends ConsumerState<TwoFactorLoginPage> {
                       ? 'Usar código de autenticación (TOTP)'
                       : 'Usar código de respaldo',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: context.gm.brand,
                     decoration: TextDecoration.underline,
                   ),
                 ),

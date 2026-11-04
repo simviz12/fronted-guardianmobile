@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/theme/guardian_theme.dart';
+import '../../../../core/theme/guardian_tokens.dart';
+import '../../../../core/widgets/guardian_widgets.dart';
 import '../../../../core/localization/language_provider.dart';
 import '../../../devices/domain/entities/device.dart';
 import '../../../devices/presentation/providers/devices_provider.dart';
@@ -58,7 +60,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.errorMessage!),
-            backgroundColor: AppColors.alert,
+            backgroundColor: context.gm.danger,
           ),
         );
       }
@@ -67,7 +69,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.actionSuccessMessage!),
-            backgroundColor: AppColors.primary,
+            backgroundColor: context.gm.brand,
           ),
         );
       }
@@ -84,17 +86,17 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
               children: [
                 Text(
                   currentDevice.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: context.gm.ink,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isActuallyActive ? AppColors.alertContainer : AppColors.primarySubtle,
+                    color: isActuallyActive ? context.gm.dangerSoft : context.gm.brandSoft,
                     borderRadius: BorderRadius.circular(AppRadii.full),
                   ),
                   child: Text(
@@ -102,18 +104,18 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isActuallyActive ? AppColors.alert : AppColors.primary,
+                      color: isActuallyActive ? context.gm.danger : context.gm.brand,
                     ),
                   ),
                 ),
               ],
             ),
-            const Text(
+            Text(
               'PROTOCOLO DE EXTRAVÍO Y ROBO',
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+                color: context.gm.brand,
                 letterSpacing: 0.5,
               ),
             ),
@@ -122,9 +124,9 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
       ),
       body: SafeArea(
         child: theftState.isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            ? Center(child: CircularProgressIndicator(color: context.gm.brand))
             : RefreshIndicator(
-                color: AppColors.primary,
+                color: context.gm.brand,
                 onRefresh: () async {
                   await ref
                       .read(theftModeProvider(widget.device.id).notifier)
@@ -153,7 +155,6 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
     final latestLoc = mapState.latestLocation;
     final isEn = ref.watch(languageProvider) == AppLanguage.en;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final headingColor = theme.colorScheme.onSurface;
 
     return Column(
@@ -163,9 +164,9 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.spaceMd),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2A1515) : AppColors.alertContainer,
+            color: context.gm.dangerSoft,
             borderRadius: BorderRadius.circular(AppRadii.xl),
-            border: Border.all(color: isDark ? const Color(0xFFEF4444) : AppColors.alert.withValues(alpha: 0.3)),
+            border: Border.all(color: context.gm.danger.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,12 +177,12 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFFDC2626) : AppColors.alert,
+                      color: context.gm.danger,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.warning_amber_rounded,
-                      color: Colors.white,
+                      color: context.gm.onDanger,
                       size: 22,
                     ),
                   ),
@@ -195,7 +196,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFFFCA5A5) : AppColors.alertText,
+                            color: context.gm.dangerInk,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -204,7 +205,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppColors.alertText,
+                            color: context.gm.dangerInk,
                           ),
                         ),
                       ],
@@ -219,7 +220,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     : 'El dispositivo se encuentra bloqueado. El rastreo de emergencia está transmitiendo activamente.',
                 style: TextStyle(
                   fontSize: 13,
-                  color: isDark ? const Color(0xFFFECACA) : AppColors.alertText.withValues(alpha: 0.9),
+                  color: context.gm.dangerInk.withValues(alpha: 0.9),
                   height: 1.3,
                 ),
               ),
@@ -229,10 +230,10 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                   isEn
                       ? 'Activated: ${_formatDateTime(config.activatedAt)} (Interval: ${config.locationIntervalSeconds}s)'
                       : 'Activado: ${_formatDateTime(config.activatedAt)} (Frecuencia: ${config.locationIntervalSeconds}s)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.alertText,
+                    color: context.gm.dangerInk,
                   ),
                 ),
               ],
@@ -256,8 +257,8 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.alert,
+                          decoration: BoxDecoration(
+                            color: context.gm.danger,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -281,7 +282,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
+                        color: context.gm.surfaceSunken,
                         borderRadius: BorderRadius.circular(AppRadii.full),
                       ),
                       child: Text(
@@ -289,7 +290,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFFCBD5E1) : AppColors.textBody,
+                          color: context.gm.ink,
                         ),
                       ),
                     ),
@@ -300,7 +301,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
               if (latestLoc != null) ...[
                 Row(
                   children: [
-                    const Icon(Icons.location_on_rounded, size: 16, color: AppColors.primary),
+                    Icon(Icons.location_on_rounded, size: 16, color: context.gm.brand),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -319,9 +320,9 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                   isEn
                       ? 'Last report: ${_formatDateTime(latestLoc.recordedAt)} (${latestLoc.source.toContractString()})'
                       : 'Último reporte: ${_formatDateTime(latestLoc.recordedAt)} (${latestLoc.source.toContractString()})',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMuted,
+                    color: context.gm.inkMuted,
                   ),
                 ),
               ] else ...[
@@ -329,9 +330,9 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                   isEn
                       ? 'Waiting for first emergency GPS fix...'
                       : 'Esperando primera fijación GPS de emergencia...',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textMuted,
+                    color: context.gm.inkMuted,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -365,7 +366,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                 isEn
                     ? 'Text displayed on front screen with maximum visibility:'
                     : 'Texto desplegado en pantalla frontal con la máxima visibilidad:',
-                style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFFCBD5E1) : AppColors.textBody),
+                style: TextStyle(fontSize: 12, color: context.gm.ink),
               ),
               const SizedBox(height: AppSpacing.spaceSm),
               Container(
@@ -453,16 +454,16 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.spaceMd),
             decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLow,
+              color: context.gm.surfaceSunken,
               borderRadius: BorderRadius.circular(AppRadii.xl),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.gm.border),
             ),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
                   Icons.shield_outlined,
-                  color: AppColors.primary,
+                  color: context.gm.brand,
                   size: 28,
                 ),
                 SizedBox(width: AppSpacing.spaceSm),
@@ -475,7 +476,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textHeadings,
+                          color: context.gm.ink,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -483,7 +484,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                         'Al activar este modo, el dispositivo iniciará rastreo continuo de emergencia, bloqueará el acceso y mostrará un mensaje visible para su recuperación.',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textBody,
+                          color: context.gm.ink,
                           height: 1.35,
                         ),
                       ),
@@ -496,12 +497,12 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
           const SizedBox(height: AppSpacing.spaceMd),
 
           // Message Input Field
-          const Text(
+          Text(
             'Mensaje para mostrar en pantalla',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: AppColors.textHeadings,
+              color: context.gm.ink,
             ),
           ),
           const SizedBox(height: 6),
@@ -525,32 +526,32 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
           const SizedBox(height: AppSpacing.spaceSm),
 
           // Contact Phone Input Field
-          const Text(
+          Text(
             'Teléfono de contacto alternativo (Opcional)',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: AppColors.textHeadings,
+              color: context.gm.ink,
             ),
           ),
           const SizedBox(height: 6),
           TextFormField(
             controller: _phoneController,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Ej. +52 55 1234 5678',
-              prefixIcon: Icon(Icons.phone_rounded, color: AppColors.primary),
+              prefixIcon: Icon(Icons.phone_rounded, color: context.gm.brand),
             ),
           ),
           const SizedBox(height: AppSpacing.spaceMd),
 
           // Location Frequency Selector
-          const Text(
+          Text(
             'Frecuencia de rastreo de emergencia',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: AppColors.textHeadings,
+              color: context.gm.ink,
             ),
           ),
           const SizedBox(height: 6),
@@ -571,18 +572,18 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
               children: [
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  activeThumbColor: AppColors.primary,
-                  title: const Text(
+                  activeThumbColor: context.gm.brand,
+                  title: Text(
                     'Activar alarma sonora',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textHeadings,
+                      color: context.gm.ink,
                     ),
                   ),
-                  subtitle: const Text(
+                  subtitle: Text(
                     'Emite un sonido de advertencia audible al recibir el comando.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textBody),
+                    style: TextStyle(fontSize: 12, color: context.gm.ink),
                   ),
                   value: _alarm,
                   onChanged: (v) => setState(() => _alarm = v),
@@ -590,13 +591,13 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                 const Divider(height: 16),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  activeThumbColor: AppColors.primary,
-                  title: const Text(
+                  activeThumbColor: context.gm.brand,
+                  title: Text(
                     'Bloquear pantalla inmediatamente',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textHeadings,
+                      color: context.gm.ink,
                     ),
                   ),
                   subtitle: Text(
@@ -605,7 +606,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                         : 'Deshabilitado: El dispositivo aún no tiene concedido el permiso de Administrador de Dispositivo.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: canLock ? AppColors.textBody : AppColors.alertText,
+                      color: canLock ? context.gm.ink : context.gm.dangerInk,
                     ),
                   ),
                   value: canLock ? _lock : false,
@@ -642,10 +643,10 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primarySubtle : AppColors.surfaceContainerLow,
+            color: isSelected ? context.gm.brandSoft : context.gm.surfaceSunken,
             borderRadius: BorderRadius.circular(AppRadii.md),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.border,
+              color: isSelected ? context.gm.brand : context.gm.border,
               width: isSelected ? 1.5 : 1.0,
             ),
           ),
@@ -655,7 +656,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? AppColors.primary : AppColors.textHeadings,
+              color: isSelected ? context.gm.brand : context.gm.ink,
             ),
           ),
         ),
@@ -666,51 +667,60 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
   void _confirmActivation(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
 
-    showDialog(
+    // Bottom sheet + hold-to-confirm (design system): a deliberate gesture
+    // for a high-impact action instead of a one-tap dialog button.
+    showModalBottomSheet<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.alert),
-            SizedBox(width: 8),
-            Text('¿Activar Modo Robo?'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Estás a punto de activar el protocolo de extravío en "${widget.device.name}":',
-              style: const TextStyle(fontSize: 13, color: AppColors.textBody),
-            ),
-            const SizedBox(height: 8),
-            _buildBulletPoint('Rastreo cada $_selectedIntervalMinutes minuto(s)'),
-            if (_lock) _buildBulletPoint('Bloqueo inmediato de pantalla'),
-            if (_alarm) _buildBulletPoint('Sirena de alarma audible'),
-            _buildBulletPoint('Mensaje de aviso en pantalla principal'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(GSpace.s5, 0, GSpace.s5, GSpace.s5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                const IconBox(Icons.gpp_maybe_rounded, danger: true),
+                const SizedBox(width: GSpace.s3),
+                Expanded(child: Text('¿Activar Modo Robo?', style: ctx.text.headlineSmall)),
+              ]),
+              const SizedBox(height: GSpace.s3),
+              Text(
+                'Se activará el protocolo de extravío en "${widget.device.name}":',
+                style: ctx.text.bodyLarge,
+              ),
+              const SizedBox(height: GSpace.s2),
+              _buildBulletPoint('Rastreo cada $_selectedIntervalMinutes minuto(s)'),
+              if (_lock && widget.device.adminEnabled) _buildBulletPoint('Bloqueo inmediato de pantalla'),
+              if (_alarm) _buildBulletPoint('Sirena de alarma audible'),
+              _buildBulletPoint('Mensaje de aviso en pantalla principal'),
+              const SizedBox(height: GSpace.s2),
+              Text('Puedes desactivarlo después con tu contraseña.', style: ctx.text.bodySmall),
+              const SizedBox(height: GSpace.s5),
+              HoldToConfirmButton(
+                label: 'Mantén presionado para activar',
+                onConfirmed: () async {
+                  Navigator.pop(ctx);
+                  await ref.read(theftModeProvider(widget.device.id).notifier).activate(
+                        message: _messageController.text.trim(),
+                        contactPhone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+                        locationIntervalSeconds: _selectedIntervalMinutes * 60,
+                        alarm: _alarm,
+                        lock: _lock && widget.device.adminEnabled,
+                      );
+                },
+              ),
+              const SizedBox(height: GSpace.s2),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancelar'),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await ref.read(theftModeProvider(widget.device.id).notifier).activate(
-                    message: _messageController.text.trim(),
-                    contactPhone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-                    locationIntervalSeconds: _selectedIntervalMinutes * 60,
-                    alarm: _alarm,
-                    lock: _lock && widget.device.adminEnabled,
-                  );
-            },
-            style: TextButton.styleFrom(foregroundColor: AppColors.alert),
-            child: const Text('Confirmar y Activar'),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -720,7 +730,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_rounded, size: 14, color: AppColors.primary),
+          Icon(Icons.check_circle_rounded, size: 14, color: context.gm.brand),
           const SizedBox(width: 6),
           Expanded(
             child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
@@ -745,18 +755,18 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Por motivos de seguridad, ingresa la contraseña de tu cuenta para confirmar la desactivación:',
-                style: TextStyle(fontSize: 13, color: AppColors.textBody),
+                style: TextStyle(fontSize: 13, color: context.gm.ink),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Contraseña de la cuenta',
                   hintText: 'Ingresa tu contraseña',
-                  prefixIcon: Icon(Icons.lock_rounded, color: AppColors.primary),
+                  prefixIcon: Icon(Icons.lock_rounded, color: context.gm.brand),
                 ),
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Ingresa tu contraseña';
@@ -766,10 +776,10 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
               const SizedBox(height: 10),
               TextFormField(
                 controller: twoFactorController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Código 2FA (si está activo)',
                   hintText: 'TOTP o de respaldo',
-                  prefixIcon: Icon(Icons.pin_outlined, color: AppColors.primary),
+                  prefixIcon: Icon(Icons.pin_outlined, color: context.gm.brand),
                 ),
               ),
             ],
@@ -796,7 +806,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                 }
               }
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.alert),
+            style: TextButton.styleFrom(foregroundColor: context.gm.danger),
             child: const Text('Desactivar'),
           ),
         ],
@@ -813,16 +823,14 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
     final isProtectedMode = device.mode == DeviceMode.protected;
     final canWipe = isProtectedMode && device.adminEnabled && device.wipeEnabled && !isWiped;
     final isEn = ref.watch(languageProvider) == AppLanguage.en;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceMd),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A1515) : AppColors.alertContainer.withValues(alpha: 0.4),
+        color: context.gm.dangerSoft.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(AppRadii.xl),
         border: Border.all(
-          color: isDark ? const Color(0xFFEF4444) : AppColors.alert.withValues(alpha: 0.4),
+          color: context.gm.danger.withValues(alpha: 0.4),
           width: 1.5,
         ),
       ),
@@ -831,7 +839,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
         children: [
           Row(
             children: [
-              Icon(Icons.delete_forever_rounded, color: isDark ? const Color(0xFFFCA5A5) : AppColors.alert, size: 24),
+              Icon(Icons.delete_forever_rounded, color: context.gm.danger, size: 24),
               const SizedBox(width: AppSpacing.spaceSm),
               Expanded(
                 child: Text(
@@ -839,7 +847,7 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFFCA5A5) : AppColors.alertText,
+                    color: context.gm.dangerInk,
                   ),
                 ),
               ),
@@ -856,21 +864,21 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
                 : (isEn
                     ? 'If the device is in unauthorized hands and contains critical data, proceed to remote wipe.'
                     : 'Si el dispositivo está en manos no autorizadas y contiene credenciales corporativas o personales críticas, procede a la destrucción remota.'),
-            style: const TextStyle(fontSize: 12, color: AppColors.alertText, height: 1.35),
+            style: TextStyle(fontSize: 12, color: context.gm.dangerInk, height: 1.35),
           ),
           const SizedBox(height: AppSpacing.spaceMd),
           if (isWiped)
             Container(
               padding: const EdgeInsets.all(AppSpacing.spaceSm),
               decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLow,
+                color: context.gm.surfaceSunken,
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
               child: Text(
                 isEn
                     ? 'The device no longer responds to commands or tracking.'
                     : 'El dispositivo ya no responde a órdenes ni puede ser localizado.',
-                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 12, color: context.gm.inkMuted),
                 textAlign: TextAlign.center,
               ),
             )
@@ -878,19 +886,19 @@ class _TheftModePageState extends ConsumerState<TheftModePage> {
             Container(
               padding: const EdgeInsets.all(AppSpacing.spaceSm),
               decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLow,
+                color: context.gm.surfaceSunken,
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.alert),
+                  Icon(Icons.info_outline_rounded, size: 16, color: context.gm.danger),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       isEn
                           ? 'The device does not have Device Administrator permissions for remote wipe.'
                           : 'El dispositivo no tiene permisos de Administrador de Dispositivos para borrado remoto.',
-                      style: const TextStyle(fontSize: 11, color: AppColors.alertText),
+                      style: TextStyle(fontSize: 11, color: context.gm.dangerInk),
                     ),
                   ),
                 ],

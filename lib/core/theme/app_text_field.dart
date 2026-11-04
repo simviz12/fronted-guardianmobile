@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
 import 'app_spacing.dart';
+import '../../core/theme/guardian_theme.dart';
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -30,10 +30,9 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headingColor = isDark ? const Color(0xFFF8FAFC) : AppColors.textHeadings;
-    final fillColor = isDark ? const Color(0xFF0F172A) : AppColors.surfaceContainerLow;
-    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppColors.textMuted;
+    final headingColor = context.gm.ink;
+    final fillColor = context.gm.surfaceSunken;
+    final mutedColor = context.gm.inkMuted;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,15 +86,15 @@ class AppTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.md),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: BorderSide(color: context.gm.brand, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.md),
-              borderSide: const BorderSide(color: AppColors.alert, width: 1.5),
+              borderSide: BorderSide(color: context.gm.danger, width: 1.5),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadii.md),
-              borderSide: const BorderSide(color: AppColors.alert, width: 2),
+              borderSide: BorderSide(color: context.gm.danger, width: 2),
             ),
           ),
         ),

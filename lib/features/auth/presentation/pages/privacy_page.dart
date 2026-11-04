@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class PrivacyPage extends StatelessWidget {
   const PrivacyPage({super.key});
@@ -9,7 +9,7 @@ class PrivacyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       appBar: AppBar(
         title: const Text('Privacidad y Seguridad'),
         backgroundColor: Colors.transparent,
@@ -23,14 +23,14 @@ class PrivacyPage extends StatelessWidget {
               child: Container(
                 width: 64,
                 height: 64,
-                decoration: const BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
+                decoration: BoxDecoration(
+                  color: context.gm.surfaceSunken,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.privacy_tip_outlined,
                   size: 32,
-                  color: AppColors.primary,
+                  color: context.gm.brand,
                 ),
               ),
             ),
@@ -40,21 +40,21 @@ class PrivacyPage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textHeadings,
+                    color: context.gm.ink,
                   ),
             ),
             const SizedBox(height: AppSpacing.spaceSm),
-            const Text(
+            Text(
               'Guardian Mobile protege tu dispositivo minimizando la recolección de datos y aplicando cifrado en tránsito y en reposo.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textBody,
+                color: context.gm.ink,
                 height: 1.4,
               ),
             ),
             const SizedBox(height: AppSpacing.spaceLg),
-            _buildSection(
+            _buildSection(context, 
               title: '¿Qué datos recolectamos?',
               items: [
                 'Ubicación geográfica: Solo se reporta cuando el reporte periódico está activo, cuando solicitas localizar el equipo bajo demanda, o cuando el Modo Robo está encendido.',
@@ -63,7 +63,7 @@ class PrivacyPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.spaceMd),
-            _buildSection(
+            _buildSection(context, 
               title: '¿Qué NO recolectamos?',
               items: [
                 'No leemos mensajes de texto, chats, contactos o correos personales.',
@@ -72,7 +72,7 @@ class PrivacyPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.spaceMd),
-            _buildSection(
+            _buildSection(context, 
               title: 'Cifrado y Seguridad de Acceso',
               items: [
                 'Todas las comunicaciones API y sockets usan cifrado TLS/HTTPS.',
@@ -86,17 +86,17 @@ class PrivacyPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSection({required String title, required List<String> items}) {
+  Widget _buildSection(BuildContext context, {required String title, required List<String> items}) {
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: AppColors.textHeadings,
+              color: context.gm.ink,
             ),
           ),
           const SizedBox(height: AppSpacing.spaceSm),
@@ -106,10 +106,10 @@ class PrivacyPage extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '• ',
                     style: TextStyle(
-                      color: AppColors.primary,
+                      color: context.gm.brand,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -117,9 +117,9 @@ class PrivacyPage extends StatelessWidget {
                   Expanded(
                     child: Text(
                       item,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textBody,
+                        color: context.gm.ink,
                         height: 1.35,
                       ),
                     ),

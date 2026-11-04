@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
+import '../../../../core/motion/guardian_motion.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/localization/language_provider.dart';
+import '../../../../core/theme/guardian_theme.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -20,6 +21,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  final _shakeKey = GlobalKey<ShakeState>();
 
   @override
   void dispose() {
@@ -29,7 +31,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _submitLogin() async {
-    if (_formKey.currentState?.validate() ?? false) {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      _shakeKey.currentState?.shake();
+      return;
+    }
+    {
       final result = await ref.read(authNotifierProvider.notifier).login(
             email: _emailController.text.trim(),
             password: _passwordController.text,
@@ -45,9 +51,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final isEn = ref.watch(languageProvider) == AppLanguage.en;
     final authState = ref.watch(authNotifierProvider);
+    // Wrong credentials etc.: shake the form (design-system motion).
+    ref.listen(authNotifierProvider.select((s) => s.errorMessage), (prev, next) {
+      if (next != null && next != prev) _shakeKey.currentState?.shake();
+    });
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.gm.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -64,7 +74,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   icon: const Icon(Icons.language_rounded, size: 16),
                   label: Text(isEn ? 'ES' : 'EN'),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
+                    foregroundColor: context.gm.brand,
                     textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ),
@@ -76,7 +86,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 _buildErrorBanner(authState.errorMessage!),
                 const SizedBox(height: AppSpacing.spaceMd),
               ],
-              _buildFormCard(authState.isLoading, isEn),
+              Shake(key: _shakeKey, child: _buildFormCard(authState.isLoading, isEn)),
               const SizedBox(height: AppSpacing.spaceMd),
               _buildProtectionBadge(isEn),
               const SizedBox(height: AppSpacing.spaceLg),
@@ -98,21 +108,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: const Color(0xFF82F9C2).withValues(alpha: 0.35),
+                color: context.gm.brandSoft,
                 shape: BoxShape.circle,
               ),
             ),
             Container(
               width: 60,
               height: 60,
-              decoration: const BoxDecoration(
-                color: AppColors.surfaceContainerLow,
+              decoration: BoxDecoration(
+                color: context.gm.surfaceSunken,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.lock_rounded,
                 size: 30,
-                color: AppColors.primary,
+                color: context.gm.brand,
               ),
             ),
           ],
@@ -127,11 +137,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         const SizedBox(height: AppSpacing.spaceXs),
         Text(
-          isEn ? 'Enter your credentials to manage and track your protected devices' : 'Ingresa tus credenciales para gestionar y localizar tus dispositivos protegidos',
+          isEn
+              ? 'Enter your credentials to manage and track your protected devices'
+              : 'Ingresa tus credenciales para gestionar y localizar tus dispositivos protegidos',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,
-            color: AppColors.textBody,
+            color: context.gm.ink,
             height: 1.4,
           ),
         ),
@@ -143,26 +155,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spaceMd),
       decoration: BoxDecoration(
-        color: AppColors.alertContainer,
+        color: context.gm.dangerSoft,
         borderRadius: BorderRadius.circular(AppRadii.md),
         border: Border.all(
-          color: AppColors.alert.withValues(alpha: 0.3),
+          color: context.gm.danger.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline_rounded,
-            color: AppColors.alertText,
+            color: context.gm.dangerInk,
             size: 20,
           ),
           const SizedBox(width: AppSpacing.spaceSm),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: AppColors.alertText,
+              style: TextStyle(
+                color: context.gm.dangerInk,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -208,11 +220,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               onFieldSubmitted: (_) => _submitLogin(),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
+                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                   size: 20,
-                  color: AppColors.textMuted,
+                  color: context.gm.inkMuted,
                 ),
                 onPressed: () {
                   setState(() {
@@ -242,7 +252,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   isEn ? "Don't have an account? " : '¿No tienes una cuenta? ',
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textBody,
+                    color: context.gm.ink,
                   ),
                 ),
                 GestureDetector(
@@ -255,7 +265,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: context.gm.brand,
                     ),
                   ),
                 ),
@@ -272,15 +282,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLow,
+          color: context.gm.surfaceSunken,
           borderRadius: BorderRadius.circular(AppRadii.full),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.shield_rounded,
-              color: AppColors.primary,
+              color: context.gm.brand,
               size: 16,
             ),
             const SizedBox(width: 6),
@@ -289,7 +299,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textHeadings,
+                color: context.gm.ink,
               ),
             ),
           ],
@@ -302,9 +312,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Center(
       child: Text(
         isEn ? 'Protected with end-to-end AES-256 encryption' : 'Protegido con cifrado punto a punto AES-256',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
-          color: AppColors.textMuted,
+          color: context.gm.inkMuted,
         ),
       ),
     );
