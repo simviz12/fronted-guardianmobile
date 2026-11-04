@@ -191,7 +191,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
 
       // Trigger hardware locally if targeting this device (only once!)
       final thisPhone = _ref.read(devicesNotifierProvider).thisPhoneDevice;
-      if (thisPhone == null || thisPhone.id == deviceId) {
+      if (thisPhone != null && thisPhone.id == deviceId) {
         _executeLocalCommandOnce(
           type: 'RING',
           commandId: command.id,
@@ -234,7 +234,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
 
       // Trigger hardware locally if targeting this device (only once!)
       final thisPhone = _ref.read(devicesNotifierProvider).thisPhoneDevice;
-      if (thisPhone == null || thisPhone.id == deviceId) {
+      if (thisPhone != null && thisPhone.id == deviceId) {
         _executeLocalCommandOnce(
           type: 'VIBRATE',
           commandId: command.id,
@@ -283,7 +283,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
 
       // Trigger hardware locally if targeting this device (only once!)
       final thisPhone = _ref.read(devicesNotifierProvider).thisPhoneDevice;
-      if (thisPhone == null || thisPhone.id == deviceId) {
+      if (thisPhone != null && thisPhone.id == deviceId) {
         _executeLocalCommandOnce(
           type: 'MESSAGE',
           commandId: command.id,
@@ -323,7 +323,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
 
       // Trigger hardware locally if targeting this device (only once!)
       final thisPhone = _ref.read(devicesNotifierProvider).thisPhoneDevice;
-      if (thisPhone == null || thisPhone.id == deviceId) {
+      if (thisPhone != null && thisPhone.id == deviceId) {
         _executeLocalCommandOnce(
           type: 'LOCK',
           commandId: command.id,
@@ -386,6 +386,10 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
       msg = 'Este dispositivo aún no puede recibir órdenes (sin token FCM registrado).';
     } else if (str.contains('NetworkFailure')) {
       msg = 'No hay conexión con el servidor.';
+    } else if (str.contains('TimeoutFailure')) {
+      msg = 'El servidor tardó demasiado en responder. Intenta de nuevo.';
+    } else if (str.contains('TOO_MANY_REQUESTS')) {
+      msg = 'Demasiadas órdenes seguidas. Espera un momento.';
     } else if (str.contains('DEVICE_NOT_FOUND')) {
       msg = 'Dispositivo no encontrado.';
     }
@@ -397,6 +401,7 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
   }
 
   void _startPolling(String commandId) {
+    _pollingTimer?.cancel();
     _pollAttempts = 0;
     // Poll every 3 seconds to deliver fast feedback if realtime WebSocket is delayed
     const interval = Duration(seconds: 3);
@@ -419,9 +424,19 @@ class CommandNotifier extends StateNotifier<CommandExecutionState> {
         return;
       }
 
+      // Ignore ticks for a command that is no longer the active one.
+      if (!mounted || state.activeCommand?.id != commandId) {
+        timer.cancel();
+        return;
+      }
+
       try {
         final getUseCase = _ref.read(getCommandUseCaseProvider);
         final latest = await getUseCase(commandId);
+
+        // The notifier may have been disposed or a new command started while
+        // the request was in flight; never overwrite the newer state.
+        if (!mounted || state.activeCommand?.id != commandId) return;
 
         final isDeliveredOrExecuted = latest.status == CommandStatus.executed || latest.status == CommandStatus.delivered;
         state = state.copyWith(activeCommand: latest, clearError: isDeliveredOrExecuted);

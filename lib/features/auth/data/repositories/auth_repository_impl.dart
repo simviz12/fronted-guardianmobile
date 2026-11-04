@@ -1,4 +1,6 @@
+import '../../../../core/error/failures.dart';
 import '../../../../core/network/token_storage.dart';
+import '../../../../core/storage/user_cache.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
@@ -29,7 +31,9 @@ class AuthRepositoryImpl implements AuthRepository {
       refreshToken: responseDto.refreshToken,
     );
 
-    return responseDto.toEntity();
+    final session = responseDto.toEntity();
+    await UserCache.save(session.user);
+    return session;
   }
 
   @override
@@ -47,7 +51,9 @@ class AuthRepositoryImpl implements AuthRepository {
       refreshToken: responseDto.refreshToken,
     );
 
-    return responseDto.toEntity();
+    final session = responseDto.toEntity();
+    await UserCache.save(session.user);
+    return session;
   }
 
   @override
@@ -61,12 +67,15 @@ class AuthRepositoryImpl implements AuthRepository {
       }
     }
     await tokenStorage.clearTokens();
+    await UserCache.clear();
   }
 
   @override
   Future<User> getCurrentUser() async {
     final userDto = await remoteDataSource.getMe();
-    return userDto.toEntity();
+    final user = userDto.toEntity();
+    await UserCache.save(user);
+    return user;
   }
 
   @override
@@ -80,10 +89,24 @@ class AuthRepositoryImpl implements AuthRepository {
 
     try {
       final userDto = await remoteDataSource.getMe();
-      return userDto.toEntity();
-    } catch (_) {
-      // If session is completely invalid, clear storage
-      await tokenStorage.clearTokens();
+      final user = userDto.toEntity();
+      await UserCache.save(user);
+      return user;
+    } catch (e) {
+      // Only a definitive auth rejection invalidates the stored session.
+      // (The interceptor already tried to refresh before this point.)
+      final isAuthRejection = e is ServerFailure &&
+          (e.statusCode == 401 || e.statusCode == 403);
+      if (isAuthRejection) {
+        await tokenStorage.clearTokens();
+        await UserCache.clear();
+        return null;
+      }
+
+      // Offline, timeout or Render cold start: keep the tokens and open the
+      // app with the last known profile; requests recover once online.
+      final cached = await UserCache.read();
+      if (cached != null) return cached;
       return null;
     }
   }

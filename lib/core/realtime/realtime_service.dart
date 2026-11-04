@@ -31,7 +31,10 @@ class IORealtimeSocketWrapper implements RealtimeSocket {
   void connect() => _socket.connect();
 
   @override
-  void disconnect() => _socket.disconnect();
+  void disconnect() {
+    _socket.disconnect();
+    _socket.dispose();
+  }
 
   @override
   void on(String event, Function(dynamic) handler) => _socket.on(event, handler);
@@ -47,6 +50,13 @@ class RealtimeService {
   final TokenStorage _tokenStorage;
   final String Function() _getBaseUrl;
 
+  /// Obtains a fresh access token (e.g. by performing an authenticated
+  /// request that lets the HTTP interceptor rotate the session).
+  final Future<String?> Function()? _refreshAccessToken;
+
+  /// Socket injected by tests; reused on every connect().
+  final RealtimeSocket? _injectedSocket;
+
   RealtimeSocket? _socket;
   final _eventController = StreamController<RealtimeEvent>.broadcast();
   final _stateController = StreamController<RealtimeConnectionState>.broadcast();
@@ -57,20 +67,33 @@ class RealtimeService {
   Stream<RealtimeEvent> get events => _eventController.stream;
   Stream<RealtimeConnectionState> get connectionState => _stateController.stream;
 
+  bool _wantConnected = false;
+  bool _disposed = false;
+  int _authRetryCount = 0;
+  Timer? _authRetryTimer;
+  static const int _maxAuthRetries = 5;
+
   RealtimeService({
     required TokenStorage tokenStorage,
     String Function()? getBaseUrl,
     RealtimeSocket? mockSocket,
+    Future<String?> Function()? refreshAccessToken,
   })  : _tokenStorage = tokenStorage,
         _getBaseUrl = getBaseUrl ?? (() => ApiConfig.baseUrl),
+        _injectedSocket = mockSocket,
+        _refreshAccessToken = refreshAccessToken,
         _socket = mockSocket;
 
   void _setState(RealtimeConnectionState state) {
+    if (_disposed) return;
     _currentState = state;
     _stateController.add(state);
   }
 
   Future<void> connect({String? explicitToken}) async {
+    if (_disposed) return;
+    _wantConnected = true;
+
     final token = explicitToken ?? await _tokenStorage.getAccessToken();
     if (token == null || token.isEmpty) {
       debugPrint('[Realtime] Cannot connect: No token available');
@@ -83,34 +106,40 @@ class RealtimeService {
       return;
     }
 
-    // Ensure any previous or stale socket is torn down
-    if (_socket != null) {
+    // Tear down any previous or stale (non-injected) socket.
+    if (_socket != null && !identical(_socket, _injectedSocket)) {
       _socket?.disconnect();
       _socket = null;
     }
 
     _setState(RealtimeConnectionState.connecting);
 
-    final rawBaseUrl = _getBaseUrl();
-    final socketUrl = rawBaseUrl.endsWith('/')
-        ? '${rawBaseUrl}realtime'
-        : '$rawBaseUrl/realtime';
+    if (_injectedSocket != null) {
+      _socket = _injectedSocket;
+    } else {
+      final rawBaseUrl = _getBaseUrl();
+      final socketUrl = rawBaseUrl.endsWith('/')
+          ? '${rawBaseUrl}realtime'
+          : '$rawBaseUrl/realtime';
 
-    debugPrint('[Realtime] Connecting socket to: $socketUrl (transport: websocket)');
+      debugPrint('[Realtime] Connecting socket to: $socketUrl (transport: websocket)');
 
-    final socket = io.io(
-      socketUrl,
-      io.OptionBuilder()
-          .setTransports(['websocket'])
-          .setAuth({'token': token})
-          .enableAutoConnect()
-          .enableReconnection()
-          .setReconnectionDelay(1500)
-          .setReconnectionDelayMax(10000)
-          .setReconnectionAttempts(9999)
-          .build(),
-    );
-    _socket = IORealtimeSocketWrapper(socket);
+      final socket = io.io(
+        socketUrl,
+        io.OptionBuilder()
+            .setTransports(['websocket'])
+            .setAuth({'token': token})
+            .disableAutoConnect()
+            .enableForceNew()
+            .enableReconnection()
+            .setReconnectionDelay(1500)
+            .setReconnectionDelayMax(10000)
+            .setReconnectionAttempts(9999)
+            .setTimeout(60000)
+            .build(),
+      );
+      _socket = IORealtimeSocketWrapper(socket);
+    }
 
     _setupListeners();
     _socket?.connect();
@@ -122,12 +151,20 @@ class RealtimeService {
 
     s.on('connect', (_) {
       debugPrint('[Realtime] Socket connected successfully');
+      _authRetryCount = 0;
       _setState(RealtimeConnectionState.connected);
     });
 
     s.on('disconnect', (reason) {
       debugPrint('[Realtime] Socket disconnected. Reason: $reason');
       _setState(RealtimeConnectionState.disconnected);
+
+      // The server closes the socket itself ("io server disconnect") when the
+      // access token is expired/invalid. Socket.IO does NOT auto-reconnect in
+      // that case, so refresh the session and reconnect with a new token.
+      if (reason == 'io server disconnect' && _wantConnected) {
+        _scheduleReauthenticate();
+      }
     });
 
     s.on('connect_error', (error) {
@@ -140,75 +177,73 @@ class RealtimeService {
       _setState(RealtimeConnectionState.reconnecting);
     });
 
-    // 1. device.status
-    s.on('device.status', (data) {
-      debugPrint('[Realtime] Received device.status: $data');
-      if (data is Map<String, dynamic>) {
-        try {
-          _eventController.add(DeviceStatusEvent.fromJson(data));
-        } catch (e) {
-          debugPrint('[Realtime] Error parsing device.status: $e');
+    void handle(String name, RealtimeEvent Function(Map<String, dynamic>) parse) {
+      s.on(name, (data) {
+        if (kDebugMode) debugPrint('[Realtime] Received $name: $data');
+        if (data is Map) {
+          try {
+            _eventController.add(parse(Map<String, dynamic>.from(data)));
+          } catch (e) {
+            debugPrint('[Realtime] Error parsing $name: $e');
+          }
         }
-      }
-    });
+      });
+    }
 
-    // 2. device.linked
-    s.on('device.linked', (data) {
-      debugPrint('[Realtime] Received device.linked: $data');
-      if (data is Map<String, dynamic>) {
-        try {
-          _eventController.add(DeviceLinkedEvent.fromJson(data));
-        } catch (e) {
-          debugPrint('[Realtime] Error parsing device.linked: $e');
-        }
-      }
-    });
+    handle('device.status', DeviceStatusEvent.fromJson);
+    handle('device.linked', DeviceLinkedEvent.fromJson);
+    handle('device.unlinked', DeviceUnlinkedEvent.fromJson);
+    handle('command.updated', CommandUpdatedEvent.fromJson);
+    handle('location.updated', LocationUpdatedEvent.fromJson);
+  }
 
-    // 3. device.unlinked
-    s.on('device.unlinked', (data) {
-      debugPrint('[Realtime] Received device.unlinked: $data');
-      if (data is Map<String, dynamic>) {
-        try {
-          _eventController.add(DeviceUnlinkedEvent.fromJson(data));
-        } catch (e) {
-          debugPrint('[Realtime] Error parsing device.unlinked: $e');
-        }
+  void _scheduleReauthenticate() {
+    if (_authRetryCount >= _maxAuthRetries || _disposed) {
+      debugPrint('[Realtime] Giving up re-authentication after $_authRetryCount attempts');
+      return;
+    }
+    _authRetryTimer?.cancel();
+    final delay = Duration(seconds: 2 * (_authRetryCount + 1));
+    _authRetryCount++;
+    _authRetryTimer = Timer(delay, () async {
+      if (!_wantConnected || _disposed) return;
+      String? freshToken;
+      try {
+        freshToken = await _refreshAccessToken?.call();
+      } catch (e) {
+        debugPrint('[Realtime] Token refresh before reconnect failed: $e');
       }
+      _releaseSocket();
+      await connect(explicitToken: freshToken);
     });
+  }
 
-    // 4. command.updated
-    s.on('command.updated', (data) {
-      debugPrint('[Realtime] Received command.updated: $data');
-      if (data is Map<String, dynamic>) {
-        try {
-          _eventController.add(CommandUpdatedEvent.fromJson(data));
-        } catch (e) {
-          debugPrint('[Realtime] Error parsing command.updated: $e');
-        }
-      }
-    });
-
-    // 5. location.updated
-    s.on('location.updated', (data) {
-      debugPrint('[Realtime] Received location.updated: $data');
-      if (data is Map<String, dynamic>) {
-        try {
-          _eventController.add(LocationUpdatedEvent.fromJson(data));
-        } catch (e) {
-          debugPrint('[Realtime] Error parsing location.updated: $e');
-        }
-      }
-    });
+  void _releaseSocket() {
+    if (_socket != null && !identical(_socket, _injectedSocket)) {
+      _socket?.disconnect();
+    }
+    _socket = _injectedSocket;
   }
 
   void updateToken(String newToken) {
     debugPrint('[Realtime] Re-authenticating socket with new token');
-    disconnect();
+    _releaseSocket();
     connect(explicitToken: newToken);
+  }
+
+  /// Reconnects if the socket dropped while the app was in background.
+  void ensureConnected() {
+    if (!_wantConnected || _disposed) return;
+    if (_socket == null || !_socket!.connected) {
+      _authRetryCount = 0;
+      connect();
+    }
   }
 
   void disconnect() {
     debugPrint('[Realtime] Disconnecting socket');
+    _wantConnected = false;
+    _authRetryTimer?.cancel();
     _socket?.disconnect();
     _socket = null;
     _setState(RealtimeConnectionState.disconnected);
@@ -216,6 +251,7 @@ class RealtimeService {
 
   void dispose() {
     disconnect();
+    _disposed = true;
     _eventController.close();
     _stateController.close();
   }
@@ -223,7 +259,16 @@ class RealtimeService {
 
 final realtimeServiceProvider = Provider<RealtimeService>((ref) {
   final storage = ref.watch(tokenStorageProvider);
-  final service = RealtimeService(tokenStorage: storage);
+  final service = RealtimeService(
+    tokenStorage: storage,
+    refreshAccessToken: () async {
+      // Any authenticated call lets AuthInterceptor rotate an expired token.
+      try {
+        await ref.read(authenticatedDioClientProvider).dio.get<dynamic>('/auth/me');
+      } catch (_) {}
+      return storage.getAccessToken();
+    },
+  );
 
   // Auto-connect if already authenticated
   if (ref.read(authNotifierProvider).status == AuthStatus.authenticated) {

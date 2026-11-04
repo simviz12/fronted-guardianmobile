@@ -6,12 +6,17 @@ import 'package:guardian_mobile/features/commands/domain/repositories/command_re
 import 'package:guardian_mobile/features/commands/presentation/pages/device_detail_page.dart';
 import 'package:guardian_mobile/features/commands/presentation/providers/command_provider.dart';
 import 'package:guardian_mobile/features/devices/domain/entities/device.dart';
+import 'package:guardian_mobile/features/devices/domain/repositories/device_repository.dart';
+import 'package:guardian_mobile/features/devices/presentation/providers/devices_provider.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockCommandRepository extends Mock implements CommandRepository {}
 
+class MockDeviceRepository extends Mock implements DeviceRepository {}
+
 void main() {
   late MockCommandRepository mockCommandRepository;
+  late MockDeviceRepository mockDeviceRepository;
 
   final protectedDevice = Device(
     id: 'dev-1',
@@ -43,12 +48,19 @@ void main() {
 
   setUp(() {
     mockCommandRepository = MockCommandRepository();
+    // The command notifier reads the devices list; keep it off the network.
+    mockDeviceRepository = MockDeviceRepository();
+    when(() => mockDeviceRepository.listDevices())
+        .thenAnswer((_) async => [protectedDevice, controllerDevice]);
+    when(() => mockDeviceRepository.getThisPhoneDeviceId())
+        .thenAnswer((_) async => null);
   });
 
   Widget buildWidget(Device device) {
     return ProviderScope(
       overrides: [
         commandRepositoryProvider.overrideWithValue(mockCommandRepository),
+        deviceRepositoryProvider.overrideWithValue(mockDeviceRepository),
       ],
       child: MaterialApp(
         home: DeviceDetailPage(device: device),

@@ -51,6 +51,17 @@ class MainActivity : FlutterActivity() {
                 "executeLocalCommand" -> {
                     val type = call.argument<String>("type") ?: ""
                     val commandId = call.argument<String>("commandId") ?: ""
+                    // Report the real lifecycle to the backend (device-token auth) so the
+                    // owner sees DELIVERED/EXECUTED/FAILED instead of a simulated result.
+                    // RING and MESSAGE report EXECUTED from RingService/MessageActivity.
+                    val ack: (String, String?) -> Unit = { status, reason ->
+                        if (commandId.isNotEmpty()) {
+                            CommandAckClient.sendAck(applicationContext, commandId, status, reason)
+                        }
+                    }
+                    if (type.uppercase() in setOf("LOCK", "VIBRATE", "RING", "MESSAGE")) {
+                        ack("DELIVERED", null)
+                    }
                     when (type.uppercase()) {
                         "LOCK" -> {
                             try {
@@ -58,11 +69,14 @@ class MainActivity : FlutterActivity() {
                                 val comp = ComponentName(applicationContext, GuardianDeviceAdminReceiver::class.java)
                                 if (dpm != null && dpm.isAdminActive(comp)) {
                                     dpm.lockNow()
+                                    ack("EXECUTED", null)
                                     result.success(true)
                                 } else {
+                                    ack("FAILED", "DEVICE_ADMIN_NOT_ACTIVE")
                                     result.error("ADMIN_NOT_ACTIVE", "Permiso de Administrador no activo para bloquear", null)
                                 }
                             } catch (e: Exception) {
+                                ack("FAILED", "LOCK_ERROR")
                                 result.error("LOCK_ERROR", e.message, null)
                             }
                         }
@@ -85,11 +99,14 @@ class MainActivity : FlutterActivity() {
                                         @Suppress("DEPRECATION")
                                         vibrator.vibrate(pattern, -1)
                                     }
+                                    ack("EXECUTED", null)
                                     result.success(true)
                                 } else {
+                                    ack("FAILED", "NO_VIBRATOR")
                                     result.error("NO_VIBRATOR", "Hardware de vibración no disponible", null)
                                 }
                             } catch (e: Exception) {
+                                ack("FAILED", "VIBRATE_ERROR")
                                 result.error("VIBRATE_ERROR", e.message, null)
                             }
                         }
@@ -108,6 +125,7 @@ class MainActivity : FlutterActivity() {
                                 }
                                 result.success(true)
                             } catch (e: Exception) {
+                                ack("FAILED", "RING_ERROR")
                                 result.error("RING_ERROR", e.message, null)
                             }
                         }
@@ -124,6 +142,7 @@ class MainActivity : FlutterActivity() {
                                 startActivity(messageIntent)
                                 result.success(true)
                             } catch (e: Exception) {
+                                ack("FAILED", "MESSAGE_ERROR")
                                 result.error("MESSAGE_ERROR", e.message, null)
                             }
                         }

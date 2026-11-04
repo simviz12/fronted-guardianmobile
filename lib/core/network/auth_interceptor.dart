@@ -3,36 +3,53 @@ import 'package:dio/dio.dart';
 import '../config/api_config.dart';
 import 'token_storage.dart';
 
+/// Attaches the user access token and transparently rotates it on expiry.
+///
+/// Extends [QueuedInterceptor], so concurrent 401s are processed one at a
+/// time: the first one refreshes, the rest detect that the stored token
+/// already changed and simply retry with it (no duplicate refresh calls,
+/// which the backend would treat as refresh-token reuse).
 class AuthInterceptor extends QueuedInterceptor {
   final TokenStorage tokenStorage;
   final Dio dio;
   final void Function()? onSessionTerminated;
+  final Dio Function()? refreshDioFactory;
+
+  static const _retriedFlag = '__auth_retried';
+
+  static const _terminalRefreshCodes = {
+    'REFRESH_TOKEN_REUSED',
+    'REFRESH_TOKEN_EXPIRED',
+    'REFRESH_TOKEN_INVALID',
+    'UNAUTHORIZED',
+  };
 
   AuthInterceptor({
     required this.tokenStorage,
     required this.dio,
     this.onSessionTerminated,
+    this.refreshDioFactory,
   });
+
+  static bool _isPublicPath(String path) {
+    return path.contains('/auth/login') ||
+        path.contains('/auth/register') ||
+        path.contains('/auth/refresh') ||
+        path.contains('/auth/2fa/verify') ||
+        path.contains('/health');
+  }
 
   @override
   Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Avoid attaching header for public endpoints or refresh calls
-    final path = options.path;
-    final isPublic = path.contains('/auth/login') ||
-        path.contains('/auth/register') ||
-        path.contains('/auth/refresh') ||
-        path.contains('/health');
-
-    if (!isPublic) {
+    if (!_isPublicPath(options.path)) {
       final token = await tokenStorage.getAccessToken();
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
       }
     }
-
     return handler.next(options);
   }
 
@@ -42,17 +59,26 @@ class AuthInterceptor extends QueuedInterceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final response = err.response;
-    final statusCode = response?.statusCode;
+    final options = err.requestOptions;
 
-    // Check if error is 401 with ACCESS_TOKEN_EXPIRED
-    final isTokenExpired = statusCode == 401 && _isAccessTokenExpired(response?.data);
+    final isTokenExpired =
+        response?.statusCode == 401 && _errorCode(response?.data) == 'ACCESS_TOKEN_EXPIRED';
 
-    // If not token expiration, or request is already auth refresh, forward error
-    if (!isTokenExpired || err.requestOptions.path.contains('/auth/refresh')) {
+    if (!isTokenExpired ||
+        _isPublicPath(options.path) ||
+        options.extra[_retriedFlag] == true) {
       return handler.next(err);
     }
 
-    // Attempt token refresh
+    // Another queued request may already have refreshed the session.
+    final usedHeader = options.headers['Authorization'] as String?;
+    final storedAccess = await tokenStorage.getAccessToken();
+    if (storedAccess != null &&
+        storedAccess.isNotEmpty &&
+        usedHeader != 'Bearer $storedAccess') {
+      return _retry(options, storedAccess, handler, err);
+    }
+
     final refreshToken = await tokenStorage.getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
       await _handleSessionExpired();
@@ -60,67 +86,77 @@ class AuthInterceptor extends QueuedInterceptor {
     }
 
     try {
-      // Use dedicated unintercepted Dio instance to call /auth/refresh
-      final refreshDio = Dio(
-        BaseOptions(
-          baseUrl: ApiConfig.baseUrl,
-          connectTimeout: ApiConfig.connectTimeout,
-          receiveTimeout: ApiConfig.receiveTimeout,
-          headers: {'Accept': 'application/json'},
-        ),
-      );
+      final refreshDio = refreshDioFactory?.call() ??
+          Dio(
+            BaseOptions(
+              baseUrl: ApiConfig.baseUrl,
+              connectTimeout: ApiConfig.connectTimeout,
+              receiveTimeout: ApiConfig.receiveTimeout,
+              sendTimeout: ApiConfig.sendTimeout,
+              headers: {'Accept': 'application/json'},
+            ),
+          );
 
       final refreshResponse = await refreshDio.post<Map<String, dynamic>>(
         '/auth/refresh',
         data: {'refreshToken': refreshToken},
       );
 
-      if (refreshResponse.statusCode == 200 && refreshResponse.data != null) {
-        final data = refreshResponse.data!;
-        final newAccessToken = data['accessToken'] as String;
-        final newRefreshToken = data['refreshToken'] as String;
-
-        await tokenStorage.saveTokens(
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-        );
-
-        // Retry original request with new token
-        final requestOptions = err.requestOptions;
-        requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-
-        final retryResponse = await dio.fetch(requestOptions);
-        return handler.resolve(retryResponse);
-      } else {
-        await _handleSessionExpired();
+      final data = refreshResponse.data;
+      final newAccessToken = data?['accessToken'];
+      final newRefreshToken = data?['refreshToken'];
+      if (newAccessToken is! String || newRefreshToken is! String) {
+        // Malformed response: do not destroy the session on a server glitch.
         return handler.next(err);
       }
+
+      await tokenStorage.saveTokens(
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      );
+
+      await _retry(options, newAccessToken, handler, err);
+      return;
     } on DioException catch (refreshErr) {
-      final refreshData = refreshErr.response?.data;
-      if (refreshData is Map<String, dynamic> &&
-          refreshData['error'] is Map<String, dynamic>) {
-        final code = (refreshData['error'] as Map<String, dynamic>)['code'];
-        if (code == 'REFRESH_TOKEN_REUSED' ||
-            code == 'REFRESH_TOKEN_EXPIRED' ||
-            code == 'REFRESH_TOKEN_INVALID') {
-          await _handleSessionExpired();
-        }
-      } else {
+      final status = refreshErr.response?.statusCode;
+      final code = _errorCode(refreshErr.response?.data);
+
+      // Only a definitive auth rejection ends the session. Timeouts, offline
+      // mode or a sleeping Render instance must NOT log the user out.
+      if ((status == 401 || status == 403) &&
+          (code == null || _terminalRefreshCodes.contains(code))) {
         await _handleSessionExpired();
       }
       return handler.next(err);
     } catch (_) {
-      await _handleSessionExpired();
       return handler.next(err);
     }
   }
 
-  bool _isAccessTokenExpired(dynamic data) {
-    if (data is Map<String, dynamic> && data['error'] is Map<String, dynamic>) {
-      final code = (data['error'] as Map<String, dynamic>)['code'];
-      return code == 'ACCESS_TOKEN_EXPIRED';
+  Future<void> _retry(
+    RequestOptions options,
+    String accessToken,
+    ErrorInterceptorHandler handler,
+    DioException originalError,
+  ) async {
+    try {
+      options.headers['Authorization'] = 'Bearer $accessToken';
+      options.extra[_retriedFlag] = true;
+      final retryResponse = await dio.fetch<dynamic>(options);
+      return handler.resolve(retryResponse);
+    } on DioException catch (retryErr) {
+      return handler.next(retryErr);
+    } catch (_) {
+      return handler.next(originalError);
     }
-    return false;
+  }
+
+  String? _errorCode(dynamic data) {
+    if (data is Map && data['error'] is Map) {
+      final code = (data['error'] as Map)['code'];
+      return code is String ? code : null;
+    }
+    return null;
   }
 
   Future<void> _handleSessionExpired() async {

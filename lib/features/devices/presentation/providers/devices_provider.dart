@@ -165,6 +165,7 @@ class DevicesNotifier extends StateNotifier<DevicesDashboardState> {
 
       final devices = await listUseCase();
       final thisPhoneId = await getThisPhoneUseCase();
+      if (!mounted) return;
       final verifiedThisPhoneId = devices.any((d) => d.id == thisPhoneId) ? thisPhoneId : null;
 
       state = state.copyWith(
@@ -181,6 +182,7 @@ class DevicesNotifier extends StateNotifier<DevicesDashboardState> {
       } else if (str.contains('TimeoutFailure')) {
         msg = 'El servidor tardó demasiado en responder.';
       }
+      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         errorMessage: msg,

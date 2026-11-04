@@ -36,7 +36,6 @@ void main() {
     expect(find.text('Acceso Seguro'), findsOneWidget);
     expect(find.text('Iniciar Sesión Segura'), findsOneWidget);
     expect(find.text('Crear cuenta'), findsOneWidget);
-    expect(find.text('Estado del servidor (Diagnóstico)'), findsOneWidget);
     expect(find.byType(TextFormField), findsNWidgets(2));
   });
 

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/network/token_storage.dart';
+import '../../../../core/storage/user_cache.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user.dart';
@@ -193,7 +194,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         accessToken: authDto.accessToken,
         refreshToken: authDto.refreshToken,
       );
-      state = AuthState.authenticated(authDto.user.toEntity());
+      final user = authDto.user.toEntity();
+      await UserCache.save(user);
+      state = AuthState.authenticated(user);
       return true;
     } catch (e) {
       _mapFailureToError(e);
@@ -244,6 +247,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Update the local user state (e.g. after 2FA enable/disable)
   void updateUser(User user) {
     state = state.copyWith(user: user);
+    UserCache.save(user);
   }
 
   void clearError() {
