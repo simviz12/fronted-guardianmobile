@@ -2,6 +2,18 @@
 
 Sistema legítimo de seguridad, telemetría y protección antirrobo remota para Android, construido con Flutter, Riverpod y Clean Architecture.
 
+<p align="center">
+  <a href="https://github.com/simviz12/fronted-guardianmobile/releases/latest/download/GuardianMobile.apk">
+    <img src="https://img.shields.io/badge/Descargar%20APK-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Descargar APK" height="56">
+  </a>
+  <br>
+  <a href="https://github.com/simviz12/fronted-guardianmobile/releases/latest">
+    <img src="https://img.shields.io/github/v/release/simviz12/fronted-guardianmobile?label=versi%C3%B3n&style=flat-square" alt="Última versión">
+  </a>
+</p>
+
+<p align="center"><b>📲 Toca el botón verde para descargar la app.</b> Ábrela en tu Android y permite "instalar apps de origen desconocido".</p>
+
 ---
 
 ## 🏛️ Arquitectura del Sistema
