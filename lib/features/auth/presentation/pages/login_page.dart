@@ -5,6 +5,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../../../../core/motion/guardian_motion.dart';
+import '../../../../core/motion/login_success_overlay.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/localization/language_provider.dart';
 import '../../../../core/theme/guardian_theme.dart';
@@ -35,15 +36,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _shakeKey.currentState?.shake();
       return;
     }
-    {
-      final result = await ref.read(authNotifierProvider.notifier).login(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
-      if (result == null && mounted) {
-        // 2FA required: navigate to 2FA verification page
-        context.push('/2fa-login');
-      }
+    // Capture before awaiting: on success the router replaces this page.
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final container = ProviderScope.containerOf(context, listen: false);
+    final isEn = ref.read(languageProvider) == AppLanguage.en;
+
+    final result = await ref.read(authNotifierProvider.notifier).login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+    if (result == true) {
+      showLoginSuccess(overlay, name: container.read(authNotifierProvider).user?.displayName, isEn: isEn);
+    } else if (result == null && mounted) {
+      // 2FA required: navigate to 2FA verification page
+      context.push('/2fa-login');
     }
   }
 

@@ -5,6 +5,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_field.dart';
 import '../../../../core/theme/app_widgets.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/motion/login_success_overlay.dart';
 import '../../../../core/theme/guardian_theme.dart';
 
 class TwoFactorLoginPage extends ConsumerStatefulWidget {
@@ -27,9 +28,12 @@ class _TwoFactorLoginPageState extends ConsumerState<TwoFactorLoginPage> {
   Future<void> _submit() async {
     final code = _codeController.text.trim();
     if (code.isEmpty) return;
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final container = ProviderScope.containerOf(context, listen: false);
     final ok = await ref.read(authNotifierProvider.notifier).verifyTwoFactorLogin(code: code);
-    if (ok && mounted) {
-      context.go('/home');
+    if (ok) {
+      showLoginSuccess(overlay, name: container.read(authNotifierProvider).user?.displayName);
+      if (mounted) context.go('/home');
     }
   }
 
